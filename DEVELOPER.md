@@ -57,12 +57,12 @@ export INPUT_REPORT_PAGE=true
 
 # Environment variables for LivDoc regime functionality
 export INPUT_LIV_DOC_REPOSITORIES='[
-            {
-              "organization-name": "Organization Name",
-              "repository-name": "example-project",
-              "projects-title-filter": ["Project Title 1"]
-            }
-          ]'
+  {
+    "organization-name": "Organization Name",
+    "repository-name": "example-project",
+    "projects-title-filter": ["Project Title 1"]
+  }
+]'
 export INPUT_LIV_DOC_PROJECT_STATE_MINING=true
 export INPUT_LIV_DOC_STRUCTURED_OUTPUT=true
 export INPUT_LIV_DOC_GROUP_OUTPUT_BY_TOPICS=true
@@ -87,12 +87,12 @@ export INPUT_REPORT_PAGE=true
 
 # Environment variables for LivDoc regime functionality
 export INPUT_LIV_DOC_REPOSITORIES='[
-            {
-              "organization-name": "Organization Name",
-              "repository-name": "example-project",
-              "projects-title-filter": ["Project Title 1"]
-            }
-          ]'
+  {
+    "organization-name": "Organization Name",
+    "repository-name": "example-project",
+    "projects-title-filter": ["Project Title 1"]
+  }
+]'
 export INPUT_LIV_DOC_PROJECT_STATE_MINING=true
 export INPUT_LIV_DOC_STRUCTURED_OUTPUT=true
 export INPUT_LIV_DOC_GROUP_OUTPUT_BY_TOPICS=true
@@ -127,17 +127,7 @@ We are aiming to keep our code quality high above the score 9.5.
 
 Follow these steps to run Pylint check locally:
 
-### Set Up Python Environment
-
-From terminal in the root of the project, run the following command:
-
-```shell
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-This command will also install a Pylint tool, since it is listed in the project requirements.
+- Perform the [setup of python venv](#set-up-python-environment).
 
 ### Run Pylint
 
@@ -177,17 +167,7 @@ We also do exclude the `tests/` file from the black formatting.
 
 Follow these steps to format your code with Black locally:
 
-### Set Up Python Environment
-
-From terminal in the root of the project, run the following command:
-
-```shell
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-This command will also install a Black tool, since it is listed in the project requirements.
+- Perform the [setup of python venv](#set-up-python-environment).
 
 ### Run Black
 
