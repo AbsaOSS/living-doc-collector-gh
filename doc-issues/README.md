@@ -1,22 +1,22 @@
-# Living Documentation Issues Regime
+# Living Documentation Issues Mode
 
-- [Regime De/Activation](#regime-deactivation)
+- [Mode De/Activation](#mode-deactivation)
 - [Usage](#usage)
-- [Regime Inputs](#regime-inputs)
+- [Mode Inputs](#mode-inputs)
 - [Expected Output](#expected-output)
 - [Documentation Ticket Introduction](#documentation-ticket-introduction)
   - [Labels](#labels)
   - [Hosting Documentation Tickets in a Solo Repository](#hosting-documentation-tickets-in-a-solo-repository)
-- [Living Documentation Issues Regime Features](#living-documentation-issues-regime-features)
+- [Living Documentation Issues Mode Features](#living-documentation-issues-mode-features)
   - [Issues Data Mining from GitHub Repositories](#issues-data-mining-from-github-repositories)
   - [Issues Data Mining from GitHub Projects](#issues-data-mining-from-github-projects)
 
-This regime is designed to data-mine GitHub repositories for [documentation tickets](#documentation-ticket-introduction) containing project documentation.
+This mode is designed to data-mine GitHub repositories for [documentation tickets](#documentation-ticket-introduction) containing project documentation.
 
-## Regime De/Activation
+## Mode De/Activation
 
 - **doc-issues**
-  - **Description**: Enables or disables the Living Documentation Issues regime.
+  - **Description**: Enables or disables the Living Documentation Issues mode.
   - **Usage**: Set to true to activate.
   - **Example**:
     ```yaml
@@ -38,7 +38,7 @@ This regime is designed to data-mine GitHub repositories for [documentation tick
 
 ## Usage
 
-See the default minimal Living Documentation Issues regime action step definition:
+See the default minimal Living Documentation Issues mode action step definition:
 
 ```yaml
 - name: Living Documentation Collect for Github
@@ -47,7 +47,7 @@ See the default minimal Living Documentation Issues regime action step definitio
   env:
     GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
-    doc-issues: true                   # living documentation issues regime de/activation  
+    doc-issues: true                   # living documentation issues mode de/activation  
     doc-issues-repositories: |
         [
           {
@@ -57,7 +57,7 @@ See the default minimal Living Documentation Issues regime action step definitio
         ]
 ```
 
-See the full example of Living Documentation Issues regime step definition (in example are used non-default values):
+See the full example of Living Documentation Issues mode step definition (in example are used non-default values):
 
 ```yaml
 - name: Living Documentation Collector for GitHub
@@ -66,7 +66,7 @@ See the full example of Living Documentation Issues regime step definition (in e
   env:
     GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
-    doc-issues: true                       # living documentation issues regime de/activation
+    doc-issues: true                       # living documentation issues mode de/activation
     verbose-logging: true                  # project verbose (debug) logging feature de/activation
 
     doc-issues-repositories: |
@@ -86,9 +86,9 @@ See the full example of Living Documentation Issues regime step definition (in e
 ```
 
 ---
-## Regime Inputs
+## Mode Inputs
 
-Configure the Living Documentation regime by customizing the following parameters:
+Configure the Living Documentation mode by customizing the following parameters:
 
 | Input Name                        | Description | Required | Default | Usage |
 |-----------------------------------|-------------|----------|---------|-------|
@@ -120,7 +120,7 @@ Configure the Living Documentation regime by customizing the following parameter
 
 The Living Documentation Collector for GitHub is designed to produce a collection of Consolidated Issues. Where **consolidated** means that the issues information is merged from the Repository Issues and from the Project Issues. 
 
-The regime produces the file `output/collected_gh_consolidated_issues.json` with the following structure:
+The mode produces the file `output/collected_gh_consolidated_issues.json` with the following structure:
 
 ```
 TODO 
@@ -166,11 +166,11 @@ Using a dedicated repository solely for documentation tickets provides multiple 
 
 ---
 
-## Living Documentation Issues Regime Features
+## Living Documentation Issues Mode Features
 
 ### Issues Data Mining from GitHub Repositories
 
-This is a build-in feature, that allows you to define which repositories should be included in the living documentation issues regime process. This essential process can not be deactivated inside of regime scope. By specifying repositories, you can focus on the most relevant projects for your documentation needs.
+This is a build-in feature, that allows you to define which repositories should be included in the living documentation issues mode process. This essential process can not be deactivated inside of mode scope. By specifying repositories, you can focus on the most relevant projects for your documentation needs.
 
 - **Activation**: This is a built-in feature, so it is always activated.
 - **Default Behavior**: By default, the action will include all repositories defined in the repositories input parameter. Each repository is defined with its organization name, and repository name.

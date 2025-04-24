@@ -1,15 +1,15 @@
-# Living Documentation Tests Regime
+# Living Documentation Tests Mode
 
-- [Regime De/Activation](#regime-deactivation)
+- [Mode De/Activation](#mode-deactivation)
 
-This regime is designed to data-mine GitHub repositories for information about workflows.
+This mode is designed to data-mine GitHub repositories for information about workflows.
 
-> Hint: This regime represents the idea only, no exact development details are available yet.
+> Hint: This mode represents the idea only, no exact development details are available yet.
 
-## Regime De/Activation
+## Mode De/Activation
 
 - **workflows**
-  - **Description**: Enables or disables the Living Documentation Workflows regime.
+  - **Description**: Enables or disables the Living Documentation Workflows mode.
   - **Usage**: Set to true to activate.
   - **Example**:
     ```yaml

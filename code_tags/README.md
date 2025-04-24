@@ -1,15 +1,15 @@
-# Living Documentation Code Tags Regime
+# Living Documentation Code Tags Mode
 
-- [Regime De/Activation](#regime-deactivation)
+- [Mode De/Activation](#mode-deactivation)
 
-This regime is designed to data-mine GitHub repositories for tags information. Tags are placed in source code. Tag represents the keyword to find in code and then mine metadata located next to the keyword.
+This mode is designed to data-mine GitHub repositories for tags information. Tags are placed in source code. Tag represents the keyword to find in code and then mine metadata located next to the keyword.
 Supported tags are:
 - `glossary`
 
-## Regime De/Activation
+## Mode De/Activation
 
 - **code-tags**
-  - **Description**: Enables or disables the Living Documentation Code Tags regime.
+  - **Description**: Enables or disables the Living Documentation Code Tags mode.
   - **Usage**: Set to true to activate.
   - **Example**:
     ```yaml

@@ -1,13 +1,13 @@
-# Living Documentation Release Notes Regime
+# Living Documentation Release Notes Mode
 
-- [Regime De/Activation](#regime-deactivation)
+- [Mode De/Activation](#mode-deactivation)
 
-This regime is designed to data-mine GitHub repositories for historical Release Notes information.
+This mode is designed to data-mine GitHub repositories for historical Release Notes information.
 
-## Regime De/Activation
+## Mode De/Activation
 
 - **release-notes**
-  - **Description**: Enables or disables the Living Documentation Release Notes regime.
+  - **Description**: Enables or disables the Living Documentation Release Notes mode.
   - **Usage**: Set to true to activate.
   - **Example**:
     ```yaml

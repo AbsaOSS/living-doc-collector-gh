@@ -1,7 +1,7 @@
 # Living Documentation Collector for GitHub
 
 - [Motivation](#motivation)
-- [Mining Regimes](#mining-regimes)
+- [Mining Modes](#mining-modes)
 - [Usage](#usage)
     - [Prerequisites](#prerequisites)
     - [Adding the Action to Your Workflow](#adding-the-action-to-your-workflow)
@@ -9,7 +9,7 @@
     - [Environment Variables](#environment-variables)
     - [Inputs](#inputs)
       - [Base Inputs](#base-inputs)
-      - [Regime Inputs](#regime-inputs)
+      - [Mode Inputs](#mode-inputs)
 - [Action Outputs](#action-outputs)
 - [How-to](#how-to)
   - [How to Create a Token with Required Scope](#how-to-create-a-token-with-required-scope)
@@ -23,16 +23,16 @@
 Addresses the need for continuously updated documentation accessible to all team members and stakeholders. Achieves this by extracting information directly from GitHub and providing it in a json format, which can be easily transformed into various documentation formats. This approach ensures that the documentation is always up-to-date and relevant, reducing the burden of manual updates and improving overall project transparency.
 
 ---
-## Mining Regimes
+## Mining Modes
 
-This Collector  supports multiple mining regimes, each with its own unique functionality. Read more about the regimes at their respective links:
-- [Documentation Issues](doc_issues/README.md)
-- [Tests](tests/README.md)
-- [Test Headers](test_headers/README.md)
-- [Code Tags](code_tags/README.md)
-- [Release Notes](release_notes/README.md)
-- [Workflows](workflows/README.md)
-- [User Guide](user_guide/README.md)
+This Collector  supports multiple mining modes, each with its own unique functionality. Read more about the modes at their respective links:
+- [Documentation Issues](doc_issues/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
+- [Tests](tests/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [Test Headers](test_headers/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [Code Tags](code_tags/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [Release Notes](release_notes/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [Workflows](workflows/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [User Guide](user_guide/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
 
 ---
 ## Usage
@@ -54,7 +54,7 @@ See the default action step definition:
   env:
     GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
-    # regimes de/activation
+    # modes de/activation
     doc-issues: false
     tests: false
     test-headers: false
@@ -64,15 +64,15 @@ See the default action step definition:
     user-guide: false
 ```
 
-See the default action step definitions for each regime:
+See the default action step definitions for each mode:
 
-- [Documentation Issues regime default step definition](doc_issues/README.md#adding-doc-issues-regime-to-the-workflow)
-- [Tests regime default step definition](tests/README.md#adding-tests-regime-to-the-workflow)
-- [Test Headers regime default step definition](test_headers/README.md#adding-test-headers-regime-to-the-workflow)
-- [Code Tags regime default step definition](code_tags/README.md#adding-code-tags-regime-to-the-workflow)
-- [Release Notes regime default step definition](release_notes/README.md#adding-release-notes-regime-to-the-workflow)
-- [Workflows regime default step definition](workflows/README.md#adding-workflows-regime-to-the-workflow)
-- [User Guide regime default step definition](user_guide/README.md#adding-user-guide-regime-to-the-workflow)
+- [Documentation Issues mode default step definition](doc_issues/README.md#adding-doc-issues-mode-to-the-workflow)
+- [Tests mode default step definition](tests/README.md#adding-tests-mode-to-the-workflow)
+- [Test Headers mode default step definition](test_headers/README.md#adding-test-headers-mode-to-the-workflow)
+- [Code Tags mode default step definition](code_tags/README.md#adding-code-tags-mode-to-the-workflow)
+- [Release Notes mode default step definition](release_notes/README.md#adding-release-notes-mode-to-the-workflow)
+- [Workflows mode default step definition](workflows/README.md#adding-workflows-mode-to-the-workflow)
+- [User Guide mode default step definition](user_guide/README.md#adding-user-guide-mode-to-the-workflow)
 
 #### Full Example of Action Step Definition
 
@@ -85,10 +85,10 @@ See the full example of action step definition (in example are used non-default 
   env:
     GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
-    doc-issues: true                       # Documentation Issues regime de/activation
+    doc-issues: true                       # Documentation Issues mode de/activation
     verbose-logging: true                  # Optional: project verbose (debug) logging feature de/activation
     
-    # 'Documentation Issues' regime required configuration
+    # 'Documentation Issues' mode required configuration
     doc-issues-repositories: |
         [
           {
@@ -103,14 +103,14 @@ See the full example of action step definition (in example are used non-default 
           }
         ]
       
-    # 'Documentation Issues' regime optional configuration
+    # 'Documentation Issues' mode optional configuration
     doc-issues-project-state-mining: true     # project state mining feature de/activation
 ```
 
 ---
 ## Action Configuration
 
-This section outlines the essential parameters that are common to all regimes a user can define. Configure the action by customizing the following parameters based on your needs:
+This section outlines the essential parameters that are common to all modes a user can define. Configure the action by customizing the following parameters based on your needs:
 
 ### Environment Variables
 
@@ -130,40 +130,40 @@ The way how to generate and store a token into the GitHub repository secrets is 
 
 #### Base Inputs
 
-These inputs are common to all regimes.
+These inputs are common to all modes.
 
 | Input Name        | Description                                        | Required | Default | Usage                     | 
 |-------------------|----------------------------------------------------|----------|---------|---------------------------|
-| `doc-issues`      | Enables or disables `Documentation Issues` regime. | No       | `false` | Set to true to activate.  |
-| `tests`           | Enables or disables `Tests` regime.                | No       | `false` | Set to true to activate.  |
-| `test-headers`    | Enables or disables `Test headers` regime.         | No       | `false` | Set to true to activate.  |
-| `code-tags`       | Enables or disables `Code tags` regime.            | No       | `false` | Set to true to activate.  |
-| `release-notes`   | Enables or disables `Release Notes` regime.        | No       | `false` | Set to true to activate.  |
-| `workflows`       | Enables or disables `Workflows` regime.            | No       | `false` | Set to true to activate.  |
-| `user-guide`      | Enables or disables `User guide` regime.           | No       | `false` | Set to true to activate.  |
+| `doc-issues`      | Enables or disables `Documentation Issues` mode. | No       | `false` | Set to true to activate.  |
+| `tests`           | Enables or disables `Tests` mode.                | No       | `false` | Set to true to activate.  |
+| `test-headers`    | Enables or disables `Test headers` mode.         | No       | `false` | Set to true to activate.  |
+| `code-tags`       | Enables or disables `Code tags` mode.            | No       | `false` | Set to true to activate.  |
+| `release-notes`   | Enables or disables `Release Notes` mode.        | No       | `false` | Set to true to activate.  |
+| `workflows`       | Enables or disables `Workflows` mode.            | No       | `false` | Set to true to activate.  |
+| `user-guide`      | Enables or disables `User guide` mode.           | No       | `false` | Set to true to activate.  |
 | `verbose-logging` | Enables or disables verbose (debug) logging.       | No       | `false` | Set to true to activate.  |
 
 
 ##### Example
 ```yaml
 with:
-  doc-issues: true          # Activation of Documentation Issues regime
-  test-headers: true        # Activation of Test Headers regime
+  doc-issues: true          # Activation of Documentation Issues mode
+  test-headers: true        # Activation of Test Headers mode
   
   verbose-logging: true     # Activation of verbose (debug) logging
 ```
 
-#### Regime Inputs
+#### Mode Inputs
 
-Regime-specific inputs and outputs are detailed in the respective regime's documentation:
+Mode-specific inputs and outputs are detailed in the respective mode's documentation:
 
-- [Documentation Issues regime specific inputs](doc_issues/README.md#regime-configuration)
-- [Tests regime specific inputs](tests/README.md#regime-configuration)
-- [Test Headers regime specific inputs](test_headers/README.md#regime-configuration)
-- [Code Tags regime specific inputs](code_tags/README.md#regime-configuration)
-- [Release Notes regime specific inputs](release_notes/README.md#regime-configuration)
-- [Workflows regime specific inputs](workflows/README.md#regime-configuration)
-- [User Guide regime specific inputs](user_guide/README.md#regime-configuration)
+- [Documentation Issues mode specific inputs](doc_issues/README.md#mode-configuration)
+- [Tests mode specific inputs](tests/README.md#mode-configuration)
+- [Test Headers mode specific inputs](test_headers/README.md#mode-configuration)
+- [Code Tags mode specific inputs](code_tags/README.md#mode-configuration)
+- [Release Notes mode specific inputs](release_notes/README.md#mode-configuration)
+- [Workflows mode specific inputs](workflows/README.md#mode-configuration)
+- [User Guide mode specific inputs](user_guide/README.md#mode-configuration)
     
 ---
 ## Action Outputs
@@ -183,7 +183,7 @@ This output can be utilized in various ways within your CI/CD pipeline to ensure
       run: echo "GitHub Collector root output path: ${{ steps.living_doc_collector_gh.outputs.output-path }}"            
     ```
 
-> Each regime generates its own output files, which are stored in the `output-path` directory with clear naming conventions.
+> Each mode generates its own output files, which are stored in the `output-path` directory with clear naming conventions.
 
 ---
 

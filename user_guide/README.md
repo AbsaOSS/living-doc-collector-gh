@@ -1,15 +1,15 @@
-# Living Documentation User Guide Regime
+# Living Documentation User Guide Mode
 
-- [Regime De/Activation](#regime-deactivation)
+- [Mode De/Activation](#mode-deactivation)
 
-This regime is designed to data-mine GitHub repositories for information about present Test's headers.
+This mode is designed to data-mine GitHub repositories for information about present Test's headers.
 
-> Hint: This regime represents the idea only, no exact development details are available yet.
+> Hint: This mode represents the idea only, no exact development details are available yet.
 
-## Regime De/Activation
+## Mode De/Activation
 
 - **test-headers**
-  - **Description**: Enables or disables the Living Documentation Test headers regime.
+  - **Description**: Enables or disables the Living Documentation Test headers mode.
   - **Usage**: Set to true to activate.
   - **Example**:
     ```yaml
