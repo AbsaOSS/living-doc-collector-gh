@@ -71,7 +71,7 @@ export INPUT_LIV_DOC_OUTPUT_FORMATS="mdoc"
 
 ### Running the script locally
 
-For running the GitHub action incorporate these commands into the shell script and save it.
+For running the GitHub action locally, incorporate these commands into the shell script and save it.
 ```
 python3 main.py
 ```
@@ -103,7 +103,7 @@ python3 main.py
 
 ### Make the Script Executable
 
-From the terminal that is in the root of this project, make the script executable:
+From the terminal, at the root of this project, make the script executable:
 ```shell
 chmod +x run_script.sh
 ```
@@ -117,10 +117,10 @@ chmod +x run_script.sh
 ---
 ## Run Pylint Check Locally
 
-This project uses [Pylint](https://pypi.org/project/pylint/) tool for static code analysis.
+This project uses the [Pylint](https://pypi.org/project/pylint/) tool for static code analysis.
 Pylint analyses your code without actually running it.
-It checks for errors, enforces, coding standards, looks for code smells etc.
-We do exclude the `tests/` file from the pylint check.
+It checks for errors, enforces coding standards, looks for code smells, etc.
+We do exclude the `tests/` file from the Pylint check.
 
 Pylint displays a global evaluation score for the code, rated out of a maximum score of 10.0.
 We are aiming to keep our code quality high above the score 9.5.
@@ -145,7 +145,7 @@ pylint living_documentation_regime/living_documentation_regime.py
 
 ### Expected Output
 
-This is the console expected output example after running the tool:
+This is an example of the expected console output after running the tool:
 ```
 ************* Module main
 main.py:30:0: C0116: Missing function or method docstring (missing-function-docstring)
@@ -161,9 +161,9 @@ This project uses the [Black](https://github.com/psf/black) tool for code format
 Black aims for consistency, generality, readability and reducing git diffs.
 The coding style used can be viewed as a strict subset of PEP 8.
 
-The project root file `pyproject.toml` defines the Black tool configuration.
-In this project we are accepting the line length of 120 characters.
-We also do exclude the `tests/` file from the black formatting.
+The root project file `pyproject.toml` defines the Black tool configuration.
+In this project we are accept a line length of 120 characters.
+We also exclude the `tests/` files from black formatting.
 
 Follow these steps to format your code with Black locally:
 
@@ -185,7 +185,7 @@ black living_documentation_regime/living_documentation_generator.py
 
 ### Expected Output
 
-This is the console expected output example after running the tool:
+This is an example of the expected console output after running the tool:
 ```
 All done! ✨ 🍰 ✨
 1 file reformatted.
@@ -222,7 +222,7 @@ Example:
 
 ### Expected Output
 
-This is the console expected output example after running the tool:
+This is an example of the expected console output after running the tool:
 ```
 Success: no issues found in 1 source file
 ```
@@ -232,14 +232,14 @@ Success: no issues found in 1 source file
 
 ## Run Unit Test
 
-Unit tests are written using Pytest framework. To run alle the tests, use the following command:
+Unit tests are written using the Pytest framework. To run all the tests, use the following command:
 ```shell
 pytest --ignore=tests/integration tests/
 ```
 
 You can modify the directory to control the level of detail or granularity as per your needs.
 
-To run specific test, write the command following the pattern below:
+To run a specific test, run the command following the pattern below:
 ```shell
 pytest tests/utils/test_utils.py::test_make_issue_key
 ```
@@ -247,8 +247,8 @@ pytest tests/utils/test_utils.py::test_make_issue_key
 ---
 ## Code Coverage
 
-This project uses [pytest-cov](https://pypi.org/project/pytest-cov/) plugin to generate test coverage reports.
-The objective of the project is to achieve a minimal score of 80 %. We do exclude the `tests/` file from the coverage report.
+This project uses the [pytest-cov](https://pypi.org/project/pytest-cov/) plugin to generate test coverage reports.
+The objective of the project is to achieve a minimum score of 80 %. We do exclude the `tests/` file from the coverage report.
 
 To generate the coverage report, run the following command:
 ```shell
@@ -268,5 +268,5 @@ This project uses GitHub Actions for deployment draft creation. The deployment p
 
 - **Trigger the workflow**: The `release_draft.yml` workflow is triggered on workflow_dispatch.
 - **Create a new draft release**: The workflow creates a new draft release in the repository.
-- **Finalize the release draft**: Edit the draft release to add a title, description, and any other necessary details related to GitHub Action.
-- **Publish the release**: Once the draft is ready, publish the release to make it available to the public.
+- **Finalize the release draft**: Edit the draft release to add a title, description, and any other necessary details related to the GitHub Action.
+- **Publish the release**: Once the draft is ready, publish the release to make it publicly available.

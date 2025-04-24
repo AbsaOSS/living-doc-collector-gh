@@ -1,7 +1,7 @@
 # Living Documentation Collector for GitHub
 
 - [Motivation](#motivation)
-- [Mining Modes](#mining-modes)
+- [Data-Mining Modes](#data-mining-modes)
 - [Usage](#usage)
     - [Prerequisites](#prerequisites)
     - [Adding the Action to Your Workflow](#adding-the-action-to-your-workflow)
@@ -23,9 +23,9 @@
 Addresses the need for continuously updated documentation accessible to all team members and stakeholders. Achieves this by extracting information directly from GitHub and providing it in a json format, which can be easily transformed into various documentation formats. This approach ensures that the documentation is always up-to-date and relevant, reducing the burden of manual updates and improving overall project transparency.
 
 ---
-## Mining Modes
+## Data-Mining Modes
 
-This Collector  supports multiple mining modes, each with its own unique functionality. Read more about the modes at their respective links:
+This Collector supports multiple mining modes, each with its own unique functionality. Read more about the modes at their respective links:
 - [Documentation Issues](doc_issues/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
 - [Tests](tests/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
 - [Test Headers](test_headers/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
@@ -39,8 +39,8 @@ This Collector  supports multiple mining modes, each with its own unique functio
 
 ### Prerequisites
 
-Before we begin, ensure you have a following prerequisites:
-- GitHub Token with permission to fetch repository data such as Issues and Pull Requests,
+Before we begin, ensure you have fulfilled the following prerequisites:
+- GitHub Token with permission to fetch repository data such as Issues and Pull Requests.
 - Python version 3.12 or higher.
 
 ### Adding the Action to Your Workflow
@@ -76,7 +76,7 @@ See the default action step definitions for each mode:
 
 #### Full Example of Action Step Definition
 
-See the full example of action step definition (in example are used non-default values):
+See the full example of action step definition (in the example, non-default values are used):
 
 ```yaml
 - name: Living Documentation Collector for GitHub
@@ -183,13 +183,13 @@ This output can be utilized in various ways within your CI/CD pipeline to ensure
       run: echo "GitHub Collector root output path: ${{ steps.living_doc_collector_gh.outputs.output-path }}"            
     ```
 
-> Each mode generates its own output files, which are stored in the `output-path` directory with clear naming conventions.
+> Each mode generates its output files, which is stored in the `output-path` directory with clear naming conventions.
 
 ---
 
 ## Developer Guide
 
-See this [Developer Guide](DEVELOPER.md) for more technical a development related information.
+See this [Developer Guide](DEVELOPER.md) for more technical, development-related information.
 
 ---
 ## How-to
@@ -203,7 +203,7 @@ This section aims to help the user walk through different processes, such as:
 2. Click on the `Developer settings` tab in the left sidebar.
 3. In the left sidebar, click on `Personal access tokens` and choose `Tokens (classic)`.
 4. Click on the `Generate new token` button and choose `Generate new token (classic)`.
-5. Optional - Add a note, what is token for and choose token expiration.
+5. Optional - Add a note detailing what the token is for and choose the token expiration date.
 6. Select ONLY bold scope options below:
    - **workflow**
    - write:packages
@@ -222,8 +222,8 @@ This section aims to help the user walk through different processes, such as:
      - **read:audit_log**
    - project
      - **read:project**
-7. Copy the token value somewhere, because you won't be able to see it again.
-8. Authorize new token to organization you want to fetch from.
+7. Copy the token value somewhere safe, because you won't be able to view it again.
+8. Authorize the new token for the organization you want to fetch from.
 
 ### How to Store Token as a Secret
 
@@ -250,7 +250,7 @@ For more details, see the [LICENSE](https://github.com/AbsaOSS/living-doc-collec
 
 ### Contact or Support Information
 
-If you need help with using or contributing to Living Documentation Generator Action, or if you have any questions or feedback, don't hesitate to reach out:
+If you need help with using or contributing to the Living Documentation Generator Action, or if you have any questions or feedback, don't hesitate to reach out:
 
 - **Issue Tracker**: For technical issues or feature requests, use the [GitHub Issues page](https://github.com/AbsaOSS/living-doc-collector-gh/issues).
 - **Discussion Forum**: For general questions and discussions, join our [GitHub Discussions forum](https://github.com/AbsaOSS/living-doc-collector-gh/discussions).

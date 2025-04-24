@@ -57,7 +57,7 @@ See the default minimal Living Documentation Issues mode action step definition:
         ]
 ```
 
-See the full example of Living Documentation Issues mode step definition (in example are used non-default values):
+See the full example of the Living Documentation Issues mode step definition (in the example, non-default values are used):
 
 ```yaml
 - name: Living Documentation Collector for GitHub
@@ -118,7 +118,7 @@ Configure the Living Documentation mode by customizing the following parameters:
 ---
 ## Expected Output
 
-The Living Documentation Collector for GitHub is designed to produce a collection of Consolidated Issues. Where **consolidated** means that the issues information is merged from the Repository Issues and from the Project Issues. 
+The Living Documentation Collector for GitHub is designed to produce a collection of Consolidated Issues. Where **consolidated** means that the issues' information is merged from both the Repository and Project Issues. 
 
 The mode produces the file `output/collected_gh_consolidated_issues.json` with the following structure:
 
@@ -131,7 +131,7 @@ The `output` folder is the root output directory for the action.
 ---
 ## Documentation Ticket Introduction
 
-A **Documentation Ticket** is a small piece of documentation realized as a GitHub Issue dedicated to project documentation. Unlike development-focused tickets, Documentation Ticket can remain in open state continuously, evolving as updates are needed, and can be reopened or revised indefinitely. They are not directly tied to Pull Requests (PRs) but can be referenced for context.
+A **Documentation Ticket** is a small piece of documentation realized as a GitHub Issue dedicated to project documentation. Unlike development-focused tickets, a Documentation Ticket can remain in open state continuously, evolving as updates are needed, and can be reopened or revised indefinitely. They are not directly tied to Pull Requests (PRs) but can be referenced for context.
 
 - **Content Rules**:
   - **Non-technical Focus:** 
@@ -170,7 +170,7 @@ Using a dedicated repository solely for documentation tickets provides multiple 
 
 ### Issues Data Mining from GitHub Repositories
 
-This is a build-in feature, that allows you to define which repositories should be included in the living documentation issues mode process. This essential process can not be deactivated inside of mode scope. By specifying repositories, you can focus on the most relevant projects for your documentation needs.
+This is a built-in feature, that allows you to define which repositories should be included in the living documentation issues mode process. This essential process cannot be deactivated inside of mode scope. By specifying repositories, you can focus on the most relevant projects for your documentation needs.
 
 - **Activation**: This is a built-in feature, so it is always activated.
 - **Default Behavior**: By default, the action will include all repositories defined in the repositories input parameter. Each repository is defined with its organization name, and repository name.
