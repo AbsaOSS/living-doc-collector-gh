@@ -1,0 +1,77 @@
+name: 'Living Documentation Collector for GitHub'
+description: 'Collect living documentation data from GitHub repositories.'
+inputs:
+  # Base action inputs
+  GITHUB-TOKEN:
+    description: 'GitHub token for authentication.'
+    required: true
+  doc-issues:
+    description: 'Enable or disable `Documentation Issues` mode.'
+    required: true
+  verbose-logging:
+    description: 'Enable or disable verbose logging.'
+    required: false
+    default: 'false'
+
+  # doc-issues mode action inputs
+  doc-issues-repositories:
+    description: 'JSON string defining the repositories to be included in the documentation generation.'
+    required: false
+    default: '[]'
+  doc-issues-project-state-mining:
+    description: 'Enable or disable mining of project state data.'
+    required: false
+    default: 'false'
+
+outputs:
+  output-path:
+    description: 'Path to the collected living documentation files.'
+    value: ${{ steps.liv-doc-generator.outputs.output-path }}
+
+branding:
+  icon: 'book'
+  color: 'yellow'
+
+runs:
+  using: 'composite'
+  steps:
+
+    - name: Install Python dependencies
+      run: |
+        pip install -r ${{ github.action_path }}/requirements.txt
+      shell: bash
+
+    - name: Set PROJECT_ROOT and update PYTHONPATH
+      run: |
+        ACTION_ROOT="${{ github.action_path }}"
+        export PYTHONPATH="${PYTHONPATH}:${ACTION_ROOT}/living-doc-generator"
+      shell: bash
+
+    - name: Prepare environment based on mining regimes
+      run: |
+        # Set base env variables common for all regimes
+        echo "INPUT_GITHUB_TOKEN=${{ env.GITHUB-TOKEN }}" >> $GITHUB_ENV
+        echo "INPUT_DOC_ISSUES=${{ inputs.doc-issues }}" >> $GITHUB_ENV
+        echo "INPUT_VERBOSE_LOGGING=${{ inputs.verbose-logging }}" >> $GITHUB_ENV
+
+        # Add LivDoc-specific env variables if the regime is enabled
+        if [[ "${{ inputs.doc-issues }}" == "true" ]]; then
+          echo "INPUT_DOC_ISSUES_REPOSITORIES=$(echo '${{ inputs.doc-issues-repositories }}' | jq -c .)" >> $GITHUB_ENV
+          echo "INPUT_DOC_ISSUES_PROJECT_STATE_MINING=${{ inputs.doc-issues-project-state-mining }}" >> $GITHUB_ENV
+        fi
+      shell: bash
+
+    - name: Run Living Documentation Collector for GitHub
+      id: liv-doc-generator
+      env:
+        INPUT_GITHUB_TOKEN: ${{ env.INPUT_GITHUB_TOKEN }}
+        INPUT_LIV_DOC_REGIME: ${{ env.INPUT_LIV_DOC_REGIME }}
+
+        INPUT_REPORT_PAGE: ${{ env.INPUT_REPORT_PAGE }}
+        INPUT_VERBOSE_LOGGING: ${{ env.INPUT_VERBOSE_LOGGING }}
+
+        INPUT_DOC_ISSUES_REPOSITORIES: ${{ env.INPUT_LIV_DOC_REPOSITORIES }}
+        INPUT_DOC_ISSUES_PROJECT_STATE_MINING: ${{ env.INPUT_LIV_DOC_PROJECT_STATE_MINING }}
+      run: |
+        python ${{ github.action_path }}/main.py
+      shell: bash

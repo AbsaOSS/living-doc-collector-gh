@@ -22,8 +22,8 @@ python3 --version
 ### Set Up Python Environment
 
 ```shell
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -140,7 +140,7 @@ To run Pylint on a specific file, follow the pattern `pylint <path_to_file>/<nam
 
 Example:
 ```shell
-pylint living_documentation_regime/living_documentation_regime.py
+pylint doc-issues/collector.py
 ``` 
 
 ### Expected Output
@@ -180,7 +180,7 @@ To run Black on a specific file, follow the pattern `black <path_to_file>/<name_
 
 Example:
 ```shell
-black living_documentation_regime/living_documentation_generator.py 
+black doc-issues/collector.py 
 ``` 
 
 ### Expected Output
@@ -217,7 +217,7 @@ To run my[py] check on a specific file, follow the pattern `mypy <path_to_file>/
 
 Example:
 ```shell
-   mypy living_documentation_regime/living_documentation_generator.py
+   mypy doc-issues/collector.py
 ``` 
 
 ### Expected Output
