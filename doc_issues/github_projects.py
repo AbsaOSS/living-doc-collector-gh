@@ -25,8 +25,11 @@ from github.Repository import Repository
 
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
-from utils.github_project_queries import get_projects_from_repo_query, get_project_field_options_query, \
-    get_issues_from_project_query
+from utils.github_project_queries import (
+    get_projects_from_repo_query,
+    get_project_field_options_query,
+    get_issues_from_project_query,
+)
 
 logger = logging.getLogger(__name__)
 

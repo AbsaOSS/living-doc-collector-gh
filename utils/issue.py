@@ -47,7 +47,6 @@ class Issue:
         self.title: str = title
         self.issue_number: int = number
 
-
         # issue's properties
         self.state: Optional[str] = None
         self.created_at: Optional[str] = None
@@ -90,9 +89,7 @@ class Issue:
         if self.linked_to_project:
             res[self.LINKED_TO_PROJECT] = self.linked_to_project
         if self.project_statuses:
-            res[self.PROJECT_STATUS] = [
-                project_status.to_dict() for project_status in self.project_statuses
-            ]
+            res[self.PROJECT_STATUS] = [project_status.to_dict() for project_status in self.project_statuses]
 
         return res
 
@@ -133,9 +130,7 @@ class Issue:
 
         project_statuses_data = data.get(cls.PROJECT_STATUS, None)
         if project_statuses_data and isinstance(project_statuses_data, list):
-            issue.project_statuses = [
-                ProjectStatus.from_dict(status_data) for status_data in project_statuses_data
-            ]
+            issue.project_statuses = [ProjectStatus.from_dict(status_data) for status_data in project_statuses_data]
         else:
             issue.project_statuses = None
 

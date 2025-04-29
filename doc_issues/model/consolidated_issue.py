@@ -37,7 +37,7 @@ class ConsolidatedIssue:
     properties to access consolidated issue details.
     """
 
-    def __init__(self, repository_id: str, repository_issue: Optional[Issue] = None):
+    def __init__(self, repository_id: str, repository_issue: Optional[GitHubIssue] = None):
         # save issue from repository (got from GitHub library & keep connection to repository for lazy loading)
         # Warning: several issue properties require additional API calls - use wisely to keep low API usage
         self.__issue: Optional[GitHubIssue] = repository_issue

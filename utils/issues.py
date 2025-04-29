@@ -19,7 +19,7 @@ This module contains the Issues class, which is used to manage issues in a GitHu
 """
 
 import json
-from typing import Dict
+from typing import Dict, Optional
 
 from utils.issue import Issue
 
@@ -28,8 +28,9 @@ class Issues:
     """
     This class represents a collection of issues in a GitHub repository ecosystem.
     """
-    def __init__(self, issues: Dict[str, Issue] = None) -> None:
-        self.issues = issues or {}
+
+    def __init__(self, issues: Optional[dict[str, Issue]] = None) -> None:
+        self.issues: dict[str, Issue] = issues or {}
 
     def save_to_json(self, file_path: str) -> None:
         """
@@ -39,7 +40,7 @@ class Issues:
         @return: None
         """
         data = {key: ci.to_dict() for key, ci in self.issues.items()}
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
     @classmethod
@@ -50,7 +51,7 @@ class Issues:
         @param file_path: Path to the JSON file.
         @return: Issues object.
         """
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         issues = {key: Issue.from_dict(value) for key, value in data.items()}
@@ -62,7 +63,7 @@ class Issues:
     def get_issue(self, key: str) -> Issue:
         return self.issues[key]
 
-    def all_issues(self) -> Dict[str, Issue]:
+    def all_issues(self) -> dict[str, Issue]:
         return self.issues
 
     def count(self) -> int:

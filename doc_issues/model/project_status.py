@@ -19,6 +19,7 @@ This module contains a data container for an issue's Project Status.
 """
 from utils.constants import NO_PROJECT_DATA
 
+
 # pylint: disable=too-many-instance-attributes
 class ProjectStatus:
     """
@@ -87,7 +88,7 @@ class ProjectStatus:
             "status": self.__status,
             "priority": self.__priority,
             "size": self.__size,
-            "moscow": self.__moscow
+            "moscow": self.__moscow,
         }
 
     @classmethod
