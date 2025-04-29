@@ -1,4 +1,4 @@
-# Living Documentation Tests Mode
+# Living Documentation Test Catalog Mode
 
 - [Mode De/Activation](#mode-deactivation)
 
@@ -8,8 +8,8 @@ This mode is designed to data-mine GitHub repositories for information about pre
 
 ## Mode De/Activation
 
-- **tests**
-  - **Description**: Enables or disables the Living Documentation Tests mode.
+- **test-catalog**
+  - **Description**: Enables or disables the Living Documentation Test Catalog mode.
   - **Usage**: Set to true to activate.
   - **Example**:
     ```yaml
