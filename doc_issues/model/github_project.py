@@ -25,7 +25,7 @@ from github.Repository import Repository
 logger = logging.getLogger(__name__)
 
 
-class GithubProject:
+class GitHubProject:
     """
     A class representing a GitHub Project is responsible for loading JSON format data,
     fetching project field options, along with properties to access project specifics.
@@ -82,7 +82,7 @@ class GithubProject:
         """Setter of the project field options."""
         self.__field_options = field_options
 
-    def loads(self, project_json: dict, repository: Repository, field_option_response: dict) -> "GithubProject":
+    def loads(self, project_json: dict, repository: Repository, field_option_response: dict) -> "GitHubProject":
         """
         Load the project data from several inputs.
 

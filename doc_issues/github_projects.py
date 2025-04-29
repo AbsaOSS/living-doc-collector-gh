@@ -23,6 +23,10 @@ import requests
 
 from github.Repository import Repository
 
+from doc_issues.model.github_project import GitHubProject
+from doc_issues.model.project_issue import ProjectIssue
+from utils.github_project_queries import get_projects_from_repo_query, get_project_field_options_query, \
+    get_issues_from_project_query
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +84,7 @@ class GitHubProjects:
             logger.error("An error occurred: %s.", req_err, exc_info=True)
             return None
 
-    def get_repository_projects(self, repository: Repository, projects_title_filter: list[str]) -> list[GithubProject]:
+    def get_repository_projects(self, repository: Repository, projects_title_filter: list[str]) -> list[GitHubProject]:
         """
         Fetch all projects attached to a given repository using a GraphQL query. Based on the response create
         GitHub project instances and return them in a list.
@@ -131,7 +135,7 @@ class GitHubProjects:
                     field_option_response = self._send_graphql_query(project_field_options_query)
 
                     # Create the GitHub project instance and add it to the output list
-                    project = GithubProject().loads(project_json, repository, field_option_response)  # type: ignore
+                    project = GitHubProject().loads(project_json, repository, field_option_response)  # type: ignore
                     if project not in projects:
                         projects.append(project)
                 else:
@@ -142,7 +146,7 @@ class GitHubProjects:
 
         return projects
 
-    def get_project_issues(self, project: GithubProject) -> list[ProjectIssue]:
+    def get_project_issues(self, project: GitHubProject) -> list[ProjectIssue]:
         """
         Fetch all issues that are attached to a GitHub Project using a GraphQL query.
         Fetching is supported by pagination. Based on the response create project issue objects

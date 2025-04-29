@@ -46,27 +46,23 @@ Add the shebang line at the top of the sh script file.
 ### Set the Environment Variables
 
 Set the configuration environment variables in the shell script following the structure below.
-The generator supports mining in multiple regimes, so you can use just the environment variables you need.
+The generator supports mining in multiple modes, so you can use just the environment variables you need.
 Also make sure that the INPUT_GITHUB_TOKEN is configured in your environment variables.
 ```
 # Essential environment variables for GitHub Action functionality
 export INPUT_GITHUB_TOKEN=$(printenv GITHUB_TOKEN)
-export INPUT_LIV_DOC_REGIME=true
+export INPUT_DOC_ISSUES=true
 export INPUT_VERBOSE_LOGGING=true
-export INPUT_REPORT_PAGE=true
 
-# Environment variables for LivDoc regime functionality
-export INPUT_LIV_DOC_REPOSITORIES='[
+# Environment variables for 'doc-issues' mode functionality
+export INPUT_DOC_ISSUES_REPOSITORIES='[
   {
     "organization-name": "Organization Name",
     "repository-name": "example-project",
     "projects-title-filter": ["Project Title 1"]
   }
 ]'
-export INPUT_LIV_DOC_PROJECT_STATE_MINING=true
-export INPUT_LIV_DOC_STRUCTURED_OUTPUT=true
-export INPUT_LIV_DOC_GROUP_OUTPUT_BY_TOPICS=true
-export INPUT_LIV_DOC_OUTPUT_FORMATS="mdoc"
+export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 ```
 
 ### Running the script locally
@@ -81,22 +77,18 @@ The whole script should look like this example:
 
 # Essential environment variables for GitHub Action functionality
 export INPUT_GITHUB_TOKEN=$(printenv GITHUB_TOKEN)
-export INPUT_LIV_DOC_REGIME=true
+export INPUT_DOC_ISSUES=true
 export INPUT_VERBOSE_LOGGING=true
-export INPUT_REPORT_PAGE=true
 
-# Environment variables for LivDoc regime functionality
-export INPUT_LIV_DOC_REPOSITORIES='[
+# Environment variables for 'doc-issues' mode functionality
+export INPUT_DOC_ISSUES_REPOSITORIES='[
   {
     "organization-name": "Organization Name",
     "repository-name": "example-project",
     "projects-title-filter": ["Project Title 1"]
   }
 ]'
-export INPUT_LIV_DOC_PROJECT_STATE_MINING=true
-export INPUT_LIV_DOC_STRUCTURED_OUTPUT=true
-export INPUT_LIV_DOC_GROUP_OUTPUT_BY_TOPICS=true
-export INPUT_LIV_DOC_OUTPUT_FORMATS="mdoc"
+export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 
 python3 main.py
 ```

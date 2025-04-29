@@ -65,13 +65,12 @@ runs:
       id: liv-doc-generator
       env:
         INPUT_GITHUB_TOKEN: ${{ env.INPUT_GITHUB_TOKEN }}
-        INPUT_LIV_DOC_REGIME: ${{ env.INPUT_LIV_DOC_REGIME }}
+        INPUT_DOC_ISSUES: ${{ env.INPUT_DOC_ISSUES }}
 
-        INPUT_REPORT_PAGE: ${{ env.INPUT_REPORT_PAGE }}
         INPUT_VERBOSE_LOGGING: ${{ env.INPUT_VERBOSE_LOGGING }}
 
-        INPUT_DOC_ISSUES_REPOSITORIES: ${{ env.INPUT_LIV_DOC_REPOSITORIES }}
-        INPUT_DOC_ISSUES_PROJECT_STATE_MINING: ${{ env.INPUT_LIV_DOC_PROJECT_STATE_MINING }}
+        INPUT_DOC_ISSUES_REPOSITORIES: ${{ env.INPUT_DOC_ISSUES_REPOSITORIES }}
+        INPUT_DOC_ISSUES_PROJECT_STATE_MINING: ${{ env.INPUT_DOC_ISSUES_PROJECT_STATE_MINING }}
       run: |
         python ${{ github.action_path }}/main.py
       shell: bash

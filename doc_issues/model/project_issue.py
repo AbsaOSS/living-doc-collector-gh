@@ -21,7 +21,7 @@ import logging
 
 from typing import Optional
 
-from doc_issues.model.github_project import GithubProject
+from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_status import ProjectStatus
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class ProjectIssue:
         """Getter of the project issue status."""
         return self.__project_status
 
-    def loads(self, issue_json: dict, project: GithubProject) -> Optional["ProjectIssue"]:
+    def loads(self, issue_json: dict, project: GitHubProject) -> Optional["ProjectIssue"]:
         """
         Loads the project issue data from the provided JSON and GitHubProject object.
 

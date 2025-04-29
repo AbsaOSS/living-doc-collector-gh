@@ -27,10 +27,10 @@ from github import Github, Auth
 from github.Issue import Issue
 
 from action_inputs import ActionInputs
+from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
-from doc_issues.model.github_project import GithubProject
+from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
-from github_projects import GitHubProjects
 from utils.constants import ISSUES_PER_PAGE_LIMIT, SUPPORTED_ISSUE_LABELS, ISSUE_STATE_ALL
 from utils.decorators import safe_call_decorator
 from utils.github_rate_limiter import GithubRateLimiter
@@ -174,7 +174,7 @@ class GHDocIssuesCollector:
 
             # Fetch all projects_buffer attached to the repository
             logger.debug("Fetching GitHub project data - looking for repository `%s` projects.", repository_id)
-            projects: list[GithubProject] = self.__safe_call(self.__github_projects_instance.get_repository_projects)(
+            projects: list[GitHubProject] = self.__safe_call(self.__github_projects_instance.get_repository_projects)(
                 repository=repository, projects_title_filter=projects_title_filter
             )
 

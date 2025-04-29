@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 
 run_script.sh
+output/

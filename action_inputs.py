@@ -23,18 +23,10 @@ import json
 import logging
 import requests
 
-from living_documentation_regime.model.config_repository import ConfigRepository
+from doc_issues.model.config_repository import ConfigRepository
+from utils.constants import GITHUB_TOKEN, Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES
 from utils.exceptions import FetchRepositoriesException
 from utils.utils import get_action_input
-from utils.constants import (
-    GITHUB_TOKEN,
-    LIV_DOC_OUTPUT_FORMATS,
-    LIV_DOC_PROJECT_STATE_MINING,
-    LIV_DOC_REPOSITORIES,
-    LIV_DOC_STRUCTURED_OUTPUT,
-    REPORT_PAGE,
-    Mode,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -54,31 +46,13 @@ class ActionInputs:
         return get_action_input(GITHUB_TOKEN)
 
     @staticmethod
-    def is_report_page_generation_enabled() -> bool:
+    def is_doc_issues_mode_enabled() -> bool:
         """
-        Getter of the report page switch. True by default.
-        @return: True if report page is enabled, False otherwise.
+        Getter of the LivDoc mode switch.
+        @return: True if LivDoc mode is enabled, False otherwise.
         """
-        return get_action_input(REPORT_PAGE, "true").lower() == "true"
-
-    @staticmethod
-    def is_living_doc_regime_enabled() -> bool:
-        """
-        Getter of the LivDoc regime switch.
-        @return: True if LivDoc regime is enabled, False otherwise.
-        """
-        regime: str = Mode.LIV_DOC_REGIME.value
-        return get_action_input(regime, "false").lower() == "true"
-
-    @staticmethod
-    def get_liv_doc_output_formats() -> list[str]:
-        """
-        Getter of the LivDoc regime output formats for generated documents.
-        @return: A list of LivDoc output formats.
-        """
-        output_formats_string = get_action_input(LIV_DOC_OUTPUT_FORMATS, "mdoc").strip().lower()
-        output_formats = [fmt.strip() for fmt in output_formats_string.split(",")]
-        return output_formats
+        mode: str = Mode.DOC_ISSUES.value
+        return get_action_input(mode, "false").lower() == "true"
 
     @staticmethod
     def is_project_state_mining_enabled() -> bool:
@@ -86,17 +60,7 @@ class ActionInputs:
         Getter of the project state mining switch.
         @return: True if project state mining is enabled, False otherwise.
         """
-        return get_action_input(LIV_DOC_PROJECT_STATE_MINING, "false").lower() == "true"
-
-    @staticmethod
-    def is_structured_output_enabled() -> bool:
-        """
-        Getter of the structured output switch.
-
-        throws raise LivDocFetchRepositoriesException when fetching failed (Json or Type error)
-        @return: True if structured output is enabled, False otherwise.
-        """
-        return get_action_input(LIV_DOC_STRUCTURED_OUTPUT, "false").lower() == "true"
+        return get_action_input(DOC_ISSUES_PROJECT_STATE_MINING, "false").lower() == "true"
 
     @staticmethod
     def get_repositories() -> list[ConfigRepository]:
@@ -107,7 +71,7 @@ class ActionInputs:
         @raise FetchRepositoriesException: When parsing JSON string to dictionary fails.
         """
         repositories = []
-        action_input = get_action_input(LIV_DOC_REPOSITORIES, "[]")
+        action_input = get_action_input(DOC_ISSUES_REPOSITORIES, "[]")
         try:
             # Parse repositories json string into json dictionary format
             repositories_json = json.loads(action_input)
@@ -188,22 +152,15 @@ class ActionInputs:
         # log user configuration
         logger.debug("User configuration validation successfully completed.")
 
-        # log regime: enabled/disabled
-        logger.debug("Regime: `LivDoc`: %s.", "Enabled" if ActionInputs.is_living_doc_regime_enabled() else "Disabled")
+        # log mode: enabled/disabled
+        logger.debug("Mode: `doc-issues`: %s.", "Enabled" if ActionInputs.is_doc_issues_mode_enabled() else "Disabled")
 
-        # log common user inputs
-        logger.debug("Global: `report-page`: %s.", ActionInputs.is_report_page_generation_enabled())
-
-        # log liv-doc regime user inputs
-        if ActionInputs.is_living_doc_regime_enabled():
-            logger.debug("Regime(LivDoc): `liv-doc-repositories`: %s.", repositories)
+        # log doc-issues mode user inputs
+        if ActionInputs.is_doc_issues_mode_enabled():
+            logger.debug("Mode(doc-issues): `doc-issues-repositories`: %s.", repositories)
             logger.debug(
-                "Regime(LivDoc): `liv-doc-project-state-mining`: %s.",
+                "Mode(doc-issues): `doc-issues-project-state-mining`: %s.",
                 ActionInputs.is_project_state_mining_enabled(),
             )
-            logger.debug(
-                "Regime(LivDoc): `liv-doc-structured-output`: %s.", ActionInputs.is_structured_output_enabled()
-            )
-            logger.debug("Regime(LivDoc): `liv-doc-output-formats`: %s.", ActionInputs.get_liv_doc_output_formats())
 
         return True

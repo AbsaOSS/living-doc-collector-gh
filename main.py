@@ -52,7 +52,7 @@ def run() -> None:
     output_path: str = make_absolute_path(OUTPUT_PATH)
     all_regimes_success: bool = True
 
-    if ActionInputs.is_living_doc_regime_enabled():
+    if ActionInputs.is_doc_issues_mode_enabled():
         logger.info("Liv-Doc collector for GitHub - Starting the `doc-issues` mode.")
 
         # Generate the Living documentation
