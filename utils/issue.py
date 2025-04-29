@@ -14,12 +14,20 @@
 # limitations under the License.
 #
 
+"""
+This module contains the Issue class, which represents the data of an issue.
+"""
+
 from typing import Any, Optional
 
 from doc_issues.model.project_status import ProjectStatus
 
 
+# pylint: disable=too-many-instance-attributes
 class Issue:
+    """
+    Represents an issue in a GitHub repository ecosystem.
+    """
 
     STATE = "state"
     REPOSITORY_ID = "repository_id"
@@ -54,6 +62,11 @@ class Issue:
         self.project_statuses: Optional[list[ProjectStatus]] = None
 
     def to_dict(self) -> dict[str, Any]:
+        """
+        Converts the issue object to a dictionary representation.
+
+        @return: Dictionary representation of the issue.
+        """
         res: dict[str, Any] = {
             "repository_id": self.repository_id,
             "title": self.title,
@@ -97,6 +110,12 @@ class Issue:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Issue":
+        """
+        Creates an Issue object from a dictionary representation.
+
+        @param data: Dictionary representation of the issue.
+        @return: Issue object.
+        """
         issue: Issue = cls(
             repository_id=data[cls.REPOSITORY_ID],
             title=data[cls.TITLE],

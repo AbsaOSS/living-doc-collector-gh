@@ -21,7 +21,7 @@ import logging
 import re
 from typing import Optional
 
-from github.Issue import Issue
+from github.Issue import Issue as GitHubIssue
 from doc_issues.model.project_status import ProjectStatus
 from utils.constants import DOC_USER_STORY_LABEL, DOC_FUNCTIONALITY_LABEL
 from utils.utils import sanitize_filename
@@ -40,7 +40,7 @@ class ConsolidatedIssue:
     def __init__(self, repository_id: str, repository_issue: Optional[Issue] = None):
         # save issue from repository (got from GitHub library & keep connection to repository for lazy loading)
         # Warning: several issue properties require additional API calls - use wisely to keep low API usage
-        self.__issue: Optional[Issue] = repository_issue
+        self.__issue: Optional[GitHubIssue] = repository_issue
         self.__repository_id: str = repository_id
 
         # Extra project data (optionally provided from the GithubProjects class)
@@ -175,6 +175,11 @@ class ConsolidatedIssue:
         return None
 
     def to_issue_for_persist(self) -> Issue:
+        """
+        Convert the consolidated issue to a standard Issue object for persistence.
+
+        @return: The converted Issue.
+        """
         issue = Issue(
             repository_id=self.repository_id,
             title=self.title,

@@ -19,7 +19,6 @@ This module contains a data container for the Config Repository, which holds all
 """
 
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

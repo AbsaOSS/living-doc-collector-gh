@@ -19,7 +19,7 @@ This module contains a data container for an issue's Project Status.
 """
 from utils.constants import NO_PROJECT_DATA
 
-
+# pylint: disable=too-many-instance-attributes
 class ProjectStatus:
     """
     A class representing the project status of an issue is responsible for access
@@ -103,4 +103,3 @@ class ProjectStatus:
         res.moscow = data.get("moscow", NO_PROJECT_DATA)
 
         return res
-
