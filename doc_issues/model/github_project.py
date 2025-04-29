@@ -36,7 +36,7 @@ class GitHubProject:
         self.__number: int = 0
         self.__title: str = ""
         self.__organization_name: str = ""
-        self.__field_options: dict[str, str] = {}
+        self.__field_options: dict[str, list[str]] = {}
 
     def __repr__(self) -> str:
         """String representation of the GitHub project."""
@@ -73,7 +73,7 @@ class GitHubProject:
         return self.__organization_name
 
     @property
-    def field_options(self) -> dict[str, str]:
+    def field_options(self) -> dict[str, list[str]]:
         """Getter of the project field options."""
         return self.__field_options
 
