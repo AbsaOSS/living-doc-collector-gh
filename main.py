@@ -50,7 +50,7 @@ def run() -> None:
         sys.exit(1)
 
     output_path: str = make_absolute_path(OUTPUT_PATH)
-    all_regimes_success: bool = True
+    all_modes_success: bool = True
 
     if ActionInputs.is_doc_issues_mode_enabled():
         logger.info("Liv-Doc collector for GitHub - Starting the `doc-issues` mode.")
@@ -60,7 +60,7 @@ def run() -> None:
             logger.info("Liv-Doc collector for GitHub - `doc-issues` mode completed successfully.")
         else:
             logger.info("Liv-Doc collector for GitHub - `doc-issues` mode failed.")
-            all_regimes_success = False
+            all_modes_success = False
     else:
         logger.info("Liv-Doc collector for GitHub - `doc-issues` mode disabled.")
 
@@ -70,7 +70,7 @@ def run() -> None:
 
     logger.info("Liv-Doc collector for GitHub - ending.")
 
-    if not all_regimes_success:
+    if not all_modes_success:
         sys.exit(1)
 
 

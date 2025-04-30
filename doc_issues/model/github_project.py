@@ -41,7 +41,7 @@ class GitHubProject:
     def __repr__(self) -> str:
         """String representation of the GitHub project."""
         return (
-            f"GithubProject(id={self.id}, "
+            f"GitHubProject(id={self.id}, "
             f"number={self.number}, "
             f"title={self.title}, "
             f"organization_name={self.organization_name})"

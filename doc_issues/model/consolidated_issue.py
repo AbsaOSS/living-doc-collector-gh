@@ -18,13 +18,10 @@
 This module contains a data container for Consolidated Issue, which holds all the essential logic.
 """
 import logging
-import re
 from typing import Optional
 
 from github.Issue import Issue as GitHubIssue
 from doc_issues.model.project_status import ProjectStatus
-from utils.constants import DOC_USER_STORY_LABEL, DOC_FUNCTIONALITY_LABEL
-from utils.utils import sanitize_filename
 from utils.issue import Issue
 
 logger = logging.getLogger(__name__)
@@ -140,39 +137,6 @@ class ConsolidatedIssue:
         """
         self.__linked_to_project = True
         self.__project_issue_statuses.append(project_issue_status)
-
-    def generate_page_filename(self) -> str:
-        """
-        Generate a filename based on the issue number and title.
-
-        @return: The generated page filename.
-        """
-        try:
-            if DOC_USER_STORY_LABEL in self.labels or DOC_FUNCTIONALITY_LABEL in self.labels:
-                md_filename_base = f"{self.number}_{self.title.lower()}.md"
-                page_filename = sanitize_filename(md_filename_base)
-            else:
-                # covers the case of DOC_FEATURE_LABEL
-                page_filename = "_index.md"
-        except AttributeError:
-            self.__errors.update(
-                {"AttributeError": "Issue page filename generation failed (issue does not have a title)."}
-            )
-            return f"{self.number}.md"
-
-        return page_filename
-
-    def get_feature_id(self) -> Optional[str]:
-        """
-        Get the feature ID from the issue body.
-
-        @return: The feature ID if found, otherwise None.
-        """
-        if self.body:
-            match = re.search(r"(?<=### Associated Feature\n- #)\d+", self.body)
-            if match:
-                return match.group(0)
-        return None
 
     def to_issue_for_persist(self) -> Issue:
         """

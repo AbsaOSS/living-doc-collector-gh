@@ -93,21 +93,6 @@ def validate_query_format(query_string, expected_placeholders) -> None:
         raise InvalidQueryFormatError
 
 
-def generate_root_level_index_page(index_root_level_page: str, output_path: str) -> None:
-    """
-    Generate the root level index page for the output living documentation.
-
-    @param index_root_level_page: The content of the root level index page.
-    @param output_path: The path to the output directory.
-    @return: None
-    """
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-
-    with open(os.path.join(output_path, "_index.md"), "w", encoding="utf-8") as f:
-        f.write(index_root_level_page)
-
-
 def load_template(file_path: str, error_message: str) -> Optional[str]:
     """
     Load the content of the template file.
