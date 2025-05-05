@@ -21,6 +21,7 @@ from github.Rate import Rate
 from github.RateLimit import RateLimit
 from github.Repository import Repository
 
+from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.config_repository import ConfigRepository
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
@@ -84,42 +85,23 @@ def repository_setup(mocker):
     return repository
 
 
-# @pytest.fixture
-# def load_all_templates_setup(mocker):
-#     mock_load_all_templates = mocker.patch.object(
-#         LivingDocumentationGenerator,
-#         "_load_all_templates",
-#         return_value=(
-#             "Issue Page Template",
-#             "Index Page Template",
-#             "Root Level Page Template",
-#             "Org Level Template",
-#             "Repo Page Template",
-#             "Data Level Template",
-#             "Report Page Template",
-#         ),
-#     )
-#
-#     return mock_load_all_templates
-#
-#
-# @pytest.fixture
-# def living_documentation_generator(mocker):
-#     mock_github_class = mocker.patch("living_documentation_regime.living_documentation_generator.Github")
-#     mock_github_instance = mock_github_class.return_value
-#
-#     mock_rate_limit = mocker.Mock()
-#     mock_rate_limit.remaining = 5000
-#     mock_rate_limit.reset = datetime.datetime.now() + datetime.timedelta(minutes=10)
-#
-#     mock_github_instance.get_rate_limit.return_value = mocker.Mock(core=mock_rate_limit)
-#     mock_github_instance.get_repo.return_value = mocker.Mock()
-#
-#     mocker.patch(
-#         "living_documentation_regime.living_documentation_generator.ActionInputs.get_github_token",
-#         return_value="FakeGithubToken",
-#     )
-#     return LivingDocumentationGenerator(make_absolute_path(OUTPUT_PATH))
+@pytest.fixture
+def doc_issues_collector(mocker):
+    mock_github_class = mocker.patch("doc_issues.collector.Github")
+    mock_github_instance = mock_github_class.return_value
+
+    mock_rate_limit = mocker.Mock()
+    mock_rate_limit.remaining = 5000
+    mock_rate_limit.reset = datetime.datetime.now() + datetime.timedelta(minutes=10)
+
+    mock_github_instance.get_rate_limit.return_value = mocker.Mock(core=mock_rate_limit)
+    mock_github_instance.get_repo.return_value = mocker.Mock()
+
+    mocker.patch(
+        "doc_issues.collector.ActionInputs.get_github_token",
+        return_value="FakeGithubToken",
+    )
+    return GHDocIssuesCollector(make_absolute_path(OUTPUT_PATH))
 
 
 @pytest.fixture
@@ -161,18 +143,6 @@ def consolidated_issue(mocker):
     ]
 
     return consolidated_issue
-
-
-# @pytest.fixture
-# def project_status(mocker):
-#     project_status = mocker.Mock(spec=ProjectStatus)
-#     project_status.project_title = "Test Project"
-#     project_status.status = "In Progress"
-#     project_status.priority = "High"
-#     project_status.size = "Large"
-#     project_status.moscow = "Must Have"
-#
-#     return project_status
 
 
 @pytest.fixture

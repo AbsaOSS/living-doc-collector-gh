@@ -57,7 +57,7 @@ class GHDocIssuesCollector:
         self.__rate_limiter: GithubRateLimiter = GithubRateLimiter(self.__github_instance)
         self.__safe_call: Callable = safe_call_decorator(self.__rate_limiter)
 
-    def generate(self) -> bool:
+    def collect(self) -> bool:
         """
         Collect 'doc-issues' GitHub data and export the output.
 

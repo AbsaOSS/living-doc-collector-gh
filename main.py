@@ -56,7 +56,7 @@ def run() -> None:
         logger.info("Liv-Doc collector for GitHub - Starting the `doc-issues` mode.")
 
         # Generate the Living documentation
-        if GHDocIssuesCollector(output_path).generate():
+        if GHDocIssuesCollector(output_path).collect():
             logger.info("Liv-Doc collector for GitHub - `doc-issues` mode completed successfully.")
         else:
             logger.info("Liv-Doc collector for GitHub - `doc-issues` mode failed.")
