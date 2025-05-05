@@ -78,7 +78,7 @@ class GitHubProject:
         return self.__field_options
 
     @field_options.setter
-    def field_options(self, field_options: dict[str, str]) -> None:
+    def field_options(self, field_options: dict[str, list[str]]) -> None:
         """Setter of the project field options."""
         self.__field_options = field_options
 

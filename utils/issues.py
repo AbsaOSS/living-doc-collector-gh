@@ -20,7 +20,7 @@ This module contains the Issues class, which is used to manage issues in a GitHu
 
 import json
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from utils.issue import Issue
 
