@@ -19,6 +19,7 @@ This module contains the Issues class, which is used to manage issues in a GitHu
 """
 
 import json
+from pathlib import Path
 from typing import Dict, Optional
 
 from utils.issue import Issue
@@ -32,7 +33,7 @@ class Issues:
     def __init__(self, issues: Optional[dict[str, Issue]] = None) -> None:
         self.issues: dict[str, Issue] = issues or {}
 
-    def save_to_json(self, file_path: str) -> None:
+    def save_to_json(self, file_path: str | Path) -> None:
         """
         Save the issues to a JSON file.
 
@@ -44,7 +45,7 @@ class Issues:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
     @classmethod
-    def load_from_json(cls, file_path: str) -> "Issues":
+    def load_from_json(cls, file_path: str | Path) -> "Issues":
         """
         Load issues from a JSON file.
 

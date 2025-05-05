@@ -21,10 +21,12 @@ from github.Rate import Rate
 from github.RateLimit import RateLimit
 from github.Repository import Repository
 
+from doc_issues.model.config_repository import ConfigRepository
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from utils.constants import OUTPUT_PATH
 from utils.github_rate_limiter import GithubRateLimiter
+from utils.issue import Issue
 from utils.utils import make_absolute_path
 
 
@@ -71,17 +73,17 @@ def github_project_setup(mocker):
     return project
 
 
-# @pytest.fixture
-# def repository_setup(mocker):
-#     repository = mocker.Mock(spec=Repository)
-#     repository.owner.login = "test_owner"
-#     repository.name = "test_repo"
-#     repository.full_name = "test_owner/test_repo"
-#     repository.get_issues.return_value = []
-#
-#     return repository
-#
-#
+@pytest.fixture
+def repository_setup(mocker):
+    repository = mocker.Mock(spec=Repository)
+    repository.owner.login = "test_owner"
+    repository.name = "test_repo"
+    repository.full_name = "test_owner/test_repo"
+    repository.get_issues.return_value = []
+
+    return repository
+
+
 # @pytest.fixture
 # def load_all_templates_setup(mocker):
 #     mock_load_all_templates = mocker.patch.object(
@@ -118,17 +120,17 @@ def github_project_setup(mocker):
 #         return_value="FakeGithubToken",
 #     )
 #     return LivingDocumentationGenerator(make_absolute_path(OUTPUT_PATH))
-#
-#
-# @pytest.fixture
-# def config_repository(mocker):
-#     config_repository = mocker.Mock(spec=ConfigRepository)
-#     config_repository.organization_name = "test_org"
-#     config_repository.repository_name = "test_repo"
-#     config_repository.projects_title_filter = []
-#     config_repository.full_name = "test_org/test_repo"
-#
-#     return config_repository
+
+
+@pytest.fixture
+def config_repository(mocker):
+    config_repository = mocker.Mock(spec=ConfigRepository)
+    config_repository.organization_name = "test_org"
+    config_repository.repository_name = "test_repo"
+    config_repository.projects_title_filter = []
+    config_repository.full_name = "test_org/test_repo"
+
+    return config_repository
 
 
 @pytest.fixture
@@ -171,3 +173,10 @@ def consolidated_issue(mocker):
 #     project_status.moscow = "Must Have"
 #
 #     return project_status
+
+
+@pytest.fixture
+def sample_issues():
+    issue1 = Issue(repository_id="TestOrg/TestRepo", title="Issue 1", number=1)
+    issue2 = Issue(repository_id="TestOrg/TestRepo", title="Issue 2", number=2)
+    return {"1": issue1, "2": issue2}

@@ -86,10 +86,10 @@ class Issue:
             res[self.BODY] = self.body
         if self.labels:
             res[self.LABELS] = self.labels
-        if self.linked_to_project:
-            res[self.LINKED_TO_PROJECT] = self.linked_to_project
         if self.project_statuses:
             res[self.PROJECT_STATUS] = [project_status.to_dict() for project_status in self.project_statuses]
+
+        res[self.LINKED_TO_PROJECT] = self.linked_to_project if self.linked_to_project is not None else False
 
         return res
 
