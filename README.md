@@ -27,7 +27,7 @@ Addresses the need for continuously updated documentation accessible to all team
 
 This Collector supports multiple mining modes, each with its own unique functionality. Read more about the modes at their respective links:
 - [Documentation Issues](doc_issues/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
-- [Tests](tests/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [Test Catalog](test_catalog/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
 - [Test Headers](test_headers/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
 - [Code Tags](code_tags/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
 - [Release Notes](release_notes/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
@@ -67,7 +67,7 @@ See the default action step definition:
 See the default action step definitions for each mode:
 
 - [Documentation Issues mode default step definition](doc_issues/README.md#adding-doc-issues-mode-to-the-workflow)
-- [Tests mode default step definition](tests/README.md#adding-tests-mode-to-the-workflow)
+- [Tests mode default step definition](test_catalog/README.md#adding-tests-mode-to-the-workflow)
 - [Test Headers mode default step definition](test_headers/README.md#adding-test-headers-mode-to-the-workflow)
 - [Code Tags mode default step definition](code_tags/README.md#adding-code-tags-mode-to-the-workflow)
 - [Release Notes mode default step definition](release_notes/README.md#adding-release-notes-mode-to-the-workflow)
@@ -158,7 +158,7 @@ with:
 Mode-specific inputs and outputs are detailed in the respective mode's documentation:
 
 - [Documentation Issues mode specific inputs](doc_issues/README.md#mode-configuration)
-- [Tests mode specific inputs](tests/README.md#mode-configuration)
+- [Tests mode specific inputs](test_catalog/README.md#mode-configuration)
 - [Test Headers mode specific inputs](test_headers/README.md#mode-configuration)
 - [Code Tags mode specific inputs](code_tags/README.md#mode-configuration)
 - [Release Notes mode specific inputs](release_notes/README.md#mode-configuration)
