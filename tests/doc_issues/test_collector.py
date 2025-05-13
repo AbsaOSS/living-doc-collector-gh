@@ -13,7 +13,7 @@
 #
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
-from utils.issue import Issue
+from living_doc_utilities.model.issue import Issue
 
 
 # collect

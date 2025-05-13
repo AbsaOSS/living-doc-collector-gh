@@ -16,7 +16,7 @@
 
 
 from doc_issues.model.project_status import ProjectStatus
-from utils.constants import NO_PROJECT_DATA
+from living_doc_utilities.constants import NO_PROJECT_DATA
 
 
 def test_project_status_initialization():

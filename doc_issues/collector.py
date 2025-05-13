@@ -31,11 +31,10 @@ from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
+from living_doc_utilities.decorators import safe_call_decorator
+from living_doc_utilities.github.rate_limiter import GithubRateLimiter
+from living_doc_utilities.model.issues import Issues
 from utils.constants import ISSUES_PER_PAGE_LIMIT, SUPPORTED_ISSUE_LABELS, ISSUE_STATE_ALL
-from utils.decorators import safe_call_decorator
-from utils.github_rate_limiter import GithubRateLimiter
-from utils.issues import Issues
-from utils.utils import make_issue_key
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +196,7 @@ class GHDocIssuesCollector:
                 )(project=project)
 
                 for project_issue in project_issues:
-                    key = make_issue_key(
+                    key = Issues.make_issue_key(
                         project_issue.organization_name,
                         project_issue.repository_name,
                         project_issue.number,
@@ -233,7 +232,7 @@ class GHDocIssuesCollector:
         for repository_id in repository_issues.keys():
             for repository_issue in repository_issues[repository_id]:
                 repo_id_parts = repository_id.split("/")
-                unique_key = make_issue_key(repo_id_parts[0], repo_id_parts[1], repository_issue.number)
+                unique_key = Issues.make_issue_key(repo_id_parts[0], repo_id_parts[1], repository_issue.number)
                 consolidated_issues[unique_key] = ConsolidatedIssue(
                     repository_id=repository_id, repository_issue=repository_issue
                 )

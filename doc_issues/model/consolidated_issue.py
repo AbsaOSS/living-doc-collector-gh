@@ -22,7 +22,7 @@ from typing import Optional
 
 from github.Issue import Issue as GitHubIssue
 from doc_issues.model.project_status import ProjectStatus
-from utils.issue import Issue
+from living_doc_utilities.model.issue import Issue
 
 logger = logging.getLogger(__name__)
 

@@ -24,10 +24,11 @@ import sys
 
 from action_inputs import ActionInputs
 from doc_issues.collector import GHDocIssuesCollector
+from living_doc_utilities.constants import OUTPUT_PATH
+from living_doc_utilities.github.utils import set_action_output
 from living_doc_utilities.logging_config import setup_logging
-from utils.constants import OUTPUT_PATH
 from utils.github_project_queries import validate_query_formats
-from utils.utils import set_action_output, make_absolute_path
+from utils.utils import make_absolute_path
 
 
 def run() -> None:
