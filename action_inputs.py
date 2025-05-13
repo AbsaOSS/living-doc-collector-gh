@@ -163,4 +163,3 @@ class ActionInputs(BaseActionInputs):
             "Mode(doc-issues): `doc-issues-project-state-mining`: %s.",
             ActionInputs.is_project_state_mining_enabled(),
         )
-
