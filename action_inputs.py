@@ -23,9 +23,10 @@ import json
 import logging
 import requests
 
-from doc_issues.model.config_repository import ConfigRepository
 from living_doc_utilities.github.utils import get_action_input
 from living_doc_utilities.inputs.action_inputs import BaseActionInputs
+
+from doc_issues.model.config_repository import ConfigRepository
 from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES
 from utils.exceptions import FetchRepositoriesException
 

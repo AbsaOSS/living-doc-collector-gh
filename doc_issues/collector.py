@@ -26,14 +26,15 @@ from typing import Callable
 from github import Github, Auth
 from github.Issue import Issue
 
+from living_doc_utilities.decorators import safe_call_decorator
+from living_doc_utilities.github.rate_limiter import GithubRateLimiter
+from living_doc_utilities.model.issues import Issues
+
 from action_inputs import ActionInputs
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
-from living_doc_utilities.decorators import safe_call_decorator
-from living_doc_utilities.github.rate_limiter import GithubRateLimiter
-from living_doc_utilities.model.issues import Issues
 from utils.constants import ISSUES_PER_PAGE_LIMIT, SUPPORTED_ISSUE_LABELS, ISSUE_STATE_ALL
 
 logger = logging.getLogger(__name__)
