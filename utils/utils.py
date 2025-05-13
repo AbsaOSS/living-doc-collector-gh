@@ -27,6 +27,7 @@ from utils.exceptions import InvalidQueryFormatError
 
 logger = logging.getLogger(__name__)
 
+
 def sanitize_filename(filename: str) -> str:
     """
     Sanitize the provided filename by removing invalid characters.

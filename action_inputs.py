@@ -87,12 +87,15 @@ class ActionInputs(BaseActionInputs):
 
         return repositories
 
-    def _validate(self) -> bool:
+    def _validate(self) -> int:
+        err_counter = 0
+        repositories = None
+
         # validate the repositories configuration
         try:
             repositories = self.get_repositories()
         except FetchRepositoriesException:
-            return False
+            err_counter += 1
 
         github_token = self.get_github_token()
         headers = {"Authorization": f"token {github_token}"}
@@ -105,7 +108,11 @@ class ActionInputs(BaseActionInputs):
                 response.status_code,
                 response.text,
             )
-            return False
+            err_counter += 1
+
+        if err_counter > 0:
+            logger.error("User configuration validation failed.")
+            return err_counter
 
         repository_error_count = 0
         for repository in repositories:
@@ -134,29 +141,21 @@ class ActionInputs(BaseActionInputs):
                 )
                 repository_error_count += 1
         if repository_error_count > 0:
-            return False
+            err_counter += repository_error_count
 
-        # log user configuration
-        logger.debug("User configuration validation successfully completed.")
+        if err_counter > 0:
+            logger.error("User configuration validation failed.")
+        else:
+            logger.debug("User configuration validation successfully completed.")
 
-        # log mode: enabled/disabled
-        logger.debug("Mode: `doc-issues`: %s.", "Enabled" if ActionInputs.is_doc_issues_mode_enabled() else "Disabled")
+        self.print_effective_configuration()
 
-        # log doc-issues mode user inputs
-        if ActionInputs.is_doc_issues_mode_enabled():
-            logger.debug("Mode(doc-issues): `doc-issues-repositories`: %s.", repositories)
-            logger.debug(
-                "Mode(doc-issues): `doc-issues-project-state-mining`: %s.",
-                ActionInputs.is_project_state_mining_enabled(),
-            )
-
-        return True
+        return err_counter
 
     def _print_effective_configuration(self) -> None:
         """
         Print the effective configuration of the action inputs.
         """
-        logger.info("Effective configuration:")
         logger.info("Mode: `doc-issues`: %s.", "Enabled" if ActionInputs.is_doc_issues_mode_enabled() else "Disabled")
         logger.info("Mode(doc-issues): `doc-issues-repositories`: %s.", self.get_repositories())
         logger.info(
