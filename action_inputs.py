@@ -24,26 +24,19 @@ import logging
 import requests
 
 from doc_issues.model.config_repository import ConfigRepository
-from utils.constants import GITHUB_TOKEN, Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES
+from living_doc_utilities.github.utils import get_action_input
+from living_doc_utilities.inputs.action_inputs import BaseActionInputs
+from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES
 from utils.exceptions import FetchRepositoriesException
-from utils.utils import get_action_input
 
 logger = logging.getLogger(__name__)
 
 
-class ActionInputs:
+class ActionInputs(BaseActionInputs):
     """
     A class representing all the action inputs. It is responsible for loading, managing
     and validating the inputs required for running the GH Action.
     """
-
-    @staticmethod
-    def get_github_token() -> str:
-        """
-        Getter of the GitHub authorization token.
-        @return: The GitHub authorization token.
-        """
-        return get_action_input(GITHUB_TOKEN)
 
     @staticmethod
     def is_doc_issues_mode_enabled() -> bool:
@@ -73,7 +66,7 @@ class ActionInputs:
         repositories = []
         action_input = get_action_input(DOC_ISSUES_REPOSITORIES, "[]")
         try:
-            # Parse repositories json string into json dictionary format
+            # Parse the repositories json string into json dictionary format
             repositories_json = json.loads(action_input)
 
             # Load repositories into ConfigRepository object from JSON
@@ -94,14 +87,8 @@ class ActionInputs:
 
         return repositories
 
-    def validate_user_configuration(self) -> bool:
-        """
-        Checks that all the user configurations defined are correct.
-        @return: True if configuration is correct, False otherwise.
-        """
-        logger.debug("User configuration validation started")
-
-        # validate repositories configuration
+    def _validate(self) -> bool:
+        # validate the repositories configuration
         try:
             repositories = self.get_repositories()
         except FetchRepositoriesException:
@@ -164,3 +151,16 @@ class ActionInputs:
             )
 
         return True
+
+    def _print_effective_configuration(self) -> None:
+        """
+        Print the effective configuration of the action inputs.
+        """
+        logger.info("Effective configuration:")
+        logger.info("Mode: `doc-issues`: %s.", "Enabled" if ActionInputs.is_doc_issues_mode_enabled() else "Disabled")
+        logger.info("Mode(doc-issues): `doc-issues-repositories`: %s.", self.get_repositories())
+        logger.info(
+            "Mode(doc-issues): `doc-issues-project-state-mining`: %s.",
+            ActionInputs.is_project_state_mining_enabled(),
+        )
+

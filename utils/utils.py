@@ -27,19 +27,6 @@ from utils.exceptions import InvalidQueryFormatError
 
 logger = logging.getLogger(__name__)
 
-
-def make_issue_key(organization_name: str, repository_name: str, issue_number: int) -> str:
-    """
-    Create a unique string key for identifying the issue.
-
-    @param organization_name: The name of the organization where issue is located at.
-    @param repository_name: The name of the repository where issue is located at.
-    @param issue_number: The number of the issue.
-    @return: The unique string key for the issue.
-    """
-    return f"{organization_name}/{repository_name}/{issue_number}"
-
-
 def sanitize_filename(filename: str) -> str:
     """
     Sanitize the provided filename by removing invalid characters.
@@ -107,32 +94,3 @@ def load_template(file_path: str, error_message: str) -> Optional[str]:
     except IOError:
         logger.error(error_message, exc_info=True)
         return None
-
-
-# GitHub action utils
-def get_action_input(name: str, default: str = "") -> str:
-    """
-    Get the input value from the environment variables.
-
-    @param name: The name of the input parameter.
-    @param default: The default value to return if the environment variable is not set.
-    @return: The value of the specified input parameter, or an empty string
-    """
-    return os.getenv(f'INPUT_{name.replace("-", "_").upper()}', default=default)
-
-
-def set_action_output(name: str, value: str, default_output_path: str = "default_output.txt") -> None:
-    """
-    Write an action output to a file in the format expected by GitHub Actions.
-
-    This function writes the output in a specific format that includes the name of the
-    output and its value. The output is appended to the specified file.
-
-    @param name: The name of the output parameter.
-    @param value: The value of the output parameter.
-    @param default_output_path: The default file path to which the output is written if the
-    @return: None
-    """
-    output_file = os.getenv("GITHUB_OUTPUT", default_output_path)
-    with open(output_file, "a", encoding="utf-8") as f:
-        f.write(f"{name}={value}\n")
