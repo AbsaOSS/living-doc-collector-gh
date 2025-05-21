@@ -30,6 +30,7 @@ from doc_issues.model.config_repository import ConfigRepository
 from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES
 from utils.exceptions import FetchRepositoriesException
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -90,7 +91,7 @@ class ActionInputs(BaseActionInputs):
 
     def _validate(self) -> int:
         err_counter = 0
-        repositories = None
+        repositories = []
 
         # validate the repositories configuration
         try:

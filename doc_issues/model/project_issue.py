@@ -21,8 +21,9 @@ import logging
 
 from typing import Optional
 
+from living_doc_utilities.model.project_status import ProjectStatus
+
 from doc_issues.model.github_project import GitHubProject
-from doc_issues.model.project_status import ProjectStatus
 
 logger = logging.getLogger(__name__)
 

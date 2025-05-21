@@ -13,12 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import pytest
+from living_doc_utilities.model.project_status import ProjectStatus
 
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
-from doc_issues.model.project_status import ProjectStatus
-
-from github.Issue import Issue as GitHubIssue
 
 
 def test_consolidated_issue_initialization():
