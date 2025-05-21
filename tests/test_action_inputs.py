@@ -169,7 +169,7 @@ def test_get_repositories_invalid_string_as_input(mocker):
 
 def test_validate_repositories_configuration_correct_behaviour(mocker, config_repository):
     # Arrange
-    mock_log_debug = mocker.patch("action_inputs.logger.debug")
+    mock_log_info = mocker.patch("action_inputs.logger.info")
     mock_log_error = mocker.patch("action_inputs.logger.error")
 
     mocker.patch(
@@ -190,10 +190,8 @@ def test_validate_repositories_configuration_correct_behaviour(mocker, config_re
 
     # Assert
     assert return_value is True
-    mock_log_debug.assert_has_calls(
+    mock_log_info.assert_has_calls(
         [
-            mocker.call("User configuration validation started"),
-            mocker.call("User configuration validation successfully completed."),
             mocker.call('Mode: `doc-issues`: %s.', 'Enabled'),
             mocker.call('Mode(doc-issues): `doc-issues-repositories`: %s.', mocker.ANY),
             mocker.call('Mode(doc-issues): `doc-issues-project-state-mining`: %s.', False),
@@ -205,8 +203,6 @@ def test_validate_repositories_configuration_correct_behaviour(mocker, config_re
 
 def test_validate_user_configuration_wrong_repository_404(mocker, config_repository):
     # Arrange
-    mock_log_error = mocker.patch("action_inputs.logger.error")
-
     mocker.patch(
         "action_inputs.ActionInputs.get_repositories", return_value=[config_repository]
     )
@@ -235,6 +231,8 @@ def test_validate_user_configuration_wrong_repository_non_200(mocker, config_rep
     mock_response_200.status_code = 200
     mock_response_500 = mocker.Mock()
     mock_response_500.status_code = 500
+    mock_response_500.text = "test"
+
     mocker.patch("requests.get", side_effect=[mock_response_200, mock_response_500])
 
     # Act
@@ -242,10 +240,10 @@ def test_validate_user_configuration_wrong_repository_non_200(mocker, config_rep
 
     # Assert
     assert return_value is False
-    mock_log_error.assert_called_once_with(
-        "An error occurred while validating the repository '%s/%s'. The response status code is %s. Response: %s",
-        "test_org",
-        "test_repo",
-        500,
-        mock_response_500.text,
+    mock_log_error.assert_has_calls(
+        [
+            mocker.call("An error occurred while validating the repository '%s/%s'. The response status code is %s. Response: %s", "test_org", "test_repo", 500, mock_response_500.text),
+            mocker.call("User configuration validation failed."),
+        ],
+        any_order=False,
     )

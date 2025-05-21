@@ -20,9 +20,10 @@ This module contains a data container for Consolidated Issue, which holds all th
 import logging
 from typing import Optional
 
+from living_doc_utilities.model.issue import Issue
+from living_doc_utilities.model.project_status import ProjectStatus
+
 from github.Issue import Issue as GitHubIssue
-from doc_issues.model.project_status import ProjectStatus
-from utils.issue import Issue
 
 logger = logging.getLogger(__name__)
 

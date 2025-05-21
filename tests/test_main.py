@@ -15,8 +15,8 @@
 #
 import os
 
+from living_doc_utilities.constants import OUTPUT_PATH
 from main import run
-from utils.constants import OUTPUT_PATH
 
 
 # run

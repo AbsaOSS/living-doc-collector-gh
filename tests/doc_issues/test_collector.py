@@ -13,7 +13,7 @@
 #
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
-from utils.issue import Issue
+from living_doc_utilities.model.issue import Issue
 
 
 # collect
@@ -200,7 +200,7 @@ def test_fetch_github_project_issues_correct_behaviour(mocker, doc_issues_collec
     mock_github_projects_instance.get_project_issues.side_effect = [[project_issue_1], [project_issue_2]]
 
     mock_make_issue_key = mocker.patch(
-        "doc_issues.collector.make_issue_key",
+        "living_doc_utilities.model.issues.Issues.make_issue_key",
         side_effect=lambda org, repo, num: f"{org}/{repo}#{num}",
     )
 
@@ -333,7 +333,7 @@ def test_consolidate_issues_data_correct_behaviour(mocker, doc_issues_collector)
     mock_logger_info = mocker.patch("doc_issues.collector.logger.info")
     mock_logger_debug = mocker.patch("doc_issues.collector.logger.debug")
     mock_make_issue_key = mocker.patch(
-        "doc_issues.collector.make_issue_key",
+        "living_doc_utilities.model.issues.Issues.make_issue_key",
         side_effect=lambda org, repo, num: f"{org}/{repo}#{num}",
     )
     mock_consolidated_issue_class = mocker.patch(
@@ -370,7 +370,7 @@ def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collecto
     mock_logger_info = mocker.patch("doc_issues.collector.logger.info")
     mock_logger_error = mocker.patch("doc_issues.collector.logger.error")
 
-    mock_save_to_json = mocker.patch("utils.issues.Issues.save_to_json")
+    mock_save_to_json = mocker.patch("living_doc_utilities.model.issues.Issues.save_to_json")
 
     # Act
     doc_issues_collector._store_consolidated_issues(consolidated_issues)

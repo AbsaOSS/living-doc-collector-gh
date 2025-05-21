@@ -25,9 +25,9 @@ from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.config_repository import ConfigRepository
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
-from utils.constants import OUTPUT_PATH
-from utils.github_rate_limiter import GithubRateLimiter
-from utils.issue import Issue
+from living_doc_utilities.constants import OUTPUT_PATH
+from living_doc_utilities.github.rate_limiter import GithubRateLimiter
+from living_doc_utilities.model.issue import Issue
 from utils.utils import make_absolute_path
 
 

@@ -18,27 +18,10 @@ import pytest
 
 from utils.exceptions import InvalidQueryFormatError
 from utils.utils import (
-    make_issue_key,
     sanitize_filename,
     validate_query_format,
-    get_action_input,
-    set_action_output,
     load_template, make_absolute_path,
 )
-
-
-# make_issue_key
-
-
-def test_make_issue_key():
-    organization_name = "org"
-    repository_name = "repo"
-    issue_number = 123
-
-    expected_key = "org/repo/123"
-    actual_key = make_issue_key(organization_name, repository_name, issue_number)
-
-    assert expected_key == actual_key
 
 
 # sanitize_filename
@@ -58,28 +41,6 @@ def test_make_issue_key():
 def test_sanitize_filename(filename_example, expected_filename):
     actual_filename = sanitize_filename(filename_example)
     assert expected_filename == actual_filename
-
-
-# GitHub action utils
-# get_action_input
-
-
-def test_get_input_with_hyphen(mocker):
-    mock_getenv = mocker.patch("os.getenv", return_value="test_value")
-
-    actual = get_action_input("test-input")
-
-    mock_getenv.assert_called_with("INPUT_TEST_INPUT", default='')
-    assert "test_value" == actual
-
-
-def test_get_input_without_hyphen(mocker):
-    mock_getenv = mocker.patch("os.getenv", return_value="another_test_value")
-
-    actual = get_action_input("anotherinput")
-
-    mock_getenv.assert_called_with("INPUT_ANOTHERINPUT", default='')
-    assert "another_test_value" == actual
 
 
 # validate_query_format
@@ -125,33 +86,6 @@ def test_validate_query_format_extra_placeholder(mocker):
             "Extra placeholders: {'placeholder2'}.",
             "This is a query with placeholders {placeholder1} and {placeholder2}",
         )
-
-
-# set_action_output
-
-
-def test_set_output_default(mocker):
-    mocker.patch("os.getenv", return_value="default_output.txt")
-    mock_open = mocker.patch("builtins.open", new_callable=mocker.mock_open)
-
-    set_action_output("test-output", "test_value")
-
-    mock_open.assert_called_with("default_output.txt", "a", encoding="utf-8")
-    handle = mock_open()
-    handle.write.assert_any_call("test-output=test_value\n")
-
-
-def test_set_output_custom_path(mocker):
-    mocker.patch("os.getenv", return_value="custom_output.txt")
-    mock_open = mocker.patch("builtins.open", new_callable=mocker.mock_open)
-
-    set_action_output("custom-output", "custom_value", "default_output.txt")
-
-    mock_open.assert_called_with("custom_output.txt", "a", encoding="utf-8")
-    handle = mock_open()
-    handle.write.assert_any_call("custom-output=custom_value\n")
-
-
 
 
 # load_template

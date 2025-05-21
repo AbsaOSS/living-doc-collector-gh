@@ -19,9 +19,6 @@ This module contains all constants and enums used across the project.
 """
 from enum import Enum
 
-# General Action inputs
-GITHUB_TOKEN = "GITHUB_TOKEN"
-
 # doc-issues mode Action inputs
 DOC_ISSUES_PROJECT_STATE_MINING = "DOC_ISSUES_PROJECT_STATE_MINING"
 DOC_ISSUES_REPOSITORIES = "DOC_ISSUES_REPOSITORIES"
@@ -39,7 +36,6 @@ class Mode(Enum):
 
 
 # Regime output paths
-OUTPUT_PATH = "./output"
 DOC_ISSUES_OUTPUT_PATH = "./output/doc-issues"
 
 
@@ -115,6 +111,3 @@ PROJECT_FIELD_OPTIONS_QUERY = """
                   }}
                 }}
                 """
-
-# Symbol, when no project is attached to an issue
-NO_PROJECT_DATA = "---"
