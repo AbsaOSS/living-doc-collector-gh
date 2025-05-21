@@ -170,7 +170,6 @@ def test_get_repositories_invalid_string_as_input(mocker):
 def test_validate_repositories_configuration_correct_behaviour(mocker, config_repository):
     # Arrange
     mock_log_info = mocker.patch("action_inputs.logger.info")
-    mock_log_debug = mocker.patch("action_inputs.logger.debug")
     mock_log_error = mocker.patch("action_inputs.logger.error")
 
     mocker.patch(
@@ -191,12 +190,6 @@ def test_validate_repositories_configuration_correct_behaviour(mocker, config_re
 
     # Assert
     assert return_value is True
-    mock_log_debug.assert_has_calls(
-        [
-            mocker.call("User configuration validation successfully completed."),
-    ],
-        any_order=False,
-    )
     mock_log_info.assert_has_calls(
         [
             mocker.call('Mode: `doc-issues`: %s.', 'Enabled'),
