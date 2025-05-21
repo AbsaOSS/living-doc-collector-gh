@@ -116,7 +116,7 @@ class ActionInputs(BaseActionInputs):
             logger.error("User configuration validation failed.")
             return err_counter
 
-        repository_error_count = 0
+        # Hint: continue validation when the received TOKEN is valid
         for repository in repositories:
             org_name = repository.organization_name
             repo_name = repository.repository_name
@@ -131,7 +131,7 @@ class ActionInputs(BaseActionInputs):
                     org_name,
                     repo_name,
                 )
-                repository_error_count += 1
+                err_counter += 1
             elif response.status_code != 200:
                 logger.error(
                     "An error occurred while validating the repository '%s/%s'. "
@@ -141,14 +141,12 @@ class ActionInputs(BaseActionInputs):
                     response.status_code,
                     response.text,
                 )
-                repository_error_count += 1
-        if repository_error_count > 0:
-            err_counter += repository_error_count
+                err_counter += 1
 
         if err_counter > 0:
             logger.error("User configuration validation failed.")
         else:
-            logger.debug("User configuration validation successfully completed.")
+            logger.info("User configuration validation successfully completed.")
 
         self.print_effective_configuration()
 
