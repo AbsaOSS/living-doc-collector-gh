@@ -28,6 +28,8 @@ from github.Issue import Issue
 
 from living_doc_utilities.decorators import safe_call_decorator
 from living_doc_utilities.github.rate_limiter import GithubRateLimiter
+from living_doc_utilities.model.feature_issue import FeatureIssue
+from living_doc_utilities.model.functionality_issue import FunctionalityIssue
 from living_doc_utilities.model.issues import Issues
 
 from action_inputs import ActionInputs
@@ -35,7 +37,9 @@ from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
-from utils.constants import ISSUES_PER_PAGE_LIMIT, SUPPORTED_ISSUE_LABELS, ISSUE_STATE_ALL
+from living_doc_utilities.model.user_story_issue import UserStoryIssue
+from utils.constants import ISSUES_PER_PAGE_LIMIT, ISSUE_STATE_ALL, SUPPORTED_ISSUE_LABELS, DOC_USER_STORY_LABEL, \
+    DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +56,7 @@ class GHDocIssuesCollector:
         github_token = ActionInputs.get_github_token()
 
         self.__output_path = os.path.join(output_path, "doc-issues")
-        self.__github_instance: Github = Github(auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT)
+        self.__github_instance: Github = Github(auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=False)
         self.__github_projects_instance: GitHubProjects = GitHubProjects(token=github_token)
         self.__rate_limiter: GithubRateLimiter = GithubRateLimiter(self.__github_instance)
         self.__safe_call: Callable = safe_call_decorator(self.__rate_limiter)
@@ -234,9 +238,28 @@ class GHDocIssuesCollector:
             for repository_issue in repository_issues[repository_id]:
                 repo_id_parts = repository_id.split("/")
                 unique_key = Issues.make_issue_key(repo_id_parts[0], repo_id_parts[1], repository_issue.number)
-                consolidated_issues[unique_key] = ConsolidatedIssue(
-                    repository_id=repository_id, repository_issue=repository_issue
-                )
+                if unique_key not in consolidated_issues:
+                    consolidated_issues[unique_key] = ConsolidatedIssue(
+                        repository_id=repository_id, repository_issue=repository_issue
+                    )
+
+                    labels = consolidated_issues[unique_key].labels
+                    issue_type = "Issue"
+
+                    if DOC_USER_STORY_LABEL in labels:
+                        issue_type = UserStoryIssue.__name__
+                    elif DOC_FEATURE_LABEL in labels:
+                        issue_type = FeatureIssue.__name__
+                    elif DOC_FUNCTIONALITY_LABEL in labels:
+                        issue_type = FunctionalityIssue.__name__
+
+                    consolidated_issues[unique_key].issue_type = issue_type
+                else:
+                    logger.error("Issue with key `%s` already consolidated. Multiple Living-Doc labels `%s` might be used.", unique_key, repository_issue.labels)
+                    consolidated_issues[unique_key].errors["multiple_labels"] = (
+                        "Multiple Living-Doc labels found for the same issue. "
+                        "Please use only one Living-Doc label per issue."
+                    )
 
         # Update consolidated issue structures with project data
         logger.debug("Updating consolidated issue structure with project data.")
@@ -262,7 +285,7 @@ class GHDocIssuesCollector:
         for key, item in consolidated_issues.items():
             issues.add_issue(
                 key=key,
-                issue=item.to_issue_for_persist(),
+                issue=item.to_issue_for_persist,
             )
 
         output_file_path = os.path.join(self.__output_path, "doc-issues.json")

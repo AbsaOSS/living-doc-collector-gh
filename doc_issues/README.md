@@ -120,7 +120,7 @@ Configure the Living Documentation mode by customizing the following parameters:
 
 The Living Documentation Collector for GitHub is designed to produce a collection of Consolidated Issues. Where **consolidated** means that the issues' information is merged from both the Repository and Project Issues. 
 
-The mode produces the file `output/collected_gh_consolidated_issues.json` with the following structure:
+The mode produces the file `output/collected_gh_issues.json` with the following structure:
 
 ```
 TODO 

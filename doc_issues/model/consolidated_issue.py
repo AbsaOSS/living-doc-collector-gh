@@ -20,10 +20,14 @@ This module contains a data container for Consolidated Issue, which holds all th
 import logging
 from typing import Optional
 
+from living_doc_utilities.model.feature_issue import FeatureIssue
+from living_doc_utilities.model.functionality_issue import FunctionalityIssue
 from living_doc_utilities.model.issue import Issue
 from living_doc_utilities.model.project_status import ProjectStatus
 
 from github.Issue import Issue as GitHubIssue
+
+from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 logger = logging.getLogger(__name__)
 
@@ -34,18 +38,22 @@ class ConsolidatedIssue:
     It provides methods for updating project data and generating page filenames and
     properties to access consolidated issue details.
     """
-
     def __init__(self, repository_id: str, repository_issue: Optional[GitHubIssue] = None):
         # save issue from repository (got from GitHub library & keep connection to repository for lazy loading)
         # Warning: several issue properties require additional API calls - use wisely to keep low API usage
         self.__issue: Optional[GitHubIssue] = repository_issue
         self.__repository_id: str = repository_id
 
+        self.issue_type: Optional[str] = None
+
         # Extra project data (optionally provided from the GithubProjects class)
         self.__linked_to_project: bool = False
         self.__project_issue_statuses: list[ProjectStatus] = []
 
-        self.__errors: dict = {}
+        # Labels of the issue - saved during mining to reduce API calls and protect against rate limits
+        self.__issue_labels: list[str] = []
+
+        self.__errors: dict[str, str] = {}
 
     # Issue properties
     @property
@@ -108,9 +116,12 @@ class ConsolidatedIssue:
     @property
     def labels(self) -> list[str]:
         """Getter of the issue labels."""
+        if self.__issue_labels:
+            return self.__issue_labels
+
         if self.__issue:
-            return [label.name for label in self.__issue.labels]
-        return []
+            self.__issue_labels = [label.name for label in self.__issue.labels]
+        return self.__issue_labels
 
     # Project properties
     @property
@@ -123,7 +134,6 @@ class ConsolidatedIssue:
         """Getter of the project issue statuses."""
         return self.__project_issue_statuses
 
-    # Error property
     @property
     def errors(self) -> dict[str, str]:
         """Getter of the errors that occurred during the issue processing."""
@@ -139,17 +149,23 @@ class ConsolidatedIssue:
         self.__linked_to_project = True
         self.__project_issue_statuses.append(project_issue_status)
 
+    @property
     def to_issue_for_persist(self) -> Issue:
         """
         Convert the consolidated issue to a standard Issue object for persistence.
 
         @return: The converted Issue.
         """
-        issue = Issue(
-            repository_id=self.repository_id,
-            title=self.title,
-            number=self.number,
-        )
+        CLASS_MAP = {
+            "UserStoryIssue": UserStoryIssue,
+            "FeatureIssue": FeatureIssue,
+            "FunctionalityIssue": FunctionalityIssue,
+        }
+        issue = CLASS_MAP.get(self.issue_type, Issue)()
+
+        issue.repository_id = self.repository_id
+        issue.title = self.title
+        issue.issue_number = self.number
 
         issue.state = self.state
         issue.created_at = self.created_at
@@ -161,5 +177,7 @@ class ConsolidatedIssue:
 
         issue.linked_to_project = self.linked_to_project
         issue.project_statuses = self.project_issue_statuses
+
+        issue.add_errors(errors=self.errors)
 
         return issue
