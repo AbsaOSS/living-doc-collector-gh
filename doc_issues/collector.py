@@ -91,8 +91,11 @@ class GHDocIssuesCollector:
 
         # persist the consolidated issues
         logger.info("Exporting consolidated issues - started.")
-        self._store_consolidated_issues(consolidated_issues)
+        without_error = self._store_consolidated_issues(consolidated_issues)
         logger.info("Exporting consolidated issues - finished.")
+
+        if not without_error:
+            return False
 
         return True
 
@@ -274,7 +277,7 @@ class GHDocIssuesCollector:
         )
         return consolidated_issues
 
-    def _store_consolidated_issues(self, consolidated_issues: dict[str, ConsolidatedIssue]) -> None:
+    def _store_consolidated_issues(self, consolidated_issues: dict[str, ConsolidatedIssue]) -> bool:
         """
         Store the consolidated issues in JSON format.
 
@@ -282,12 +285,27 @@ class GHDocIssuesCollector:
         @return: None
         """
         issues: Issues = Issues()
+        not_valid_issue_detected = False
+
         for key, item in consolidated_issues.items():
+            issue = item.convert_to_issue_for_persist()
+
+            if not issue.is_valid_issue():
+                logger.error("Issue with key `%s` is not valid (Repository ID, title and issue_number have to be defined). Skipping issue.", key)
+                not_valid_issue_detected = True
+                continue
+
             issues.add_issue(
                 key=key,
-                issue=item.to_issue_for_persist,
+                issue=issue,
             )
 
         output_file_path = os.path.join(self.__output_path, "doc-issues.json")
         logger.info("Exporting consolidated issues - exporting to `%s`.", output_file_path)
         issues.save_to_json(output_file_path)
+
+        if any(issue.errors for issue in issues.issues.values()) or not_valid_issue_detected:
+            logger.error("Exporting consolidated issues - some issues have errors.")
+            return False
+
+        return True

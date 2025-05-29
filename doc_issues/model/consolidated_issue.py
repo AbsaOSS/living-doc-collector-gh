@@ -149,8 +149,7 @@ class ConsolidatedIssue:
         self.__linked_to_project = True
         self.__project_issue_statuses.append(project_issue_status)
 
-    @property
-    def to_issue_for_persist(self) -> Issue:
+    def convert_to_issue_for_persist(self) -> Issue:
         """
         Convert the consolidated issue to a standard Issue object for persistence.
 

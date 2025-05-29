@@ -60,7 +60,7 @@ def test_to_issue_for_persist():
     consolidated_issue = ConsolidatedIssue("test_org/test_repo")
 
     # Act
-    issue = consolidated_issue.to_issue_for_persist
+    issue = consolidated_issue.convert_to_issue_for_persist
 
     # Assert
     assert issue.repository_id == "test_org/test_repo"
