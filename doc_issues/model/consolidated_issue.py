@@ -20,14 +20,11 @@ This module contains a data container for Consolidated Issue, which holds all th
 import logging
 from typing import Optional
 
-from living_doc_utilities.model.feature_issue import FeatureIssue
-from living_doc_utilities.model.functionality_issue import FunctionalityIssue
+from living_doc_utilities.factory.issue_factory import IssueFactory
 from living_doc_utilities.model.issue import Issue
 from living_doc_utilities.model.project_status import ProjectStatus
 
 from github.Issue import Issue as GitHubIssue
-
-from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +35,7 @@ class ConsolidatedIssue:
     It provides methods for updating project data and generating page filenames and
     properties to access consolidated issue details.
     """
+
     def __init__(self, repository_id: str, repository_issue: Optional[GitHubIssue] = None):
         # save issue from repository (got from GitHub library & keep connection to repository for lazy loading)
         # Warning: several issue properties require additional API calls - use wisely to keep low API usage
@@ -155,12 +153,7 @@ class ConsolidatedIssue:
 
         @return: The converted Issue.
         """
-        CLASS_MAP = {
-            "UserStoryIssue": UserStoryIssue,
-            "FeatureIssue": FeatureIssue,
-            "FunctionalityIssue": FunctionalityIssue,
-        }
-        issue = CLASS_MAP.get(self.issue_type, Issue)()
+        issue = IssueFactory.get(self.issue_type, {})
 
         issue.repository_id = self.repository_id
         issue.title = self.title

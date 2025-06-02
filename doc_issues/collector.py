@@ -31,15 +31,21 @@ from living_doc_utilities.github.rate_limiter import GithubRateLimiter
 from living_doc_utilities.model.feature_issue import FeatureIssue
 from living_doc_utilities.model.functionality_issue import FunctionalityIssue
 from living_doc_utilities.model.issues import Issues
+from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 from action_inputs import ActionInputs
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
-from living_doc_utilities.model.user_story_issue import UserStoryIssue
-from utils.constants import ISSUES_PER_PAGE_LIMIT, ISSUE_STATE_ALL, SUPPORTED_ISSUE_LABELS, DOC_USER_STORY_LABEL, \
-    DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL
+from utils.constants import (
+    ISSUES_PER_PAGE_LIMIT,
+    ISSUE_STATE_ALL,
+    SUPPORTED_ISSUE_LABELS,
+    DOC_USER_STORY_LABEL,
+    DOC_FEATURE_LABEL,
+    DOC_FUNCTIONALITY_LABEL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +62,9 @@ class GHDocIssuesCollector:
         github_token = ActionInputs.get_github_token()
 
         self.__output_path = os.path.join(output_path, "doc-issues")
-        self.__github_instance: Github = Github(auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=False)
+        self.__github_instance: Github = Github(
+            auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=False
+        )
         self.__github_projects_instance: GitHubProjects = GitHubProjects(token=github_token)
         self.__rate_limiter: GithubRateLimiter = GithubRateLimiter(self.__github_instance)
         self.__safe_call: Callable = safe_call_decorator(self.__rate_limiter)
@@ -258,7 +266,11 @@ class GHDocIssuesCollector:
 
                     consolidated_issues[unique_key].issue_type = issue_type
                 else:
-                    logger.error("Issue with key `%s` already consolidated. Multiple Living-Doc labels `%s` might be used.", unique_key, repository_issue.labels)
+                    logger.error(
+                        "Issue with key `%s` already consolidated. Multiple Living-Doc labels `%s` might be used.",
+                        unique_key,
+                        repository_issue.labels,
+                    )
                     consolidated_issues[unique_key].errors["multiple_labels"] = (
                         "Multiple Living-Doc labels found for the same issue. "
                         "Please use only one Living-Doc label per issue."
@@ -291,7 +303,11 @@ class GHDocIssuesCollector:
             issue = item.convert_to_issue_for_persist()
 
             if not issue.is_valid_issue():
-                logger.error("Issue with key `%s` is not valid (Repository ID, title and issue_number have to be defined). Skipping issue.", key)
+                logger.error(
+                    "Issue with key `%s` is not valid (Repository ID, title and issue_number have to be defined)."
+                    " Skipping issue.",
+                    key,
+                )
                 not_valid_issue_detected = True
                 continue
 
@@ -304,7 +320,7 @@ class GHDocIssuesCollector:
         logger.info("Exporting consolidated issues - exporting to `%s`.", output_file_path)
         issues.save_to_json(output_file_path)
 
-        if any(issue.errors for issue in issues.issues.values()) or not_valid_issue_detected:
+        if any(len(issue.errors) > 0 for issue in issues.issues.values()) or not_valid_issue_detected:
             logger.error("Exporting consolidated issues - some issues have errors.")
             return False
 

@@ -18,9 +18,9 @@
 This module contains an Action Inputs class methods,
 which are essential for running the GH action.
 """
-
 import json
 import logging
+import urllib3
 import requests
 
 from living_doc_utilities.github.utils import get_action_input
@@ -30,7 +30,6 @@ from doc_issues.model.config_repository import ConfigRepository
 from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES, VERBOSE_LOGGING
 from utils.exceptions import FetchRepositoriesException
 
-import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
