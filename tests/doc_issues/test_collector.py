@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from tkinter.filedialog import dialogstates
+
 from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
@@ -78,6 +80,21 @@ def test_collect_correct_behaviour(mocker, doc_issues_collector):
         ],
         any_order=True,
     )
+
+
+def test_collect_returns_false_when_store_fails(mocker, doc_issues_collector):
+    # Arrange
+    mocker.patch.object(doc_issues_collector, "_clean_output_directory")
+    mocker.patch.object(doc_issues_collector, "_fetch_github_issues", return_value={})
+    mocker.patch.object(doc_issues_collector, "_fetch_github_project_issues", return_value={})
+    mocker.patch.object(doc_issues_collector, "_consolidate_issues_data", return_value={})
+    mocker.patch.object(doc_issues_collector, "_store_consolidated_issues", return_value=False)
+
+    # Act
+    result = doc_issues_collector.collect()
+
+    # Assert
+    assert result is False
 
 
 # _clean_output_directory
@@ -346,7 +363,7 @@ def test__consolidate_issues_data_sets_type_and_updates_project(mocker):
     github_issue_func.labels = [label_mock_func]
 
     repository_issues = {
-        "TestOrg/TestRepo": [github_issue_us, github_issue_feat, github_issue_func]
+        "TestOrg/TestRepo": [github_issue_us, github_issue_feat, github_issue_func, github_issue_func]
     }
 
     # Mock a ProjectIssue
@@ -381,7 +398,6 @@ def test__consolidate_issues_data_sets_type_and_updates_project(mocker):
     mock_logger_info.assert_called_once_with(
         "Issue and project data consolidation - consolidated `%i` repository issues with extra project data.", 3
     )
-
 
 # _store_consolidated_issues
 
@@ -423,3 +439,53 @@ def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collecto
     assert mock_save_to_json.call_args[0][0].endswith("doc-issues.json")
     assert mock_logger_info.call_count == 1
     mock_logger_error.assert_not_called()
+
+
+def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
+    # Arrange
+    class FakeGitHubIssue:
+        number = 1
+        title = "Test title"
+        state = "open"
+        created_at = "2023-01-01"
+        updated_at = "2023-01-02"
+        closed_at = None
+        html_url = "https://github.com/test/repo/issues/1"
+        body = "Issue body"
+        labels = []
+
+    # Create real ConsolidatedIssue instances with the fake GitHub issue
+    issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
+    issue2 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
+    gh_issue = FakeGitHubIssue()
+    gh_issue.title = None
+    issue3 = ConsolidatedIssue("test_org/test_repo", gh_issue)
+
+    issue1.issue_type = "UserStoryIssue"
+    issue2.issue_type = "UserStoryIssue"
+
+    consolidated_issues = {
+        "test_org/test_repo#1": issue1,
+        "test_org/test_repo#2": issue2,
+        "test_org/test_repo#3": issue3,
+    }
+
+    mock_logger_info = mocker.patch("doc_issues.collector.logger.info")
+    mock_logger_error = mocker.patch("doc_issues.collector.logger.error")
+    mock_save_to_json = mocker.patch("living_doc_utilities.model.issues.Issues.save_to_json")
+
+    # Act
+    doc_issues_collector._store_consolidated_issues(consolidated_issues)
+
+    # Assert
+    mock_save_to_json.assert_called_once()
+    assert mock_save_to_json.call_args[0][0].endswith("doc-issues.json")
+    assert mock_logger_info.call_count == 1
+    assert mock_logger_error.call_count == 2
+    mock_logger_error.assert_has_calls(
+        [
+            mocker.call("Issue with key `%s` is not valid (Repository ID, title and issue_number have to be defined). Skipping issue.", "test_org/test_repo#3"),
+            mocker.call("Exporting consolidated issues - some issues have errors."),
+        ],
+        any_order=True,
+    )

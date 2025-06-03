@@ -31,6 +31,8 @@ def test_consolidated_issue_initialization():
     assert issue.linked_to_project is False
     assert issue.project_issue_statuses == []
     assert issue.errors == {}
+    assert issue.organization_name == "test_org"
+    assert issue.repository_name == "test_repo"
 
 
 def test_update_with_project_data():
@@ -75,3 +77,25 @@ def test_to_issue_for_persist():
     assert issue.labels == []
     assert issue.linked_to_project is False
     assert issue.project_statuses == []
+
+
+def test_consolidated_issue_labels_fetches_from_issue_when_internal_empty(mocker):
+    # Arrange
+    issue = ConsolidatedIssue("test_org/test_repo")
+    mock_label1 = mocker.Mock()
+    mock_label1.name = "bug"
+    mock_label2 = mocker.Mock()
+    mock_label2.name = "enhancement"
+    mock_github_issue = mocker.Mock()
+    mock_github_issue.labels = [mock_label1, mock_label2]
+    # Inject the mock GitHub issue
+    issue._ConsolidatedIssue__issue = mock_github_issue
+    issue._ConsolidatedIssue__issue_labels = []
+
+    # Act
+    result_1 = issue.labels       # get labels from mock github issue
+    result_2 = issue.labels       # get labels from internal cache
+
+    # Assert
+    assert result_1 == ["bug", "enhancement"]
+    assert result_2 == ["bug", "enhancement"]
