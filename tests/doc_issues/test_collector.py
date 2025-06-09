@@ -20,6 +20,18 @@ from living_doc_utilities.model.issues import Issues
 from utils.constants import DOC_USER_STORY_LABEL, DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL
 
 
+class FakeGitHubIssue:
+    number = 1
+    title = "Test title"
+    state = "open"
+    created_at = "2023-01-01"
+    updated_at = "2023-01-02"
+    closed_at = None
+    html_url = "https://github.com/test/repo/issues/1"
+    body = "Issue body"
+    labels = []
+
+
 # collect
 
 
@@ -402,17 +414,6 @@ def test__consolidate_issues_data_sets_type_and_updates_project(mocker):
 
 def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collector):
     # Arrange
-    class FakeGitHubIssue:
-        number = 1
-        title = "Test title"
-        state = "open"
-        created_at = "2023-01-01"
-        updated_at = "2023-01-02"
-        closed_at = None
-        html_url = "https://github.com/test/repo/issues/1"
-        body = "Issue body"
-        labels = []
-
     # Create real ConsolidatedIssue instances with the fake GitHub issue
     issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
     issue2 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
@@ -441,17 +442,6 @@ def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collecto
 
 def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
     # Arrange
-    class FakeGitHubIssue:
-        number = 1
-        title = "Test title"
-        state = "open"
-        created_at = "2023-01-01"
-        updated_at = "2023-01-02"
-        closed_at = None
-        html_url = "https://github.com/test/repo/issues/1"
-        body = "Issue body"
-        labels = []
-
     # Create real ConsolidatedIssue instances with the fake GitHub issue
     issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
     issue2 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
