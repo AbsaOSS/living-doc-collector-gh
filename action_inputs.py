@@ -22,8 +22,8 @@ import json
 import logging
 import urllib3
 import requests
-
 from living_doc_utilities.github.utils import get_action_input
+
 from living_doc_utilities.inputs.action_inputs import BaseActionInputs
 
 from doc_issues.model.config_repository import ConfigRepository

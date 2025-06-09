@@ -42,7 +42,7 @@ class ConsolidatedIssue:
         self.__issue: Optional[GitHubIssue] = repository_issue
         self.__repository_id: str = repository_id
 
-        self.issue_type: Optional[str] = None
+        self.issue_type: str = "Issue"
 
         # Extra project data (optionally provided from the GithubProjects class)
         self.__linked_to_project: bool = False
