@@ -297,7 +297,7 @@ class GHDocIssuesCollector:
         @return: None
         """
         issues: Issues = Issues()
-        not_valid_issue_detected = False
+        invalid_issue_detected = False
 
         for key, item in consolidated_issues.items():
             issue = item.convert_to_issue_for_persist()
@@ -308,7 +308,7 @@ class GHDocIssuesCollector:
                     " Skipping issue.",
                     key,
                 )
-                not_valid_issue_detected = True
+                invalid_issue_detected = True
                 continue
 
             issues.add_issue(
@@ -320,7 +320,7 @@ class GHDocIssuesCollector:
         logger.info("Exporting consolidated issues - exporting to `%s`.", output_file_path)
         issues.save_to_json(output_file_path)
 
-        if any(len(issue.errors) > 0 for issue in issues.issues.values()) or not_valid_issue_detected:
+        if any(len(issue.errors) > 0 for issue in issues.issues.values()) or invalid_issue_detected:
             logger.error("Exporting consolidated issues - some issues have errors.")
             return False
 
