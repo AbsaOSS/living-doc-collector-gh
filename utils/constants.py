@@ -19,6 +19,8 @@ This module contains all constants and enums used across the project.
 """
 from enum import Enum
 
+VERBOSE_LOGGING = "VERBOSE_LOGGING"
+
 # doc-issues mode Action inputs
 DOC_ISSUES_PROJECT_STATE_MINING = "DOC_ISSUES_PROJECT_STATE_MINING"
 DOC_ISSUES_REPOSITORIES = "DOC_ISSUES_REPOSITORIES"

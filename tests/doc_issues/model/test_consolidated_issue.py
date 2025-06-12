@@ -31,6 +31,8 @@ def test_consolidated_issue_initialization():
     assert issue.linked_to_project is False
     assert issue.project_issue_statuses == []
     assert issue.errors == {}
+    assert issue.organization_name == "test_org"
+    assert issue.repository_name == "test_repo"
 
 
 def test_update_with_project_data():
@@ -55,17 +57,19 @@ def test_update_with_project_data():
 #  to_issue_for_persist
 
 
-def test_to_issue_for_persist():
+def test_to_issue_for_persist(mocker):
     # Arrange
-    consolidated_issue = ConsolidatedIssue("test_org/test_repo")
+    mocker.patch.object(ConsolidatedIssue, "number", new_callable=mocker.PropertyMock, return_value=1)
+    mocker.patch.object(ConsolidatedIssue, "title", new_callable=mocker.PropertyMock, return_value="Some title")
+    consolidated_issue = ConsolidatedIssue("test_org/test_repo", repository_issue=None)
 
     # Act
-    issue = consolidated_issue.to_issue_for_persist()
+    issue = consolidated_issue.convert_to_issue_for_persist()
 
     # Assert
     assert issue.repository_id == "test_org/test_repo"
-    assert issue.title == ""
-    assert issue.issue_number == 0
+    assert issue.title == "Some title"
+    assert issue.issue_number == 1
     assert issue.state == ""
     assert issue.created_at == ""
     assert issue.updated_at == ""
@@ -75,3 +79,25 @@ def test_to_issue_for_persist():
     assert issue.labels == []
     assert issue.linked_to_project is False
     assert issue.project_statuses == []
+
+
+def test_consolidated_issue_labels_fetches_from_issue_when_internal_empty(mocker):
+    # Arrange
+    issue = ConsolidatedIssue("test_org/test_repo")
+    mock_label1 = mocker.Mock()
+    mock_label1.name = "bug"
+    mock_label2 = mocker.Mock()
+    mock_label2.name = "enhancement"
+    mock_github_issue = mocker.Mock()
+    mock_github_issue.labels = [mock_label1, mock_label2]
+    # Inject the mock GitHub issue
+    issue._ConsolidatedIssue__issue = mock_github_issue
+    issue._ConsolidatedIssue__issue_labels = []
+
+    # Act
+    result_1 = issue.labels       # get labels from mock github issue
+    result_2 = issue.labels       # get labels from internal cache
+
+    # Assert
+    assert result_1 == ["bug", "enhancement"]
+    assert result_2 == ["bug", "enhancement"]

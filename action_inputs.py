@@ -18,18 +18,19 @@
 This module contains an Action Inputs class methods,
 which are essential for running the GH action.
 """
-
 import json
 import logging
+import urllib3
 import requests
-
 from living_doc_utilities.github.utils import get_action_input
+
 from living_doc_utilities.inputs.action_inputs import BaseActionInputs
 
 from doc_issues.model.config_repository import ConfigRepository
-from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES
+from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES, VERBOSE_LOGGING
 from utils.exceptions import FetchRepositoriesException
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,14 @@ class ActionInputs(BaseActionInputs):
         @return: True if project state mining is enabled, False otherwise.
         """
         return get_action_input(DOC_ISSUES_PROJECT_STATE_MINING, "false").lower() == "true"
+
+    @staticmethod
+    def get_verbose_logging() -> bool:
+        """
+        Getter of the verbose logging switch. False by default.
+        @return: True if verbose logging is enabled, False otherwise.
+        """
+        return get_action_input(VERBOSE_LOGGING, "false").lower() == "true"
 
     @staticmethod
     def get_repositories() -> list[ConfigRepository]:
@@ -103,7 +112,7 @@ class ActionInputs(BaseActionInputs):
         headers = {"Authorization": f"token {github_token}"}
 
         # Validate GitHub token
-        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10)
+        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10, verify=False)
         if response.status_code != 200:
             logger.error(
                 "Can not connect to GitHub. Possible cause: Invalid GitHub token. Status code: %s, Response: %s",
@@ -122,7 +131,7 @@ class ActionInputs(BaseActionInputs):
             repo_name = repository.repository_name
             github_repo_url = f"https://api.github.com/repos/{org_name}/{repo_name}"
 
-            response = requests.get(github_repo_url, headers=headers, timeout=10)
+            response = requests.get(github_repo_url, headers=headers, timeout=10, verify=False)
 
             if response.status_code == 404:
                 logger.error(
@@ -162,3 +171,4 @@ class ActionInputs(BaseActionInputs):
             "Mode(doc-issues): `doc-issues-project-state-mining`: %s.",
             ActionInputs.is_project_state_mining_enabled(),
         )
+        logger.info("verbose logging: %s", self.get_verbose_logging())

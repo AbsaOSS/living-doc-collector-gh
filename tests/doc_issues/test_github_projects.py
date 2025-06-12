@@ -17,6 +17,30 @@ import requests
 
 from doc_issues.github_projects import GitHubProjects
 
+# __init__
+
+
+def test___initialize_request_session_sets_session_and_headers(mocker):
+    # Arrange
+    mock_session = mocker.patch("requests.Session", autospec=True).return_value
+    mock_session.headers = mocker.Mock()  # Add this line
+    token = "test_token"
+    github_projects = GitHubProjects(token)
+    if hasattr(github_projects, "_GitHubProjects__session"):
+        del github_projects._GitHubProjects__session
+
+    # Act
+    github_projects._GitHubProjects__initialize_request_session()
+
+    # Assert
+    assert github_projects._GitHubProjects__session is mock_session
+    mock_session.headers.update.assert_called_once_with(
+        {
+            "Authorization": f"Bearer test_token",
+            "User-Agent": "IssueFetcher/1.0",
+        }
+    )
+
 
 # _send_graphql_query
 

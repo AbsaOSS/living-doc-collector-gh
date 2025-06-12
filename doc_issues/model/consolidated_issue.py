@@ -18,8 +18,9 @@
 This module contains a data container for Consolidated Issue, which holds all the essential logic.
 """
 import logging
-from typing import Optional
+from typing import Optional, Any
 
+from living_doc_utilities.factory.issue_factory import IssueFactory
 from living_doc_utilities.model.issue import Issue
 from living_doc_utilities.model.project_status import ProjectStatus
 
@@ -41,11 +42,16 @@ class ConsolidatedIssue:
         self.__issue: Optional[GitHubIssue] = repository_issue
         self.__repository_id: str = repository_id
 
+        self.issue_type: str = "Issue"
+
         # Extra project data (optionally provided from the GithubProjects class)
         self.__linked_to_project: bool = False
         self.__project_issue_statuses: list[ProjectStatus] = []
 
-        self.__errors: dict = {}
+        # Labels of the issue - saved during mining to reduce API calls and protect against rate limits
+        self.__issue_labels: list[str] = []
+
+        self.__errors: dict[str, str] = {}
 
     # Issue properties
     @property
@@ -108,9 +114,12 @@ class ConsolidatedIssue:
     @property
     def labels(self) -> list[str]:
         """Getter of the issue labels."""
+        if self.__issue_labels:
+            return self.__issue_labels
+
         if self.__issue:
-            return [label.name for label in self.__issue.labels]
-        return []
+            self.__issue_labels = [label.name for label in self.__issue.labels]
+        return self.__issue_labels
 
     # Project properties
     @property
@@ -123,7 +132,6 @@ class ConsolidatedIssue:
         """Getter of the project issue statuses."""
         return self.__project_issue_statuses
 
-    # Error property
     @property
     def errors(self) -> dict[str, str]:
         """Getter of the errors that occurred during the issue processing."""
@@ -139,18 +147,19 @@ class ConsolidatedIssue:
         self.__linked_to_project = True
         self.__project_issue_statuses.append(project_issue_status)
 
-    def to_issue_for_persist(self) -> Issue:
+    def convert_to_issue_for_persist(self) -> Issue:
         """
         Convert the consolidated issue to a standard Issue object for persistence.
 
         @return: The converted Issue.
         """
-        issue = Issue(
-            repository_id=self.repository_id,
-            title=self.title,
-            number=self.number,
-        )
+        values: dict[str, Any] = {
+            Issue.REPOSITORY_ID: self.repository_id,
+            Issue.TITLE: self.title,
+            Issue.ISSUE_NUMBER: self.number,
+        }
 
+        issue = IssueFactory.get(self.issue_type, values)
         issue.state = self.state
         issue.created_at = self.created_at
         issue.updated_at = self.updated_at
@@ -161,5 +170,7 @@ class ConsolidatedIssue:
 
         issue.linked_to_project = self.linked_to_project
         issue.project_statuses = self.project_issue_statuses
+
+        issue.add_errors(errors=self.errors)
 
         return issue
