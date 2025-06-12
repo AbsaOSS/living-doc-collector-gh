@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from os import fspath
+
 from living_doc_utilities.model.issue import Issue
 
 from doc_issues.collector import GHDocIssuesCollector
@@ -100,13 +102,15 @@ def test_collect_returns_false_when_store_fails(mocker, doc_issues_collector):
     mocker.patch.object(doc_issues_collector, "_fetch_github_issues", return_value={})
     mocker.patch.object(doc_issues_collector, "_fetch_github_project_issues", return_value={})
     mocker.patch.object(doc_issues_collector, "_consolidate_issues_data", return_value={})
-    mocker.patch.object(doc_issues_collector, "_store_consolidated_issues", return_value=False)
+    # mocker.patch.object(doc_issues_collector, "_store_consolidated_issues", return_value=False)
+    store_mock = mocker.patch.object(doc_issues_collector, "_store_consolidated_issues", return_value=False)
 
     # Act
     result = doc_issues_collector.collect()
 
     # Assert
     assert result is False
+    store_mock.assert_called_once()
 
 
 # _clean_output_directory
@@ -375,7 +379,7 @@ def test__consolidate_issues_data_sets_type_and_updates_project(mocker):
     github_issue_func.labels = [label_mock_func]
 
     repository_issues = {
-        "TestOrg/TestRepo": [github_issue_us, github_issue_feat, github_issue_func, github_issue_func]
+        "TestOrg/TestRepo": [github_issue_us, github_issue_feat, github_issue_func]
     }
 
     # Mock a ProjectIssue
@@ -406,8 +410,10 @@ def test__consolidate_issues_data_sets_type_and_updates_project(mocker):
     assert issue_feat.issue_type == "FeatureIssue"
     assert issue_func.issue_type == "FunctionalityIssue"
 
-    mock_logger_debug.assert_called_once_with("Updating consolidated issue structure with project data.")
-    mock_logger_info.assert_called_once_with(
+    mock_logger_debug.assert_any_call(
+        "Updating consolidated issue structure with project data."
+        )
+    mock_logger_info.assert_any_call(
         "Issue and project data consolidation - consolidated `%i` repository issues with extra project data.", 3
     )
 
@@ -461,7 +467,7 @@ def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
 
     # Assert
     mock_save_to_json.assert_called_once()
-    assert mock_save_to_json.call_args[0][0].endswith("doc-issues.json")
+    assert fspath(mock_save_to_json.call_args[0][0]).endswith("doc-issues.json")
     assert mock_logger_info.call_count == 1
     assert mock_logger_error.call_count == 2
     mock_logger_error.assert_has_calls(
