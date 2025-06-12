@@ -57,17 +57,19 @@ def test_update_with_project_data():
 #  to_issue_for_persist
 
 
-def test_to_issue_for_persist():
+def test_to_issue_for_persist(mocker):
     # Arrange
-    consolidated_issue = ConsolidatedIssue("test_org/test_repo")
+    mocker.patch.object(ConsolidatedIssue, "number", new_callable=mocker.PropertyMock, return_value=1)
+    mocker.patch.object(ConsolidatedIssue, "title", new_callable=mocker.PropertyMock, return_value="Some title")
+    consolidated_issue = ConsolidatedIssue("test_org/test_repo", repository_issue=None)
 
     # Act
     issue = consolidated_issue.convert_to_issue_for_persist()
 
     # Assert
     assert issue.repository_id == "test_org/test_repo"
-    assert issue.title == ""
-    assert issue.issue_number == 0
+    assert issue.title == "Some title"
+    assert issue.issue_number == 1
     assert issue.state == ""
     assert issue.created_at == ""
     assert issue.updated_at == ""

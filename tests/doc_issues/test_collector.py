@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from living_doc_utilities.model.issue import Issue
 
 from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
@@ -21,15 +22,16 @@ from utils.constants import DOC_USER_STORY_LABEL, DOC_FEATURE_LABEL, DOC_FUNCTIO
 
 
 class FakeGitHubIssue:
-    number = 1
-    title = "Test title"
-    state = "open"
-    created_at = "2023-01-01"
-    updated_at = "2023-01-02"
-    closed_at = None
-    html_url = "https://github.com/test/repo/issues/1"
-    body = "Issue body"
-    labels = []
+    def __init__(self, number: int, title: str):
+        self.number = number
+        self.title = title
+        self.state = "open"
+        self.created_at = "2023-01-01"
+        self.updated_at = "2023-01-02"
+        self.closed_at = None
+        self.html_url = "https://github.com/test/repo/issues/1"
+        self.body = "Issue body"
+        self.labels = []
 
 
 # collect
@@ -415,8 +417,8 @@ def test__consolidate_issues_data_sets_type_and_updates_project(mocker):
 def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collector):
     # Arrange
     # Create real ConsolidatedIssue instances with the fake GitHub issue
-    issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
-    issue2 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
+    issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue(1, "Issue 1"))
+    issue2 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue(2, "Issue 2"))
 
     issue1.issue_type = "UserStoryIssue"
     issue2.issue_type = "UserStoryIssue"
@@ -442,20 +444,12 @@ def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collecto
 
 def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
     # Arrange
-    # Create real ConsolidatedIssue instances with the fake GitHub issue
-    issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
-    issue2 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue())
-    gh_issue = FakeGitHubIssue()
-    gh_issue.title = None
-    issue3 = ConsolidatedIssue("test_org/test_repo", gh_issue)
-
+    issue1 = ConsolidatedIssue("test_org/test_repo", FakeGitHubIssue(1, "Issue 1"))
     issue1.issue_type = "UserStoryIssue"
-    issue2.issue_type = "UserStoryIssue"
+    mocker.patch.object(Issue, "is_valid_issue", return_value=False)
 
     consolidated_issues = {
         "test_org/test_repo#1": issue1,
-        "test_org/test_repo#2": issue2,
-        "test_org/test_repo#3": issue3,
     }
 
     mock_logger_info = mocker.patch("doc_issues.collector.logger.info")
@@ -472,7 +466,7 @@ def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
     assert mock_logger_error.call_count == 2
     mock_logger_error.assert_has_calls(
         [
-            mocker.call("Issue with key `%s` is not valid (Repository ID, title and issue_number have to be defined). Skipping issue.", "test_org/test_repo#3"),
+            mocker.call("Issue with key `%s` is not valid (Repository ID, title and issue_number have to be defined). Skipping issue.", "test_org/test_repo#1"),
             mocker.call("Exporting consolidated issues - some issues have errors."),
         ],
         any_order=True,

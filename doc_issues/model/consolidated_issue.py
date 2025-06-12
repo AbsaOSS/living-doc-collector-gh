@@ -18,7 +18,7 @@
 This module contains a data container for Consolidated Issue, which holds all the essential logic.
 """
 import logging
-from typing import Optional
+from typing import Optional, Any
 
 from living_doc_utilities.factory.issue_factory import IssueFactory
 from living_doc_utilities.model.issue import Issue
@@ -153,12 +153,13 @@ class ConsolidatedIssue:
 
         @return: The converted Issue.
         """
-        issue = IssueFactory.get(self.issue_type, {})
+        values: dict[str, Any] = {
+            Issue.REPOSITORY_ID: self.repository_id,
+            Issue.TITLE: self.title,
+            Issue.ISSUE_NUMBER: self.number,
+        }
 
-        issue.repository_id = self.repository_id
-        issue.title = self.title
-        issue.issue_number = self.number
-
+        issue = IssueFactory.get(self.issue_type, values)
         issue.state = self.state
         issue.created_at = self.created_at
         issue.updated_at = self.updated_at
