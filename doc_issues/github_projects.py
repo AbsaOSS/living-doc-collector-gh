@@ -76,7 +76,7 @@ class GitHubProjects:
 
             # Fetch the response from the API in this line, the session will always be initialized
             response = self.__session.post(  # type: ignore[union-attr]
-                "https://api.github.com/graphql", json={"query": query}
+                "https://api.github.com/graphql", json={"query": query}, verify=False
             )
             # Check if the request was successful
             if "errors" in response.json():
