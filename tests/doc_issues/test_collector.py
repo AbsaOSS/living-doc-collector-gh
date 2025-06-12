@@ -11,18 +11,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from dataclasses import dataclass
 from os import fspath
 
 from living_doc_utilities.model.issue import Issue
+from living_doc_utilities.model.issues import Issues
 
 from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
 
-from living_doc_utilities.model.issues import Issues
 from utils.constants import DOC_USER_STORY_LABEL, DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL
 
 
+@dataclass
 class FakeGitHubIssue:
     def __init__(self, number: int, title: str):
         self.number = number
@@ -111,6 +113,7 @@ def test_collect_returns_false_when_store_fails(mocker, doc_issues_collector):
     # Assert
     assert result is False
     store_mock.assert_called_once()
+    doc_issues_collector._consolidate_issues_data.assert_called_once()
 
 
 # _clean_output_directory
