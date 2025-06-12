@@ -104,7 +104,6 @@ def test_collect_returns_false_when_store_fails(mocker, doc_issues_collector):
     mocker.patch.object(doc_issues_collector, "_fetch_github_issues", return_value={})
     mocker.patch.object(doc_issues_collector, "_fetch_github_project_issues", return_value={})
     mocker.patch.object(doc_issues_collector, "_consolidate_issues_data", return_value={})
-    # mocker.patch.object(doc_issues_collector, "_store_consolidated_issues", return_value=False)
     store_mock = mocker.patch.object(doc_issues_collector, "_store_consolidated_issues", return_value=False)
 
     # Act
