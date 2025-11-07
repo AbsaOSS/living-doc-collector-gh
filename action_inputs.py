@@ -110,14 +110,14 @@ class ActionInputs(BaseActionInputs):
         headers = {"Authorization": f"token {github_token}"}
 
         # Validate GitHub token
-        # response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10)
-        # if response.status_code != 200:
-        #     logger.error(
-        #         "Can not connect to GitHub. Possible cause: Invalid GitHub token. Status code: %s, Response: %s",
-        #         response.status_code,
-        #         response.text,
-        #     )
-        #     err_counter += 1
+        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10)
+        if response.status_code != 200:
+            logger.error(
+                "Can not connect to GitHub. Possible cause: Invalid GitHub token. Status code: %s, Response: %s",
+                response.status_code,
+                response.text,
+            )
+            err_counter += 1
 
         if err_counter > 0:
             logger.error("User configuration validation failed.")
