@@ -143,8 +143,6 @@ jobs:
       - name: Collect data for living documentation
         id: collect_liv_doc_data
         uses: AbsaOSS/living-doc-collector-gh@feature/10-Fix-SAST-Aquasec-issue-insecure-request
-        env:
-          GITHUB-TOKEN: ${{ secrets.LIV_DOC_ACCESS_TOKEN }}
         with:
           doc-issues: true
           verbose-logging: true
