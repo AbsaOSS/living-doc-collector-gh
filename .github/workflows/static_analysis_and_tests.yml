@@ -152,8 +152,8 @@ jobs:
           doc-issues-repositories: |
             [
               {
-                "organization-name": "absa-group",
-                "repository-name": "aqueduct-living-documentation",
+                "organization-name": "AbsaOSS",
+                "repository-name": "living-doc-collector-gh",
                 "projects-title-filter": [] 
               }
             ]
