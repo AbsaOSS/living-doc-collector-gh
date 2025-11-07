@@ -20,7 +20,6 @@ which are essential for running the GH action.
 """
 import json
 import logging
-import urllib3
 import requests
 from living_doc_utilities.github.utils import get_action_input
 
