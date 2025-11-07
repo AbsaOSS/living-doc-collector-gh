@@ -30,8 +30,6 @@ from doc_issues.model.config_repository import ConfigRepository
 from utils.constants import Mode, DOC_ISSUES_PROJECT_STATE_MINING, DOC_ISSUES_REPOSITORIES, VERBOSE_LOGGING
 from utils.exceptions import FetchRepositoriesException
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 logger = logging.getLogger(__name__)
 
 
@@ -112,7 +110,7 @@ class ActionInputs(BaseActionInputs):
         headers = {"Authorization": f"token {github_token}"}
 
         # Validate GitHub token
-        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10, verify=False)
+        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10)
         if response.status_code != 200:
             logger.error(
                 "Can not connect to GitHub. Possible cause: Invalid GitHub token. Status code: %s, Response: %s",
@@ -131,7 +129,7 @@ class ActionInputs(BaseActionInputs):
             repo_name = repository.repository_name
             github_repo_url = f"https://api.github.com/repos/{org_name}/{repo_name}"
 
-            response = requests.get(github_repo_url, headers=headers, timeout=10, verify=False)
+            response = requests.get(github_repo_url, headers=headers, timeout=10)
 
             if response.status_code == 404:
                 logger.error(
