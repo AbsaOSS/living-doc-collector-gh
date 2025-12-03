@@ -14,7 +14,7 @@ jobs:
   dependabot:
     name: Auto-approve and auto-merge Dependabot PRs
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'AbsaOSS/living-doc-generator-gh'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'AbsaOSS/living-doc-collector-gh'
     steps:
       - name: Dependabot metadata
         id: metadata
