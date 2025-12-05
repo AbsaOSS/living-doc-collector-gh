@@ -14,17 +14,15 @@
 # limitations under the License.
 #
 
-# GH workflow source https://github.com/AbsaOSS/generate-release-notes/blob/master/.github/workflows/release_draft.yml
-name: Release - create draft release
-
+name: Draft Release
 on:
   workflow_dispatch:
     inputs:
       tag-name:
-        description: 'New release tag (e.g., v0.1.1).'
+        description: 'Name of git tag to be created, and then draft release created. Syntax: "v[0-9]+.[0-9]+.[0-9]+".'
         required: true
       from-tag-name:
-        description: 'Previous tag to compare against for changelog (optional)'
+        description: 'Name of the git tag from which to detect changes from. Default value: latest tag. Syntax: "v[0-9]+.[0-9]+.[0-9]+".'
         required: false
 
 jobs:
@@ -38,9 +36,9 @@ jobs:
 
       - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
-      - name: Check tag format
+      - name: Check Format of Received Tag
         id: check-version-tag
         uses: AbsaOSS/version-tag-check@36496be76eab24e1f14d45d3b8292311a2aebaaa
         env:
@@ -49,7 +47,7 @@ jobs:
           github-repository: ${{ github.repository }}
           version-tag: ${{ github.event.inputs.tag-name }}
 
-      - name: Check previous tag (if provided)
+      - name: Check Format of Received From Tag
         if: ${{ github.event.inputs.from-tag-name }}
         id: check-version-from-tag
         uses: AbsaOSS/version-tag-check@36496be76eab24e1f14d45d3b8292311a2aebaaa
@@ -67,30 +65,36 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag-name: ${{ github.event.inputs.tag-name }}
+          from-tag-name: ${{ github.event.inputs.from-tag-name }}
           chapters: |
-            - { title: No entry 🚫, label: duplicate }
-            - { title: No entry 🚫, label: no RN }
-            - { title: Breaking Changes 💥, label: breaking-change }
-            - { title: New Features 🎉, label: enhancement }
-            - { title: New Features 🎉, label: feature }
-            - { title: Bugfixes 🛠, label: bug }
-            - { title: Infrastructure ⚙️, label: infrastructure }
-            - { title: Silent-live 🤫, label: silent-live }
-            - { title: Documentation 📜, label: documentation }
-
-          coderabbit-support-active: 'true'
-          coderabbit-release-notes-title: 'Summary by CodeRabbit'
-          coderabbit-summary-ignore-groups: 'Documentation, Tests, Chores, Bug Fixes, Refactor'
-
-          skip-release-notes-labels: 'no RN'
-          verbose: true
-          print-empty-chapters: true
+            - {"title": "Entries to skip 🚫", "label": "duplicate"}
+            - {"title": "Entries to skip 🚫", "label": "invalid"}
+            - {"title": "Entries to skip 🚫", "label": "wontfix"}
+            - {"title": "Entries to skip 🚫", "label": "no RN"}
+            - {"title": "Breaking Changes 💥", "label": "breaking change"}
+            - {"title": "Security updates 👮", "label": "security"}
+            - {"title": "New Features 🎉", "label": "enhancement"}
+            - {"title": "Bugfixes 🛠", "label": "bug"}
+            - {"title": "Epics 📖", "label": "epic"}
+            - {"title": "Infrastructure ⚙️", "label": "infrastructure"}
+            - {"title": "Silent-live 🤫", "label": "silent live"}
+            - {"title": "Documentation 📜", "label": "documentation"}
+          duplicity-scope: 'none'
+          warnings: true
+          skip-release-notes-labels: "no RN,duplicate,invalid,wontfix"
+          print-empty-chapters: false
+          row-format-issue: '_{title}_ {developers} in {number}'
+          row-format-pr: '_{title}_ {developers} in {number}'
+          row-format-link-pr: true
+          hierarchy: true
 
       - name: Create and Push Tag
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag-name }}
         with:
           script: |
-            const tag = core.getInput('tag-name')
+            const tag = process.env.TAG_NAME
             const ref = `refs/tags/${tag}`;
             const sha = context.sha; // The SHA of the commit to tag
 
@@ -103,7 +107,6 @@ jobs:
 
             console.log(`Tag created: ${tag}`);
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          tag-name: ${{ github.event.inputs.tag-name }}
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
