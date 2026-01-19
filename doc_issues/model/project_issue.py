@@ -17,6 +17,7 @@
 """
 This module contains a data container for Project Issue, which holds all the essential logic.
 """
+
 import logging
 
 from typing import Optional
