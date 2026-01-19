@@ -17,6 +17,7 @@
 """
 This module contains methods for formatting the GitHub GraphQL queries.
 """
+
 from utils.exceptions import InvalidQueryFormatError
 from utils.utils import validate_query_format
 from utils.constants import (
