@@ -94,7 +94,8 @@ def doc_issues_collector(mocker):
     mock_rate_limit.remaining = 5000
     mock_rate_limit.reset = datetime.datetime.now() + datetime.timedelta(minutes=10)
 
-    mock_github_instance.get_rate_limit.return_value = mocker.Mock(core=mock_rate_limit)
+    # Provide both to keep tests robust across library versions.
+    mock_github_instance.get_rate_limit.return_value = mocker.Mock(core=mock_rate_limit, rate=mock_rate_limit)
     mock_github_instance.get_repo.return_value = mocker.Mock()
 
     mocker.patch(
