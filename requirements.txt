@@ -9,4 +9,4 @@ pytest==9.0.2
 pytest-cov==7.0.0
 pytest-mock==3.15.1
 types-requests==2.32.4.20260107
-living-doc-utilities==0.3.0
+living-doc-utilities==0.3.1
