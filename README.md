@@ -41,7 +41,7 @@ This Collector supports multiple mining modes, each with its own unique function
 
 Before we begin, ensure you have fulfilled the following prerequisites:
 - GitHub Token with permission to fetch repository data such as Issues and Pull Requests.
-- Python version 3.12 or higher.
+- Python version 3.14 or higher.
 
 ### Adding the Action to Your Workflow
 
@@ -236,7 +236,7 @@ This section aims to help the user walk through different processes, such as:
 ---
 ## Contribution Guidelines
 
-We welcome contributions to the Living Documentation Generator! Whether you're fixing bugs, improving documentation, or proposing new features, your help is appreciated.
+We welcome contributions to the Living Documentation Collector! Whether you're fixing bugs, improving documentation, or proposing new features, your help is appreciated.
 
 #### How to Contribute
 
@@ -250,7 +250,7 @@ For more details, see the [LICENSE](https://github.com/AbsaOSS/living-doc-collec
 
 ### Contact or Support Information
 
-If you need help with using or contributing to the Living Documentation Generator Action, or if you have any questions or feedback, don't hesitate to reach out:
+If you need help with using or contributing to the Living Documentation Collector Action, or if you have any questions or feedback, don't hesitate to reach out:
 
 - **Issue Tracker**: For technical issues or feature requests, use the [GitHub Issues page](https://github.com/AbsaOSS/living-doc-collector-gh/issues).
 - **Discussion Forum**: For general questions and discussions, join our [GitHub Discussions forum](https://github.com/AbsaOSS/living-doc-collector-gh/discussions).

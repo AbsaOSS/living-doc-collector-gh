@@ -1,4 +1,4 @@
-# Living Documentation Generator - for Developers
+# Living Documentation Collector - for Developers
 
 - [Project Setup](#project-setup)
 - [Run Scripts Locally](#run-scripts-locally)
@@ -46,7 +46,7 @@ Add the shebang line at the top of the sh script file.
 ### Set the Environment Variables
 
 Set the configuration environment variables in the shell script following the structure below.
-The generator supports mining in multiple modes, so you can use just the environment variables you need.
+The collector supports mining in multiple modes, so you can use just the environment variables you need.
 Also make sure that the INPUT_GITHUB_TOKEN is configured in your environment variables.
 ```
 # Essential environment variables for GitHub Action functionality
