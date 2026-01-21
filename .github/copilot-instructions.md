@@ -27,7 +27,7 @@ Testing
 
 Tooling
 - Format with Black using pyproject.toml
-- Run Pylint on tracked Python files, excluding tests/, and aim for score 9.5 or higher
+- Run Pylint (exclude tests/): `pylint $(git ls-files '*.py' ':!:tests/**')`
 - Run mypy and prefer fixing types instead of ignoring errors
 - Use pytest-cov and keep coverage at or above 80 percent
 
