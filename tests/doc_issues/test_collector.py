@@ -438,14 +438,14 @@ def test_store_consolidated_issues_correct_behaviour(mocker, doc_issues_collecto
 
     mock_logger_info = mocker.patch("doc_issues.collector.logger.info")
     mock_logger_error = mocker.patch("doc_issues.collector.logger.error")
-    mock_save_to_json = mocker.patch("living_doc_utilities.model.issues.Issues.save_to_json")
+    mock_save = mocker.patch.object(doc_issues_collector, "_save_issues_with_audit_data")
 
     # Act
     doc_issues_collector._store_consolidated_issues(consolidated_issues)
 
     # Assert
-    mock_save_to_json.assert_called_once()
-    assert mock_save_to_json.call_args[0][0].endswith("doc-issues.json")
+    mock_save.assert_called_once()
+    assert mock_save.call_args[0][0].endswith("doc-issues.json")
     assert mock_logger_info.call_count == 1
     mock_logger_error.assert_not_called()
 
@@ -462,14 +462,14 @@ def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
 
     mock_logger_info = mocker.patch("doc_issues.collector.logger.info")
     mock_logger_error = mocker.patch("doc_issues.collector.logger.error")
-    mock_save_to_json = mocker.patch("living_doc_utilities.model.issues.Issues.save_to_json")
+    mock_save = mocker.patch.object(doc_issues_collector, "_save_issues_with_audit_data")
 
     # Act
     doc_issues_collector._store_consolidated_issues(consolidated_issues)
 
     # Assert
-    mock_save_to_json.assert_called_once()
-    assert fspath(mock_save_to_json.call_args[0][0]).endswith("doc-issues.json")
+    mock_save.assert_called_once()
+    assert fspath(mock_save.call_args[0][0]).endswith("doc-issues.json")
     assert mock_logger_info.call_count == 1
     assert mock_logger_error.call_count == 2
     mock_logger_error.assert_has_calls(
@@ -479,3 +479,102 @@ def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
         ],
         any_order=True,
     )
+
+
+# New tests for audit enrichment
+
+
+def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
+    # Arrange
+    from living_doc_utilities.model.feature_issue import FeatureIssue
+    from living_doc_utilities.model.issues import Issues
+
+    # Create a mock consolidated issue with audit data
+    mock_github_issue = mocker.Mock()
+    mock_user = mocker.Mock()
+    mock_user.login = "test_creator"
+    mock_github_issue.user = mock_user
+    mock_github_issue.closed_by = None
+    mock_github_issue.comments = 0
+
+    consolidated_issue = ConsolidatedIssue("test_org/test_repo", repository_issue=mock_github_issue)
+    consolidated_issue._ConsolidatedIssue__issue.number = 1
+    consolidated_issue._ConsolidatedIssue__issue.title = "Test Issue"
+    consolidated_issue._ConsolidatedIssue__issue.state = "open"
+    consolidated_issue._ConsolidatedIssue__issue.created_at = "2025-01-20"
+    consolidated_issue._ConsolidatedIssue__issue.updated_at = "2025-01-21"
+    consolidated_issue._ConsolidatedIssue__issue.closed_at = None
+    consolidated_issue._ConsolidatedIssue__issue.html_url = "https://github.com/test/issue/1"
+    consolidated_issue._ConsolidatedIssue__issue.body = "Issue body"
+
+    # Create an Issue object using IssueFactory
+    from living_doc_utilities.factory.issue_factory import IssueFactory
+    issue_obj = IssueFactory.get(
+        "FeatureIssue",
+        {
+            "repository_id": "test_org/test_repo",
+            "title": "Test Issue",
+            "issue_number": 1,
+        }
+    )
+    issue_obj.state = "open"
+    issue_obj.created_at = "2025-01-20"
+
+    issues = Issues()
+    issues.add_issue("test_org/test_repo#1", issue_obj)
+
+    consolidated_issues = {
+        "test_org/test_repo#1": consolidated_issue,
+    }
+
+    file_path = tmp_path / "test-issues.json"
+
+    # Act
+    doc_issues_collector._save_issues_with_audit_data(str(file_path), issues, consolidated_issues)
+
+    # Assert
+    import json
+    assert file_path.exists()
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Check file-level metadata
+    assert "metadata" in data
+    assert "generated_at" in data["metadata"]
+    assert "generator" in data["metadata"]
+    assert data["metadata"]["generator"]["name"] == "AbsaOSS/living-doc-collector-gh"
+
+    # Check issues data
+    assert "issues" in data
+    assert "test_org/test_repo#1" in data["issues"]
+
+    # Check audit enrichment
+    issue_data = data["issues"]["test_org/test_repo#1"]
+    assert issue_data["created_by"] == "test_creator"
+
+
+def test_get_file_metadata(doc_issues_collector, monkeypatch):
+    # Arrange
+    monkeypatch.setenv("GITHUB_WORKFLOW", "Test Workflow")
+    monkeypatch.setenv("GITHUB_RUN_ID", "12345")
+    monkeypatch.setenv("GITHUB_ACTOR", "test_actor")
+    monkeypatch.setenv("GITHUB_REF", "refs/heads/main")
+    monkeypatch.setenv("GITHUB_SHA", "abc123def456")
+
+    # Act
+    metadata = doc_issues_collector._get_file_metadata()
+
+    # Assert
+    assert "generated_at" in metadata
+    assert "generator" in metadata
+    assert metadata["generator"]["name"] == "AbsaOSS/living-doc-collector-gh"
+
+    assert "run" in metadata
+    assert metadata["run"]["workflow"] == "Test Workflow"
+    assert metadata["run"]["run_id"] == "12345"
+    assert metadata["run"]["actor"] == "test_actor"
+    assert metadata["run"]["ref"] == "refs/heads/main"
+    assert metadata["run"]["sha"] == "abc123def456"
+
+    assert "inputs" in metadata
+    assert "project_state_mining_enabled" in metadata["inputs"]
