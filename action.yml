@@ -26,7 +26,7 @@ inputs:
 outputs:
   output-path:
     description: 'Path to the collected living documentation files.'
-    value: ${{ steps.liv-doc-generator.outputs.output-path }}
+    value: ${{ steps.liv-doc-collector.outputs.output-path }}
 
 branding:
   icon: 'book'
@@ -41,7 +41,7 @@ runs:
         pip install -r ${{ github.action_path }}/requirements.txt
       shell: bash
 
-    - name: Set PROJECT_ROOT and update PYTHONPATH
+    - name: Update PYTHONPATH
       run: |
         ACTION_ROOT="${{ github.action_path }}"
         export PYTHONPATH="${PYTHONPATH}:${ACTION_ROOT}/living-doc-generator"
@@ -62,7 +62,7 @@ runs:
       shell: bash
 
     - name: Run Living Documentation Collector for GitHub
-      id: liv-doc-generator
+      id: liv-doc-collector
       env:
         INPUT_GITHUB_TOKEN: ${{ env.INPUT_GITHUB_TOKEN }}
         INPUT_DOC_ISSUES: ${{ env.INPUT_DOC_ISSUES }}

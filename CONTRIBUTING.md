@@ -1,12 +1,12 @@
 # How to Contribute?
 
 ## **Identifying and Reporting Bugs**
-* **Ensure the bug has not already been reported** by searching our **[GitHub Issues](https://github.com/AbsaOSS/living-doc-generator/issues)**.
+* **Ensure the bug has not already been reported** by searching our **[GitHub Issues](https://github.com/AbsaOSS/living-doc-collector-gh/issues)**.
 * If you cannot find an open issue describing the problem, use the **Bug report** template to open a new one. Tag it with the **bug** label.
 
 ## **Proposing New Features**
 
-* **Check if the feature has already been requested** by searching through our **[GitHub Issues](https://github.com/AbsaOSS/living-doc-generator/issues)**.
+* **Check if the feature has already been requested** by searching through our **[GitHub Issues](https://github.com/AbsaOSS/living-doc-collector-gh/issues)**.
 * If the feature request doesn't exist, feel free to create a new one. Tag it with the **request** label.
 
 ## **Contributing to Development**

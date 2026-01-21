@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import datetime
+import os
 import time
 import pytest
 from github import Github
@@ -29,6 +30,12 @@ from living_doc_utilities.constants import OUTPUT_PATH
 from living_doc_utilities.github.rate_limiter import GithubRateLimiter
 from living_doc_utilities.model.issue import Issue
 from utils.utils import make_absolute_path
+
+
+@pytest.fixture(autouse=True)
+def _set_github_output_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("GITHUB_OUTPUT", os.fspath(tmp_path / "github_output.txt"))
+
 
 
 @pytest.fixture

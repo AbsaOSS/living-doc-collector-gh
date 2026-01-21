@@ -46,7 +46,7 @@ def test___initialize_request_session_sets_session_and_headers(mocker):
 
 
 def test_send_graphql_query_correct_behaviour(mocker):
-    expected_data = {"repository": {"projectsV2": {"nodes": [{ "id": "PVT_kwDOARSy184AyllA", "number": 13, "title": "integration-tests-for-living-doc-generator" }]}}}
+    expected_data = {"repository": {"projectsV2": {"nodes": [{ "id": "PVT_kwDOARSy184AyllA", "number": 13, "title": "integration-tests-for-living-doc-collector" }]}}}
     expected_response = {"data": expected_data}
 
     mock_session = mocker.Mock()
