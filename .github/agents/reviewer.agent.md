@@ -18,9 +18,9 @@ Responsibilities
 - Verify small, focused changes and adherence to coding guidelines.
 - Check lint/type/test/coverage gates; reject if below thresholds.
 - Ensure action contract stays stable unless explicitly approved:
-	- `action.yml` inputs and `INPUT_*` environment variable names
-	- action output `output-path` and emitted JSON structures
-	- error messages and exit codes
+  - `action.yml` inputs and `INPUT_*` environment variable names
+  - action output `output-path` and emitted JSON structures
+  - error messages and exit codes
 - Spot nondeterminism and performance regressions.
 
 Collaboration
