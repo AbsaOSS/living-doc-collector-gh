@@ -52,7 +52,6 @@ jobs:
           export INPUT_GITHUB_TOKEN="${GITHUB_TOKEN}"
           export INPUT_DOC_ISSUES="true"
           export INPUT_DOC_ISSUES_REPOSITORIES='[{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh"}]'
-          export INPUT_OUTPUT_PATH="./integration-test-output"
           export INPUT_VERBOSE_LOGGING="true"
           
           # Run the main collector script
@@ -61,13 +60,13 @@ jobs:
       - name: Verify output structure
         run: |
           # Check that the output directory exists
-          if [ ! -d "./integration-test-output/doc-issues" ]; then
+          if [ ! -d "./output/doc-issues" ]; then
             echo "Error: Output directory not found"
             exit 1
           fi
           
           # Check that the doc-issues.json file exists
-          if [ ! -f "./integration-test-output/doc-issues/doc-issues.json" ]; then
+          if [ ! -f "./output/doc-issues/doc-issues.json" ]; then
             echo "Error: doc-issues.json not found"
             exit 1
           fi
@@ -82,7 +81,7 @@ jobs:
           from datetime import datetime
 
           # Load the generated JSON
-          with open('./integration-test-output/doc-issues/doc-issues.json', 'r') as f:
+          with open('./output/doc-issues/doc-issues.json', 'r') as f:
               data = json.load(f)
 
           print("Validating JSON structure...")
@@ -161,7 +160,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: integration-test-output
-          path: ./integration-test-output/
+          path: ./output/
           retention-days: 7
 
       - name: Display sample output
@@ -171,7 +170,7 @@ jobs:
           python3 << 'EOF'
           import json
           
-          with open('./integration-test-output/doc-issues/doc-issues.json', 'r') as f:
+          with open('./output/doc-issues/doc-issues.json', 'r') as f:
               data = json.load(f)
           
           # Print metadata
