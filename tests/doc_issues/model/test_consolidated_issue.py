@@ -170,6 +170,8 @@ def test_get_audit_data_with_comments(mocker):
 
 def test_get_audit_data_graceful_degradation_on_comment_fetch_error(mocker):
     # Arrange
+    from github.GithubException import GithubException
+
     mock_user = mocker.Mock()
     mock_user.login = "test_creator"
 
@@ -177,7 +179,7 @@ def test_get_audit_data_graceful_degradation_on_comment_fetch_error(mocker):
     mock_github_issue.user = mock_user
     mock_github_issue.closed_by = None
     mock_github_issue.comments = 1
-    mock_github_issue.get_comments.side_effect = Exception("API error")
+    mock_github_issue.get_comments.side_effect = GithubException(403, "API error", {})
 
     issue = ConsolidatedIssue("test_org/test_repo", repository_issue=mock_github_issue)
 
@@ -284,8 +286,10 @@ def test_parse_timeline_event_irrelevant_event(mocker):
 
 def test_fetch_audit_events_timeline_unavailable(mocker):
     # Arrange
+    from github.GithubException import GithubException
+
     mock_github_issue = mocker.Mock()
-    mock_github_issue.get_timeline.side_effect = Exception("Timeline not available")
+    mock_github_issue.get_timeline.side_effect = GithubException(403, "Timeline not available", {})
 
     issue = ConsolidatedIssue("test_org/test_repo", repository_issue=mock_github_issue)
 

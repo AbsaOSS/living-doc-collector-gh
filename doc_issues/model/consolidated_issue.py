@@ -26,6 +26,7 @@ from living_doc_utilities.model.issue import Issue
 from living_doc_utilities.model.project_status import ProjectStatus
 
 from github.Issue import Issue as GitHubIssue
+from github.GithubException import GithubException
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +215,7 @@ class ConsolidatedIssue:
                         last_comment = comments[-1]
                         self.__last_commented_at = str(last_comment.created_at) if last_comment.created_at else None
                         self.__last_commented_by = last_comment.user.login if last_comment.user else None
-                except Exception as e:  # pylint: disable=broad-except
+                except (GithubException, AttributeError, TypeError) as e:
                     logger.debug(
                         "Could not fetch comments for issue #%s: %s",
                         self.number,
@@ -224,7 +225,7 @@ class ConsolidatedIssue:
             # Fetch timeline events for audit trail
             self.__audit_events = self._fetch_audit_events()
 
-        except Exception as e:  # pylint: disable=broad-except
+        except (GithubException, AttributeError, TypeError) as e:
             logger.warning(
                 "Could not fetch complete audit data for issue #%s: %s",
                 self.number,
@@ -247,7 +248,7 @@ class ConsolidatedIssue:
                 event_data = self._parse_timeline_event(event)
                 if event_data:
                     events.append(event_data)
-        except Exception as e:  # pylint: disable=broad-except
+        except (GithubException, AttributeError, TypeError) as e:
             logger.debug(
                 "Could not fetch timeline events for issue #%s (may lack permissions): %s",
                 self.number,
@@ -302,7 +303,7 @@ class ConsolidatedIssue:
 
             return event_data
 
-        except Exception as e:  # pylint: disable=broad-except
+        except (AttributeError, TypeError) as e:
             logger.debug("Could not parse timeline event: %s", str(e))
             return None
 
