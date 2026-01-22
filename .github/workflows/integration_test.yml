@@ -1,0 +1,185 @@
+#
+# Copyright 2025 ABSA Group Limited
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: "Integration Test"
+
+on:
+  pull_request:
+    paths:
+      - 'doc_issues/**'
+      - 'action.yml'
+      - '.github/workflows/integration_test.yml'
+  workflow_dispatch:
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    name: Integration Test - Real World Usage
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run collector on living-doc-collector-gh repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Set required inputs as environment variables
+          export INPUT_GITHUB_TOKEN="${GITHUB_TOKEN}"
+          export INPUT_DOC_ISSUES="true"
+          export INPUT_DOC_ISSUES_REPOSITORIES='[{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh"}]'
+          export INPUT_VERBOSE_LOGGING="true"
+          
+          # Run the main collector script
+          python3 main.py
+
+      - name: Verify output structure
+        run: |
+          # Check that the output directory exists
+          if [ ! -d "./output/doc-issues" ]; then
+            echo "Error: Output directory not found"
+            exit 1
+          fi
+          
+          # Check that the doc-issues.json file exists
+          if [ ! -f "./output/doc-issues/doc-issues.json" ]; then
+            echo "Error: doc-issues.json not found"
+            exit 1
+          fi
+          
+          echo "✓ Output directory and file exist"
+
+      - name: Validate JSON structure
+        run: |
+          python3 << 'EOF'
+          import json
+          import sys
+          from datetime import datetime
+
+          # Load the generated JSON
+          with open('./output/doc-issues/doc-issues.json', 'r') as f:
+              data = json.load(f)
+
+          print("Validating JSON structure...")
+
+          # Check top-level structure
+          assert 'metadata' in data, "Missing 'metadata' section"
+          assert 'issues' in data, "Missing 'issues' section"
+          print("✓ Top-level structure is correct")
+
+          # Validate metadata
+          metadata = data['metadata']
+          required_metadata_fields = ['generated_at', 'generator', 'source', 'run', 'inputs']
+          for field in required_metadata_fields:
+              assert field in metadata, f"Missing metadata field: {field}"
+          print("✓ Metadata section has all required fields")
+
+          # Validate generator
+          assert 'name' in metadata['generator'], "Missing generator name"
+          assert metadata['generator']['name'] == 'AbsaOSS/living-doc-collector-gh', "Incorrect generator name"
+          assert 'version' in metadata['generator'], "Missing generator version"
+          print("✓ Generator metadata is correct")
+
+          # Validate timestamp format
+          try:
+              datetime.fromisoformat(metadata['generated_at'].replace('Z', '+00:00'))
+              print("✓ Timestamp format is valid ISO-8601")
+          except ValueError as e:
+              print(f"✗ Invalid timestamp format: {e}")
+              sys.exit(1)
+
+          # Validate source
+          assert 'repositories' in metadata['source'], "Missing source repositories"
+          print("✓ Source metadata is present")
+
+          # Validate run info
+          assert 'workflow' in metadata['run'], "Missing workflow in run metadata"
+          assert 'run_id' in metadata['run'], "Missing run_id in run metadata"
+          print("✓ Run metadata is present")
+
+          # Validate issues
+          issues = data['issues']
+          print(f"Found {len(issues)} issue(s)")
+
+          # Check audit enrichment on at least one issue if available
+          if issues:
+              # Get first issue
+              first_issue_key = list(issues.keys())[0]
+              first_issue = issues[first_issue_key]
+              
+              # Check required base fields
+              required_fields = ['type', 'repository_id', 'title', 'issue_number']
+              for field in required_fields:
+                  assert field in first_issue, f"Missing required field: {field}"
+              print("✓ Issue base fields are present")
+              
+              # Check audit fields (they should be present if audit data was available)
+              # Note: These may not always be present due to API permissions
+              if 'created_by' in first_issue:
+                  print(f"✓ Audit enrichment present: created_by = {first_issue['created_by']}")
+              
+              if 'comments_count' in first_issue:
+                  print(f"✓ Comments summary present: comments_count = {first_issue['comments_count']}")
+              
+              if 'audit_events' in first_issue:
+                  print(f"✓ Audit events present: {len(first_issue['audit_events'])} event(s)")
+              
+              print("✓ Issue structure validated")
+
+          print("\n✅ All validation checks passed!")
+          print(f"Generated file: {metadata['generated_at']}")
+          print(f"Total issues: {len(issues)}")
+          EOF
+
+      - name: Upload output artifact
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: integration-test-output
+          path: ./output/
+          retention-days: 7
+
+      - name: Display sample output
+        if: always()
+        run: |
+          echo "=== Sample Output ==="
+          python3 << 'EOF'
+          import json
+          
+          with open('./output/doc-issues/doc-issues.json', 'r') as f:
+              data = json.load(f)
+          
+          # Print metadata
+          print("\n--- File Metadata ---")
+          print(json.dumps(data['metadata'], indent=2))
+          
+          # Print first issue (if exists)
+          if data['issues']:
+              first_key = list(data['issues'].keys())[0]
+              print(f"\n--- Sample Issue ({first_key}) ---")
+              print(json.dumps(data['issues'][first_key], indent=2))
+          EOF

@@ -120,11 +120,176 @@ Configure the Living Documentation mode by customizing the following parameters:
 
 The Living Documentation Collector for GitHub is designed to produce a collection of Consolidated Issues. Where **consolidated** means that the issues' information is merged from both the Repository and Project Issues. 
 
-The mode produces the file `output/collected_gh_issues.json` with the following structure:
+The mode produces the file `output/doc-issues/doc-issues.json` with the following structure:
 
+### JSON Structure
+
+The output JSON contains two top-level sections:
+1. **metadata**: File-level provenance and audit information
+2. **issues**: Dictionary of enriched issue objects
+
+### File-Level Metadata
+
+The `metadata` section provides traceability and provenance information:
+
+```json
+{
+  "metadata": {
+    "generated_at": "2025-01-21T14:30:00.000Z",
+    "generator": {
+      "name": "AbsaOSS/living-doc-collector-gh",
+      "version": "v1.0.0"
+    },
+    "source": {
+      "repositories": ["owner/repo"]
+    },
+    "run": {
+      "workflow": "Documentation Collector",
+      "run_id": "12345",
+      "run_attempt": "1",
+      "actor": "github-user",
+      "ref": "refs/heads/main",
+      "sha": "abc123"
+    },
+    "inputs": {
+      "project_state_mining_enabled": true
+    }
+  },
+  "issues": { ... }
+}
 ```
-TODO 
+
+**Metadata Fields:**
+- `generated_at`: UTC timestamp when the file was generated (ISO-8601 format)
+- `generator`: Information about the action that generated the file
+  - `name`: Action repository identifier
+  - `version`: Action version, git reference, or commit SHA
+- `source`: Source repository information
+  - `repositories`: List of repositories included in the collection
+- `run`: GitHub Actions workflow run information (when available)
+  - `workflow`: Workflow name
+  - `run_id`: Unique run identifier
+  - `run_attempt`: Run attempt number
+  - `actor`: User who triggered the workflow
+  - `ref`: Git reference (branch/tag)
+  - `sha`: Commit SHA
+- `inputs`: Non-sensitive action inputs that affect output
+  - `project_state_mining_enabled`: Whether project state mining was enabled
+
+### Issue-Level Structure
+
+Each issue in the `issues` dictionary contains base fields plus audit enrichment:
+
+```json
+{
+  "owner/repo#123": {
+    "type": "FeatureIssue",
+    "repository_id": "owner/repo",
+    "title": "Feature Title",
+    "issue_number": 123,
+    "state": "open",
+    "created_at": "2025-01-15T10:00:00",
+    "updated_at": "2025-01-20T15:30:00",
+    "closed_at": null,
+    "html_url": "https://github.com/owner/repo/issues/123",
+    "body": "Issue description...",
+    "labels": ["DocumentedFeature", "enhancement"],
+    "linked_to_project": true,
+    "project_status": [
+      {
+        "project_title": "Project Name",
+        "status": "In Progress",
+        "priority": "High",
+        "size": "Medium",
+        "moscow": "Must Have"
+      }
+    ],
+    "created_by": "user1",
+    "closed_by": null,
+    "comments_count": 5,
+    "last_commented_at": "2025-01-20T12:00:00",
+    "last_commented_by": "user2",
+    "audit_events": [
+      {
+        "action": "labeled",
+        "timestamp": "2025-01-15T10:05:00",
+        "actor": "user1",
+        "label": "enhancement"
+      },
+      {
+        "action": "assigned",
+        "timestamp": "2025-01-15T10:10:00",
+        "actor": "user1",
+        "assignee": "developer1"
+      },
+      {
+        "action": "milestoned",
+        "timestamp": "2025-01-16T09:00:00",
+        "actor": "user1",
+        "milestone": "v1.0"
+      }
+    ]
+  }
+}
 ```
+
+### Base Issue Fields
+
+These fields are always present (if available in GitHub):
+- `type`: Issue type (FeatureIssue, UserStoryIssue, FunctionalityIssue, or Issue)
+- `repository_id`: Repository identifier (owner/repo)
+- `title`: Issue title
+- `issue_number`: Issue number
+- `state`: Issue state (open, closed)
+- `created_at`: Timestamp when issue was created
+- `updated_at`: Timestamp when issue was last updated
+- `closed_at`: Timestamp when issue was closed (null if open)
+- `html_url`: GitHub web URL for the issue
+- `body`: Issue description/body
+- `labels`: Array of label names
+- `linked_to_project`: Whether issue is linked to a GitHub Project
+- `project_status`: Array of project status information (when linked to projects)
+
+### Audit Enrichment Fields
+
+These fields provide audit trail and traceability metadata:
+
+#### Always Available (from GitHub Issue API):
+- `created_by`: GitHub login of the user who created the issue
+- `closed_by`: GitHub login of the user who closed the issue (null if not closed or unavailable)
+- `comments_count`: Total number of comments on the issue
+
+#### Available When Comments Exist:
+- `last_commented_at`: Timestamp of the most recent comment
+- `last_commented_by`: GitHub login of the user who posted the most recent comment
+
+#### Timeline Events (requires timeline API access):
+- `audit_events`: Array of audit-relevant timeline events
+
+**Supported Event Types:**
+- `labeled` / `unlabeled`: Label additions/removals
+  - Includes: `action`, `timestamp`, `actor`, `label`
+- `assigned` / `unassigned`: Assignee changes
+  - Includes: `action`, `timestamp`, `actor`, `assignee`
+- `milestoned` / `demilestoned`: Milestone changes
+  - Includes: `action`, `timestamp`, `actor`, `milestone`
+- `reopened` / `closed`: State transitions
+  - Includes: `action`, `timestamp`, `actor`
+
+### Graceful Degradation
+
+The collector handles API limitations gracefully:
+- If timeline events are unavailable (e.g., due to permissions), the `audit_events` field will be omitted or empty
+- If comment details cannot be fetched, `last_commented_at` and `last_commented_by` will be omitted
+- The collector logs debug/warning messages when data cannot be retrieved, but continues processing
+- Base issue fields are always preserved even if audit enrichment fails
+
+### Access Requirements
+
+- **Base fields**: Available with standard repository read access
+- **Comments summary**: Requires issue read access (standard)
+- **Timeline events**: May require additional permissions depending on repository settings
+  - If timeline access is denied, the collector continues without these events
 
 The `output` folder is the root output directory for the action.
 

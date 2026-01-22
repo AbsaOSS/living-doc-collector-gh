@@ -18,9 +18,11 @@ This module contains the Living Documentation Collector for GitHub class, which 
 of the Living Documentation related data from GitHub.
 """
 
+import json
 import logging
 import os
 import shutil
+from datetime import datetime, timezone
 from typing import Callable
 
 from github import Github, Auth
@@ -291,10 +293,10 @@ class GHDocIssuesCollector:
 
     def _store_consolidated_issues(self, consolidated_issues: dict[str, ConsolidatedIssue]) -> bool:
         """
-        Store the consolidated issues in JSON format.
+        Store the consolidated issues in JSON format with audit enrichment.
 
         @param consolidated_issues: A dictionary containing all consolidated issues.
-        @return: None
+        @return: True if successful, False otherwise.
         """
         issues: Issues = Issues()
         invalid_issue_detected = False
@@ -318,10 +320,119 @@ class GHDocIssuesCollector:
 
         output_file_path = os.path.join(self.__output_path, "doc-issues.json")
         logger.info("Exporting consolidated issues - exporting to `%s`.", output_file_path)
-        issues.save_to_json(output_file_path)
+
+        # Save with audit enrichment
+        self._save_issues_with_audit_data(output_file_path, issues, consolidated_issues)
 
         if any(len(issue.errors) > 0 for issue in issues.issues.values()) or invalid_issue_detected:
             logger.error("Exporting consolidated issues - some issues have errors.")
             return False
 
         return True
+
+    def _save_issues_with_audit_data(
+        self,
+        file_path: str,
+        issues: Issues,
+        consolidated_issues: dict[str, ConsolidatedIssue],
+    ) -> None:
+        """
+        Save issues to JSON with audit enrichment and file-level metadata.
+
+        @param file_path: Path to save the JSON file.
+        @param issues: Issues object containing base issue data.
+        @param consolidated_issues: Consolidated issues with audit data.
+        @return: None
+        """
+        # Build issue data with audit enrichment
+        issues_data = {}
+        for key, issue in issues.issues.items():
+            issue_dict = issue.to_dict()
+
+            # Add audit data from consolidated issue
+            if key in consolidated_issues:
+                audit_data = consolidated_issues[key].get_audit_data()
+                issue_dict.update(audit_data)
+
+            issues_data[key] = issue_dict
+
+        # Wrap with file-level metadata
+        output_data = {
+            "metadata": self._get_file_metadata(),
+            "issues": issues_data,
+        }
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # Write to file
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(output_data, f, indent=4, ensure_ascii=False)
+
+    def _get_file_metadata(self) -> dict:
+        """
+        Generate file-level metadata (provenance, run info).
+
+        @return: Dictionary containing file metadata.
+        """
+        metadata = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generator": {
+                "name": "AbsaOSS/living-doc-collector-gh",
+                "version": self._get_action_version(),
+            },
+        }
+
+        # Add source info
+        source_info = {}
+        repositories = ActionInputs.get_repositories()
+        if repositories:
+            # Use the first repository as the primary source for metadata
+            source_info["repositories"] = [f"{repo.organization_name}/{repo.repository_name}" for repo in repositories]
+        metadata["source"] = source_info
+
+        # Add run info (from GitHub Actions environment)
+        run_info = {}
+        github_env_vars = {
+            "workflow": os.getenv("GITHUB_WORKFLOW"),
+            "run_id": os.getenv("GITHUB_RUN_ID"),
+            "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
+            "actor": os.getenv("GITHUB_ACTOR"),
+            "ref": os.getenv("GITHUB_REF"),
+            "sha": os.getenv("GITHUB_SHA"),
+        }
+
+        # Only add non-None values
+        for key, value in github_env_vars.items():
+            if value:
+                run_info[key] = value
+
+        if run_info:
+            metadata["run"] = run_info
+
+        # Add non-sensitive inputs
+        inputs_info = {
+            "project_state_mining_enabled": ActionInputs.is_project_state_mining_enabled(),
+        }
+        metadata["inputs"] = inputs_info
+
+        return metadata
+
+    @staticmethod
+    def _get_action_version() -> str:
+        """
+        Get the action version from environment or package.
+
+        @return: Version string.
+        """
+        # Try to get from GitHub Actions ref (e.g., refs/tags/v1.0.0)
+        github_ref = os.getenv("GITHUB_ACTION_REF", "")
+        if github_ref:
+            return github_ref
+
+        # Try to get from SHA
+        github_sha = os.getenv("GITHUB_SHA", "")
+        if github_sha:
+            return github_sha[:7]  # Short SHA
+
+        return "unknown"
