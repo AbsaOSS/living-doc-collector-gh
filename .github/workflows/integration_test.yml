@@ -30,12 +30,12 @@ jobs:
     name: Integration Test - Real World Usage
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -46,14 +46,14 @@ jobs:
 
       - name: Run collector on living-doc-collector-gh repository
         env:
-          GITHUB-TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Set required inputs as environment variables
-          export INPUT_GITHUB-TOKEN="${GITHUB-TOKEN}"
-          export INPUT_DOC-ISSUES="true"
-          export INPUT_DOC-ISSUES-REPOSITORIES='[{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh"}]'
-          export INPUT_OUTPUT-PATH="./integration-test-output"
-          export INPUT_VERBOSE-LOGGING="true"
+          export INPUT_GITHUB_TOKEN="${GITHUB_TOKEN}"
+          export INPUT_DOC_ISSUES="true"
+          export INPUT_DOC_ISSUES_REPOSITORIES='[{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh"}]'
+          export INPUT_OUTPUT_PATH="./integration-test-output"
+          export INPUT_VERBOSE_LOGGING="true"
           
           # Run the main collector script
           python3 main.py
@@ -158,7 +158,7 @@ jobs:
 
       - name: Upload output artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: integration-test-output
           path: ./integration-test-output/
