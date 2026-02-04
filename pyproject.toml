@@ -8,4 +8,5 @@ omit = ["tests/*"]
 
 [tool.mypy]
 check_untyped_defs = true
+python_version = "3.14"
 exclude = "tests"
