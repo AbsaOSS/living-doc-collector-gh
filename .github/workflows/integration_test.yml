@@ -104,6 +104,10 @@ jobs:
           assert 'version' in metadata['generator'], "Missing generator version"
           print("✓ Generator metadata is correct")
 
+          # Validate schema_version
+          assert 'schema_version' in metadata, "Missing schema_version in metadata"
+          print(f"✓ Schema version: {metadata['schema_version']}")
+
           # Validate timestamp format
           try:
               datetime.fromisoformat(metadata['generated_at'].replace('Z', '+00:00'))

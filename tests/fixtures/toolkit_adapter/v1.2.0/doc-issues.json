@@ -1,0 +1,241 @@
+{
+  "metadata": {
+    "generated_at": "2025-02-10T15:45:00.000Z",
+    "schema_version": "1.0",
+    "generator": {
+      "name": "AbsaOSS/living-doc-collector-gh",
+      "version": "v1.2.0"
+    },
+    "source": {
+      "repositories": [
+        "TestOrg/test-application"
+      ]
+    },
+    "run": {
+      "workflow": "Living Documentation Collection",
+      "run_id": "9876543210",
+      "run_attempt": "2",
+      "actor": "automation-bot",
+      "ref": "refs/tags/v1.2.0",
+      "sha": "def456abc789"
+    },
+    "inputs": {
+      "project_state_mining_enabled": true
+    }
+  },
+  "issues": {
+    "TestOrg/test-application#201": {
+      "type": "UserStoryIssue",
+      "repository_id": "TestOrg/test-application",
+      "title": "Multi-Language Support",
+      "issue_number": 201,
+      "state": "open",
+      "created_at": "2025-01-05T10:00:00Z",
+      "updated_at": "2025-02-09T13:20:00Z",
+      "closed_at": null,
+      "html_url": "https://github.com/TestOrg/test-application/issues/201",
+      "body": "## Story\n\nAs an international user, I want to view the application in my preferred language so that I can understand all content and features.\n\n## Acceptance Criteria\n\n- Application supports English, Spanish, French, and German\n- User can select language from settings\n- Language preference persists across sessions\n- All UI elements are translated\n\n## Scope\n\nThis story includes:\n- Translation infrastructure setup\n- Content translation for all supported languages\n- Language selection UI\n- Locale-specific formatting (dates, numbers, currency)",
+      "labels": [
+        "DocumentedUserStory",
+        "i18n",
+        "priority-high"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Global Expansion Initiative",
+          "status": "In Progress",
+          "priority": "High",
+          "size": "Large",
+          "moscow": "Must Have"
+        }
+      ],
+      "created_by": "pm-manager",
+      "closed_by": null,
+      "comments_count": 10,
+      "last_commented_at": "2025-02-08T14:30:00Z",
+      "last_commented_by": "translator-team",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-05T10:10:00Z",
+          "actor": "pm-manager",
+          "label": "i18n"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2025-01-06T09:00:00Z",
+          "actor": "pm-manager",
+          "assignee": "lead-developer"
+        },
+        {
+          "action": "milestoned",
+          "timestamp": "2025-01-06T09:15:00Z",
+          "actor": "pm-manager",
+          "milestone": "Q1-2025"
+        }
+      ],
+      "errors": {}
+    },
+    "TestOrg/test-application#202": {
+      "type": "FeatureIssue",
+      "repository_id": "TestOrg/test-application",
+      "title": "Dynamic Language Switching",
+      "issue_number": 202,
+      "state": "open",
+      "created_at": "2025-01-08T12:00:00Z",
+      "updated_at": "2025-02-05T11:00:00Z",
+      "closed_at": null,
+      "html_url": "https://github.com/TestOrg/test-application/issues/202",
+      "body": "## Feature Description\n\nAllow users to switch languages dynamically without page reload.\n\n## Technical Approach\n\n### Frontend\n\n- React Context for language state management\n- i18next library integration\n- Dynamic content reloading\n\n### Backend\n\n- Translation key API endpoint\n- Language file versioning\n- Caching strategy for translation files\n\n## Performance Considerations\n\n- Lazy loading of language packs\n- Service worker caching\n- Fallback to English for missing translations",
+      "labels": [
+        "DocumentedFeature",
+        "i18n",
+        "frontend"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Global Expansion Initiative",
+          "status": "In Progress",
+          "priority": "High",
+          "size": "Medium",
+          "moscow": "Must Have"
+        }
+      ],
+      "created_by": "lead-developer",
+      "closed_by": null,
+      "comments_count": 7,
+      "last_commented_at": "2025-02-05T11:00:00Z",
+      "last_commented_by": "frontend-dev",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-08T12:05:00Z",
+          "actor": "lead-developer",
+          "label": "frontend"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2025-01-09T10:00:00Z",
+          "actor": "lead-developer",
+          "assignee": "frontend-dev"
+        }
+      ],
+      "errors": {}
+    },
+    "TestOrg/test-application#203": {
+      "type": "FunctionalityIssue",
+      "repository_id": "TestOrg/test-application",
+      "title": "Spanish Translation Pack",
+      "issue_number": 203,
+      "state": "closed",
+      "created_at": "2025-01-12T09:30:00Z",
+      "updated_at": "2025-01-25T16:30:00Z",
+      "closed_at": "2025-01-25T16:30:00Z",
+      "html_url": "https://github.com/TestOrg/test-application/issues/203",
+      "body": "## Functionality\n\nComplete Spanish (es-ES) translation pack for all UI components.\n\n### Translations Included\n\n- Navigation menus\n- Form labels and placeholders\n- Error messages\n- Help text\n- Email templates\n\n### Quality Assurance\n\n- Professional translation review\n- Native speaker validation\n- Context-appropriate translations\n\n## Deliverables\n\n- `es-ES.json` translation file\n- Translation glossary document\n- QA test report\n\n## Related\n\n- Parent Feature: #202\n- PR: TestOrg/test-application#1050",
+      "labels": [
+        "DocumentedFunctionality",
+        "i18n",
+        "translation",
+        "implemented"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Global Expansion Initiative",
+          "status": "Done",
+          "priority": "High",
+          "size": "Small",
+          "moscow": "Must Have"
+        }
+      ],
+      "created_by": "translator-team",
+      "closed_by": "lead-developer",
+      "comments_count": 4,
+      "last_commented_at": "2025-01-25T15:00:00Z",
+      "last_commented_by": "qa-lead",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-12T09:35:00Z",
+          "actor": "translator-team",
+          "label": "translation"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2025-01-12T09:40:00Z",
+          "actor": "lead-developer",
+          "assignee": "translator-team"
+        },
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-24T14:00:00Z",
+          "actor": "qa-lead",
+          "label": "implemented"
+        },
+        {
+          "action": "closed",
+          "timestamp": "2025-01-25T16:30:00Z",
+          "actor": "lead-developer"
+        }
+      ],
+      "errors": {}
+    },
+    "TestOrg/test-application#204": {
+      "type": "FeatureIssue",
+      "repository_id": "TestOrg/test-application",
+      "title": "Real-Time Notifications System",
+      "issue_number": 204,
+      "state": "open",
+      "created_at": "2025-01-20T11:00:00Z",
+      "updated_at": "2025-02-10T10:00:00Z",
+      "closed_at": null,
+      "html_url": "https://github.com/TestOrg/test-application/issues/204",
+      "body": "## Feature Overview\n\nImplement real-time notification system using WebSockets.\n\n## Key Components\n\n### WebSocket Server\n\n- Node.js WebSocket server\n- Connection management\n- Authentication and authorization\n- Message queuing for offline users\n\n### Client Integration\n\n- WebSocket client library\n- Reconnection logic\n- Notification UI components\n- Desktop notification support\n\n### Notification Types\n\n1. **System Notifications**: Updates, maintenance windows\n2. **User Notifications**: Messages, mentions, activity\n3. **Alert Notifications**: Errors, warnings, critical events\n\n## Infrastructure\n\n- Redis for pub/sub messaging\n- Load balancer support for multiple WebSocket servers\n- Monitoring and metrics",
+      "labels": [
+        "DocumentedFeature",
+        "notifications",
+        "websocket",
+        "backend"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Platform Enhancements",
+          "status": "Todo",
+          "priority": "Medium",
+          "size": "Large",
+          "moscow": "Should Have"
+        }
+      ],
+      "created_by": "architect",
+      "closed_by": null,
+      "comments_count": 6,
+      "last_commented_at": "2025-02-09T16:20:00Z",
+      "last_commented_by": "backend-dev",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-20T11:05:00Z",
+          "actor": "architect",
+          "label": "websocket"
+        },
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-20T11:05:00Z",
+          "actor": "architect",
+          "label": "backend"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2025-01-21T09:00:00Z",
+          "actor": "architect",
+          "assignee": "backend-dev"
+        }
+      ],
+      "errors": {}
+    }
+  }
+}

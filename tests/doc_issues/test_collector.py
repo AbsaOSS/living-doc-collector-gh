@@ -566,6 +566,8 @@ def test_get_file_metadata(doc_issues_collector, monkeypatch):
 
     # Assert
     assert "generated_at" in metadata
+    assert "schema_version" in metadata
+    assert metadata["schema_version"] == "1.0"
     assert "generator" in metadata
     assert metadata["generator"]["name"] == "AbsaOSS/living-doc-collector-gh"
 
