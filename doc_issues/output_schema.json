@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Living Documentation Collector GitHub Output Schema",
+  "description": "JSON Schema for the doc-issues mode output of living-doc-collector-gh",
+  "type": "object",
+  "required": ["metadata", "issues"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["generated_at", "schema_version", "generator"],
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 timestamp when the file was generated"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$",
+          "description": "Schema version (e.g., '1.0') for compatibility checking"
+        },
+        "generator": {
+          "type": "object",
+          "required": ["name", "version"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Generator name (e.g., 'AbsaOSS/living-doc-collector-gh')"
+            },
+            "version": {
+              "type": "string",
+              "description": "Generator version, git ref, or commit SHA"
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "repositories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of repositories included in the collection"
+            }
+          }
+        },
+        "run": {
+          "type": "object",
+          "properties": {
+            "workflow": {
+              "type": "string",
+              "description": "GitHub Actions workflow name"
+            },
+            "run_id": {
+              "type": "string",
+              "description": "Unique run identifier"
+            },
+            "run_attempt": {
+              "type": "string",
+              "description": "Run attempt number"
+            },
+            "actor": {
+              "type": "string",
+              "description": "User who triggered the workflow"
+            },
+            "ref": {
+              "type": "string",
+              "description": "Git reference (branch/tag)"
+            },
+            "sha": {
+              "type": "string",
+              "description": "Commit SHA"
+            }
+          }
+        },
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "project_state_mining_enabled": {
+              "type": "boolean",
+              "description": "Whether project state mining was enabled"
+            }
+          }
+        }
+      }
+    },
+    "issues": {
+      "type": "object",
+      "patternProperties": {
+        "^[^/]+/[^/#]+#\\d+$": {
+          "type": "object",
+          "required": ["type", "repository_id", "title", "issue_number", "state"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["Issue", "UserStoryIssue", "FeatureIssue", "FunctionalityIssue"],
+              "description": "Issue type based on Living Documentation labels"
+            },
+            "repository_id": {
+              "type": "string",
+              "description": "Repository identifier (owner/repo)"
+            },
+            "title": {
+              "type": "string",
+              "description": "Issue title"
+            },
+            "issue_number": {
+              "type": "integer",
+              "description": "Issue number"
+            },
+            "state": {
+              "type": "string",
+              "enum": ["open", "closed"],
+              "description": "Issue state"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "Timestamp when issue was created"
+            },
+            "updated_at": {
+              "type": "string",
+              "description": "Timestamp when issue was last updated"
+            },
+            "closed_at": {
+              "type": ["string", "null"],
+              "description": "Timestamp when issue was closed (null if open)"
+            },
+            "html_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "GitHub web URL for the issue"
+            },
+            "body": {
+              "type": ["string", "null"],
+              "description": "Issue description/body in Markdown"
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Array of label names"
+            },
+            "linked_to_project": {
+              "type": "boolean",
+              "description": "Whether issue is linked to a GitHub Project"
+            },
+            "project_statuses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "project_title": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": ["string", "null"]
+                  },
+                  "size": {
+                    "type": ["string", "null"]
+                  },
+                  "moscow": {
+                    "type": ["string", "null"]
+                  }
+                }
+              },
+              "description": "Array of project status information (when linked to projects)"
+            },
+            "created_by": {
+              "type": "string",
+              "description": "GitHub login of the user who created the issue"
+            },
+            "closed_by": {
+              "type": ["string", "null"],
+              "description": "GitHub login of the user who closed the issue"
+            },
+            "comments_count": {
+              "type": "integer",
+              "description": "Total number of comments on the issue"
+            },
+            "last_commented_at": {
+              "type": "string",
+              "description": "Timestamp of the most recent comment"
+            },
+            "last_commented_by": {
+              "type": "string",
+              "description": "GitHub login of the user who posted the most recent comment"
+            },
+            "audit_events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["action", "timestamp", "actor"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["labeled", "unlabeled", "assigned", "unassigned", "milestoned", "demilestoned", "reopened", "closed"],
+                    "description": "Type of audit event"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "description": "Timestamp when the event occurred"
+                  },
+                  "actor": {
+                    "type": "string",
+                    "description": "User who performed the action"
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Label name (for labeled/unlabeled events)"
+                  },
+                  "assignee": {
+                    "type": "string",
+                    "description": "Assignee name (for assigned/unassigned events)"
+                  },
+                  "milestone": {
+                    "type": "string",
+                    "description": "Milestone title (for milestoned/demilestoned events)"
+                  }
+                }
+              },
+              "description": "Array of audit-relevant timeline events"
+            },
+            "errors": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Error messages encountered during processing"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

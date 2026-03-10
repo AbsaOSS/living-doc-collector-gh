@@ -377,6 +377,7 @@ class GHDocIssuesCollector:
         """
         metadata = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
+            "schema_version": "1.0",
             "generator": {
                 "name": "AbsaOSS/living-doc-collector-gh",
                 "version": self._get_action_version(),
