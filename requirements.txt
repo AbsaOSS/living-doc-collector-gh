@@ -1,6 +1,6 @@
 mypy==1.19.1
 mypy-extensions==1.1.0
-requests==2.33.0
+requests==2.33.1
 typing_extensions==4.15.0
 PyGithub==2.8.1
 pylint==4.0.5
