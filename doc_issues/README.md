@@ -136,6 +136,7 @@ The `metadata` section provides traceability and provenance information:
 {
   "metadata": {
     "generated_at": "2025-01-21T14:30:00.000Z",
+    "schema_version": "1.0",
     "generator": {
       "name": "AbsaOSS/living-doc-collector-gh",
       "version": "v1.0.0"
@@ -161,6 +162,7 @@ The `metadata` section provides traceability and provenance information:
 
 **Metadata Fields:**
 - `generated_at`: UTC timestamp when the file was generated (ISO-8601 format)
+- `schema_version`: Schema version (e.g., "1.0") for compatibility checking by downstream consumers
 - `generator`: Information about the action that generated the file
   - `name`: Action repository identifier
   - `version`: Action version, git reference, or commit SHA
@@ -175,6 +177,15 @@ The `metadata` section provides traceability and provenance information:
   - `sha`: Commit SHA
 - `inputs`: Non-sensitive action inputs that affect output
   - `project_state_mining_enabled`: Whether project state mining was enabled
+
+### Output Schema Validation
+
+The collector provides a formal JSON Schema file (`doc_issues/output_schema.json`) that describes the complete structure of the output JSON. Downstream consumers (such as the living-doc-toolkit adapter) can use this schema to:
+- Validate collector output programmatically
+- Understand the complete data contract
+- Detect schema version compatibility
+
+The schema defines all required and optional fields, data types, and validation rules for both metadata and issue structures.
 
 ### Issue-Level Structure
 

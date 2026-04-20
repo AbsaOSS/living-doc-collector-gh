@@ -1,0 +1,289 @@
+{
+  "metadata": {
+    "generated_at": "2025-01-21T10:30:00.000Z",
+    "schema_version": "1.0",
+    "generator": {
+      "name": "AbsaOSS/living-doc-collector-gh",
+      "version": "v1.0.0"
+    },
+    "source": {
+      "repositories": [
+        "MockOrg/mock-project"
+      ]
+    },
+    "run": {
+      "workflow": "Documentation Collection",
+      "run_id": "1234567890",
+      "run_attempt": "1",
+      "actor": "mock-user",
+      "ref": "refs/heads/main",
+      "sha": "abc123def456"
+    },
+    "inputs": {
+      "project_state_mining_enabled": true
+    }
+  },
+  "issues": {
+    "MockOrg/mock-project#101": {
+      "type": "UserStoryIssue",
+      "repository_id": "MockOrg/mock-project",
+      "title": "User Authentication Flow",
+      "issue_number": 101,
+      "state": "open",
+      "created_at": "2024-11-15T09:00:00Z",
+      "updated_at": "2025-01-20T14:30:00Z",
+      "closed_at": null,
+      "html_url": "https://github.com/MockOrg/mock-project/issues/101",
+      "body": "## Overview\n\nAs a user, I want to securely authenticate to the system so that I can access my personalized dashboard.\n\n## Acceptance Criteria\n\n- User can log in with email and password\n- Session is maintained across page refreshes\n- Logout functionality is available\n\n## User Story Details\n\nThis story encompasses the complete authentication flow including:\n- Login page design\n- Session management\n- Secure credential handling",
+      "labels": [
+        "DocumentedUserStory",
+        "security",
+        "priority-high"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Platform Development Q1",
+          "status": "In Progress",
+          "priority": "High",
+          "size": "Large",
+          "moscow": "Must Have"
+        }
+      ],
+      "created_by": "product-owner",
+      "closed_by": null,
+      "comments_count": 8,
+      "last_commented_at": "2025-01-19T16:45:00Z",
+      "last_commented_by": "tech-lead",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2024-11-15T09:05:00Z",
+          "actor": "product-owner",
+          "label": "security"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2024-11-15T09:10:00Z",
+          "actor": "product-owner",
+          "assignee": "developer-alice"
+        },
+        {
+          "action": "milestoned",
+          "timestamp": "2024-11-16T10:00:00Z",
+          "actor": "tech-lead",
+          "milestone": "v1.0"
+        }
+      ],
+      "errors": {}
+    },
+    "MockOrg/mock-project#102": {
+      "type": "FeatureIssue",
+      "repository_id": "MockOrg/mock-project",
+      "title": "OAuth2 Integration",
+      "issue_number": 102,
+      "state": "open",
+      "created_at": "2024-11-20T11:00:00Z",
+      "updated_at": "2025-01-18T10:15:00Z",
+      "closed_at": null,
+      "html_url": "https://github.com/MockOrg/mock-project/issues/102",
+      "body": "## Feature Description\n\nImplement OAuth2 authentication provider integration for third-party login.\n\n## Supported Providers\n\n- Google\n- GitHub\n- Microsoft\n\n## Technical Requirements\n\n1. OAuth2 client library integration\n2. Callback endpoint implementation\n3. Token storage and refresh mechanism\n4. User profile synchronization\n\n### Security Considerations\n\n- PKCE flow for mobile clients\n- State parameter validation\n- Secure token storage",
+      "labels": [
+        "DocumentedFeature",
+        "oauth",
+        "enhancement"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Platform Development Q1",
+          "status": "In Progress",
+          "priority": "High",
+          "size": "Medium",
+          "moscow": "Should Have"
+        }
+      ],
+      "created_by": "tech-lead",
+      "closed_by": null,
+      "comments_count": 12,
+      "last_commented_at": "2025-01-18T10:15:00Z",
+      "last_commented_by": "developer-bob",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2024-11-20T11:05:00Z",
+          "actor": "tech-lead",
+          "label": "oauth"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2024-11-21T09:00:00Z",
+          "actor": "tech-lead",
+          "assignee": "developer-bob"
+        }
+      ],
+      "errors": {}
+    },
+    "MockOrg/mock-project#103": {
+      "type": "FunctionalityIssue",
+      "repository_id": "MockOrg/mock-project",
+      "title": "Google OAuth Provider",
+      "issue_number": 103,
+      "state": "closed",
+      "created_at": "2024-11-25T14:30:00Z",
+      "updated_at": "2025-01-10T16:00:00Z",
+      "closed_at": "2025-01-10T16:00:00Z",
+      "html_url": "https://github.com/MockOrg/mock-project/issues/103",
+      "body": "## Functionality Description\n\nImplement Google OAuth provider integration.\n\n### Implementation Details\n\n- Google OAuth 2.0 client configuration\n- Redirect URI setup\n- Scope configuration for user profile access\n\n### Testing\n\n- Unit tests for OAuth flow\n- Integration tests with Google OAuth sandbox\n- Manual testing with test Google account\n\n## Links\n\n- Related Feature: #102\n- PR: MockOrg/mock-project#250",
+      "labels": [
+        "DocumentedFunctionality",
+        "oauth",
+        "implemented"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Platform Development Q1",
+          "status": "Done",
+          "priority": "High",
+          "size": "Small",
+          "moscow": "Should Have"
+        }
+      ],
+      "created_by": "developer-bob",
+      "closed_by": "developer-bob",
+      "comments_count": 5,
+      "last_commented_at": "2025-01-09T11:30:00Z",
+      "last_commented_by": "qa-engineer",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2024-11-25T14:35:00Z",
+          "actor": "developer-bob",
+          "label": "oauth"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2024-11-25T14:40:00Z",
+          "actor": "developer-bob",
+          "assignee": "developer-bob"
+        },
+        {
+          "action": "labeled",
+          "timestamp": "2025-01-09T11:00:00Z",
+          "actor": "qa-engineer",
+          "label": "implemented"
+        },
+        {
+          "action": "closed",
+          "timestamp": "2025-01-10T16:00:00Z",
+          "actor": "developer-bob"
+        }
+      ],
+      "errors": {}
+    },
+    "MockOrg/mock-project#104": {
+      "type": "FeatureIssue",
+      "repository_id": "MockOrg/mock-project",
+      "title": "User Dashboard Analytics",
+      "issue_number": 104,
+      "state": "open",
+      "created_at": "2024-12-01T08:00:00Z",
+      "updated_at": "2025-01-21T09:00:00Z",
+      "closed_at": null,
+      "html_url": "https://github.com/MockOrg/mock-project/issues/104",
+      "body": "## Feature Overview\n\nProvide users with visual analytics on their dashboard showing:\n\n- Login activity history\n- Device usage statistics  \n- Security events log\n\n## Components\n\n### Charts and Visualizations\n\n- Line chart for login frequency over time\n- Pie chart for device type distribution\n- Timeline view for security events\n\n### Data Requirements\n\n- Historical login data (90 days)\n- Device fingerprinting\n- Security event tracking\n\n## Design\n\nMockups available in Figma: [link]\n\n## Dependencies\n\n- Analytics data pipeline\n- Chart library selection",
+      "labels": [
+        "DocumentedFeature",
+        "analytics",
+        "ui"
+      ],
+      "linked_to_project": false,
+      "project_statuses": [],
+      "created_by": "product-owner",
+      "closed_by": null,
+      "comments_count": 3,
+      "last_commented_at": "2025-01-20T15:30:00Z",
+      "last_commented_by": "designer",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2024-12-01T08:05:00Z",
+          "actor": "product-owner",
+          "label": "analytics"
+        },
+        {
+          "action": "labeled",
+          "timestamp": "2024-12-01T08:05:00Z",
+          "actor": "product-owner",
+          "label": "ui"
+        }
+      ],
+      "errors": {}
+    },
+    "MockOrg/mock-project#105": {
+      "type": "UserStoryIssue",
+      "repository_id": "MockOrg/mock-project",
+      "title": "Data Export Capabilities",
+      "issue_number": 105,
+      "state": "closed",
+      "created_at": "2024-10-10T13:00:00Z",
+      "updated_at": "2024-12-15T17:00:00Z",
+      "closed_at": "2024-12-15T17:00:00Z",
+      "html_url": "https://github.com/MockOrg/mock-project/issues/105",
+      "body": "## User Story\n\nAs a user, I want to export my data in multiple formats (CSV, JSON, PDF) so that I can use it in external applications.\n\n## Acceptance Criteria\n\n- [ ] Export button available in user settings\n- [x] CSV format export implemented\n- [x] JSON format export implemented  \n- [x] PDF format export implemented\n- [x] Email notification when export is ready\n\n## Implementation Notes\n\nExport functionality completed in phases:\n1. Backend export service\n2. Format conversion library integration\n3. UI controls\n4. Email notification system",
+      "labels": [
+        "DocumentedUserStory",
+        "export",
+        "implemented"
+      ],
+      "linked_to_project": true,
+      "project_statuses": [
+        {
+          "project_title": "Platform Development Q4",
+          "status": "Done",
+          "priority": "Medium",
+          "size": "Medium",
+          "moscow": "Could Have"
+        }
+      ],
+      "created_by": "product-owner",
+      "closed_by": "tech-lead",
+      "comments_count": 15,
+      "last_commented_at": "2024-12-15T16:45:00Z",
+      "last_commented_by": "tech-lead",
+      "audit_events": [
+        {
+          "action": "labeled",
+          "timestamp": "2024-10-10T13:05:00Z",
+          "actor": "product-owner",
+          "label": "export"
+        },
+        {
+          "action": "assigned",
+          "timestamp": "2024-10-11T09:00:00Z",
+          "actor": "tech-lead",
+          "assignee": "developer-charlie"
+        },
+        {
+          "action": "milestoned",
+          "timestamp": "2024-10-11T10:00:00Z",
+          "actor": "tech-lead",
+          "milestone": "v0.9"
+        },
+        {
+          "action": "labeled",
+          "timestamp": "2024-12-14T14:00:00Z",
+          "actor": "qa-engineer",
+          "label": "implemented"
+        },
+        {
+          "action": "closed",
+          "timestamp": "2024-12-15T17:00:00Z",
+          "actor": "tech-lead"
+        }
+      ],
+      "errors": {}
+    }
+  }
+}
