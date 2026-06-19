@@ -1,3 +1,8 @@
+[project]
+name = "living-doc-collector-gh"
+version = "1.0.0"
+description = "Collect living documentation data from GitHub repositories."
+
 [tool.black]
 line-length = 120
 target-version = ['py314']

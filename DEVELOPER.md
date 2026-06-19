@@ -7,6 +7,7 @@
 - [Run mypy Tool Locally](#run-mypy-tool-locally)
 - [Run Unit Test](#run-unit-test)
 - [Code Coverage](#code-coverage)
+- [Versioning](#versioning)
 - [Releasing](#releasing)
 
 ## Project Setup
@@ -98,7 +99,7 @@ export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 
 For running the GitHub action locally, incorporate these commands into the shell script and save it.
 ```
-python3 main.py
+python3 master.py
 ```
 The whole script should look like this example:
 ```
@@ -119,7 +120,7 @@ export INPUT_DOC_ISSUES_REPOSITORIES='[
 ]'
 export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 
-python3 main.py
+python3 master.py
 ```
 
 ### Make the Script Executable
@@ -168,8 +169,8 @@ pylint doc-issues/collector.py
 
 This is an example of the expected console output after running the tool:
 ```
-************* Module main
-main.py:30:0: C0116: Missing function or method docstring (missing-function-docstring)
+************* Module master
+master.py:30:0: C0116: Missing function or method docstring (missing-function-docstring)
 
 ------------------------------------------------------------------
 Your code has been rated at 9.41/10 (previous run: 8.82/10, +0.59)
@@ -283,11 +284,95 @@ open htmlcov/index.html
 ```
 
 ---
+## Versioning
+
+The project version is defined in **`pyproject.toml`** under the `[project]` section and is the **single source of truth**.
+It follows **Semantic Versioning (MAJOR.MINOR.PATCH)**:
+
+- **MAJOR**: Breaking changes to schema or API contracts
+- **MINOR**: New features or non-breaking enhancements
+- **PATCH**: Bug fixes or internal improvements
+
+### Version Source
+
+The version is **always read from `pyproject.toml`** — both locally and in GitHub Actions.
+This ensures consistency between:
+- Local development
+- Package distribution
+- CI/CD workflows
+- Generated JSON output
+
+The version appears in the JSON output under `metadata.generator.version`.
+
+### Local Development
+
+To check the version locally:
+
+```shell
+python3 -c "from utils.constants import get_package_version; print(get_package_version())"
+```
+
+---
+
 ## Releasing
 
-This project uses GitHub Actions for deployment draft creation. The deployment process is semi-automated by a workflow defined in `.github/workflows/release_draft.yml`.
+The release process is semi-automated using the `release_draft.yml` workflow and branch protection rules.
 
-- **Trigger the workflow**: The `release_draft.yml` workflow is triggered on workflow_dispatch.
-- **Create a new draft release**: The workflow creates a new draft release in the repository.
-- **Finalize the release draft**: Edit the draft release to add a title, description, and any other necessary details related to the GitHub Action.
-- **Publish the release**: Once the draft is ready, publish the release to make it publicly available.
+### Step 1: Create a Pull Request with Version Bump
+
+Edit `pyproject.toml` and update the version:
+
+```toml
+[project]
+name = "living-doc-collector-gh"
+version = "X.Y.Z"  # Update this (e.g., "1.0.1", "1.1.0", "2.0.0")
+```
+
+Commit and push to a feature branch:
+
+```shell
+git checkout -b release/vX.Y.Z
+git add pyproject.toml
+git commit -m "chore: bump version to X.Y.Z"
+git push origin release/vX.Y.Z
+```
+
+### Step 2: Merge via Branch Protection
+
+- Create a Pull Request from your feature branch
+- Request required approvals (configured in branch protection rules)
+- Merge to `master` once approved
+
+This ensures version changes are reviewed before release.
+
+### Step 3: Trigger Release Draft Workflow
+
+Manually trigger `release_draft.yml` via GitHub Actions UI or CLI:
+
+```bash
+gh workflow run release_draft.yml \
+  -f tag-name=vX.Y.Z \
+  -f from-tag-name=vX.Y.Z-1
+```
+
+Or in GitHub UI:
+1. Go to **Actions** → **Draft Release**
+2. Click **Run workflow**
+3. Enter the tag name (e.g., `v1.0.1`)
+4. Enter the previous tag (optional, for changelog diff)
+5. Click **Run workflow**
+
+### Step 4: Automated Processing
+
+The `release_draft.yml` workflow automatically:
+1. Validates the tag format
+2. Verifies `pyproject.toml` matches the requested version
+3. Creates the git tag
+4. Generates release notes from commit history
+5. Creates a draft release
+
+### Step 5: Finalize and Publish
+
+1. Review the generated draft release in GitHub
+2. Edit the title and description if needed
+3. Click **Publish release**

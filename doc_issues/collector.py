@@ -28,6 +28,8 @@ from typing import Callable
 from github import Auth, Github
 from github.Issue import Issue
 
+from utils.constants import get_package_version
+
 from living_doc_utilities.decorators import safe_call_decorator
 from living_doc_utilities.github.rate_limiter import GithubRateLimiter
 from living_doc_utilities.model.feature_issue import FeatureIssue
@@ -383,7 +385,7 @@ class GHDocIssuesCollector:
             "schema_version": "1.0",
             "generator": {
                 "name": "AbsaOSS/living-doc-collector-gh",
-                "version": self._get_action_version(),
+                "version": get_package_version(),
             },
         }
 
@@ -421,22 +423,3 @@ class GHDocIssuesCollector:
         metadata["inputs"] = inputs_info
 
         return metadata
-
-    @staticmethod
-    def _get_action_version() -> str:
-        """
-        Get the action version from environment or package.
-
-        @return: Version string.
-        """
-        # Try to get from GitHub Actions ref (e.g., refs/tags/v1.0.0)
-        github_ref = os.getenv("GITHUB_ACTION_REF", "")
-        if github_ref:
-            return github_ref
-
-        # Try to get from SHA
-        github_sha = os.getenv("GITHUB_SHA", "")
-        if github_sha:
-            return github_sha[:7]  # Short SHA
-
-        return "unknown"
