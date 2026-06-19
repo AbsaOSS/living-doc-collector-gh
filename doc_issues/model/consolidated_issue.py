@@ -100,17 +100,23 @@ class ConsolidatedIssue:
     @property
     def created_at(self) -> str:
         """Getter of the info when issue was created."""
-        return str(self.__issue.created_at) if self.__issue else ""
+        if self.__issue and self.__issue.created_at:
+            return self.__issue.created_at.isoformat()
+        return ""
 
     @property
     def updated_at(self) -> str:
         """Getter of the info when issue was updated"""
-        return str(self.__issue.updated_at) if self.__issue else ""
+        if self.__issue and self.__issue.updated_at:
+            return self.__issue.updated_at.isoformat()
+        return ""
 
     @property
-    def closed_at(self) -> str:
+    def closed_at(self) -> Optional[str]:
         """Getter of the info when issue was closed."""
-        return str(self.__issue.closed_at) if self.__issue else ""
+        if self.__issue and self.__issue.closed_at:
+            return self.__issue.closed_at.isoformat()
+        return None
 
     @property
     def html_url(self) -> str:
@@ -213,7 +219,11 @@ class ConsolidatedIssue:
                     comments = list(self.__issue.get_comments())
                     if comments:
                         last_comment = comments[-1]
-                        self.__last_commented_at = str(last_comment.created_at) if last_comment.created_at else None
+                        self.__last_commented_at = (
+                            last_comment.created_at.isoformat()
+                            if last_comment.created_at
+                            else None
+                        )
                         self.__last_commented_by = last_comment.user.login if last_comment.user else None
                 except (GithubException, AttributeError, TypeError) as e:
                     logger.debug(
@@ -286,7 +296,11 @@ class ConsolidatedIssue:
 
             event_data: dict[str, Any] = {
                 "action": event_type,
-                "timestamp": str(event.created_at) if hasattr(event, "created_at") else None,
+                "timestamp": (
+                    event.created_at.isoformat()
+                    if hasattr(event, "created_at") and event.created_at
+                    else None
+                ),
             }
 
             # Add actor info

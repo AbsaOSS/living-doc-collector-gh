@@ -180,12 +180,12 @@ The `metadata` section provides traceability and provenance information:
 
 ### Output Schema Validation
 
-The collector provides a formal JSON Schema file (`doc_issues/output_schema.json`) that describes the complete structure of the output JSON. Downstream consumers (such as the living-doc-toolkit adapter) can use this schema to:
+The collector provides a formal JSON Schema file (`doc_issues/schema/doc-issues-v1.0.0-schema.json`) that describes the complete structure of the output JSON. Downstream consumers (such as the living-doc-toolkit adapter) can use this schema to:
 - Validate collector output programmatically
 - Understand the complete data contract
 - Detect schema version compatibility
 
-The schema defines all required and optional fields, data types, and validation rules for both metadata and issue structures.
+The schema is versioned as **v1.0.0** (reflected in both the filename and the `$schema_version` field in the schema itself). The schema defines all required and optional fields, data types, and validation rules for metadata, items (issues), and warnings.
 
 ### Issue-Level Structure
 

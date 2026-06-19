@@ -12,6 +12,7 @@
 # limitations under the License.
 #
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from os import fspath
 
 from living_doc_utilities.model.issue import Issue
@@ -30,12 +31,15 @@ class FakeGitHubIssue:
         self.number = number
         self.title = title
         self.state = "open"
-        self.created_at = "2023-01-01"
-        self.updated_at = "2023-01-02"
+        self.created_at = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        self.updated_at = datetime(2023, 1, 2, tzinfo=timezone.utc)
         self.closed_at = None
         self.html_url = "https://github.com/test/repo/issues/1"
         self.body = "Issue body"
         self.labels = []
+        self.user = None
+        self.closed_by = None
+        self.comments = 0
 
 
 # collect
@@ -538,19 +542,30 @@ def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Check file-level metadata
+    # Check file-level metadata structure (v1.0.0 schema)
     assert "metadata" in data
-    assert "generated_at" in data["metadata"]
-    assert "generator" in data["metadata"]
-    assert data["metadata"]["generator"]["name"] == "AbsaOSS/living-doc-collector-gh"
+    metadata = data["metadata"]
+    assert "producer" in metadata
+    assert metadata["producer"]["name"] == "AbsaOSS/living-doc-collector-gh"
+    assert "run" in metadata
+    assert "source" in metadata
+    assert "original_metadata" in metadata
+    assert "generated_at" in metadata["original_metadata"]
 
-    # Check issues data
-    assert "issues" in data
-    assert "test_org/test_repo#1" in data["issues"]
-
-    # Check audit enrichment
-    issue_data = data["issues"]["test_org/test_repo#1"]
-    assert issue_data["created_by"] == "test_creator"
+    # Check items array (not issues dict)
+    assert "items" in data
+    assert "warnings" in data
+    assert isinstance(data["items"], list)
+    assert len(data["items"]) > 0
+    
+    # Check item structure
+    item = data["items"][0]
+    assert item["id"] == "test_org/test_repo#1"
+    assert "title" in item
+    assert "state" in item
+    assert "tags" in item
+    assert "url" in item
+    assert "timestamps" in item
 
 
 def test_get_file_metadata(doc_issues_collector, monkeypatch):
@@ -564,12 +579,11 @@ def test_get_file_metadata(doc_issues_collector, monkeypatch):
     # Act
     metadata = doc_issues_collector._get_file_metadata()
 
-    # Assert
-    assert "generated_at" in metadata
-    assert "schema_version" in metadata
-    assert metadata["schema_version"] == "1.0"
-    assert "generator" in metadata
-    assert metadata["generator"]["name"] == "AbsaOSS/living-doc-collector-gh"
+    # Assert - v1.0.0 schema structure
+    assert "producer" in metadata
+    assert metadata["producer"]["name"] == "AbsaOSS/living-doc-collector-gh"
+    assert metadata["producer"]["version"] is not None
+    assert metadata["producer"]["build"] == "12345"
 
     assert "run" in metadata
     assert metadata["run"]["workflow"] == "Test Workflow"
@@ -578,5 +592,12 @@ def test_get_file_metadata(doc_issues_collector, monkeypatch):
     assert metadata["run"]["ref"] == "refs/heads/main"
     assert metadata["run"]["sha"] == "abc123def456"
 
-    assert "inputs" in metadata
-    assert "project_state_mining_enabled" in metadata["inputs"]
+    assert "source" in metadata
+    assert metadata["source"]["systems"] == ["GitHub"]
+
+    assert "original_metadata" in metadata
+    assert "generated_at" in metadata["original_metadata"]
+    assert "schema_version" in metadata["original_metadata"]
+    assert metadata["original_metadata"]["schema_version"] == "1.0.0"
+    assert "inputs" in metadata["original_metadata"]
+    assert "project_state_mining_enabled" in metadata["original_metadata"]["inputs"]
