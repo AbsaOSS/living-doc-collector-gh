@@ -28,7 +28,36 @@ pip install -r requirements.txt
 ```
 
 ---
-## Run Scripts Locally
+## SSL / TLS Certificate Verification
+
+For environments with SSL/TLS interception (e.g., corporate proxies, Zscaler), you need to provide a custom CA bundle.
+
+### Using Custom CA Bundle
+
+Set the `REQUESTS_CA_BUNDLE` environment variable to the path of your CA certificate file:
+
+```shell
+export REQUESTS_CA_BUNDLE=/path/to/corporate-ca.pem
+```
+
+The Python `requests` library and GitHub API client will use this bundle to verify HTTPS connections.
+If not set, the system default CA bundle will be used.
+
+### Example with run_script.sh
+
+The provided `run_script.sh` helper script handles CA bundle setup automatically:
+
+```shell
+# Set the path to your corporate CA certificate
+export SSL_CERT_FILE=/path/to/corporate-ca.pem
+
+# Run the script (it will combine certifi's CA bundle with your corporate CA)
+./run_script.sh
+```
+
+The script exports `REQUESTS_CA_BUNDLE` with a combined CA bundle (system CAs + your corporate CA).
+
+---
 
 If you need to run the scripts locally, follow these steps:
 

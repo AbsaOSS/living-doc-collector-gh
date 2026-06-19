@@ -25,7 +25,7 @@ import shutil
 from datetime import datetime, timezone
 from typing import Callable
 
-from github import Github, Auth
+from github import Auth, Github
 from github.Issue import Issue
 
 from living_doc_utilities.decorators import safe_call_decorator
@@ -64,10 +64,13 @@ class GHDocIssuesCollector:
         github_token = ActionInputs.get_github_token()
 
         self.__output_path = os.path.join(output_path, "doc-issues")
+
+        ca_bundle = ActionInputs.get_ca_bundle()
+
         self.__github_instance: Github = Github(
-            auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=False
+            auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=ca_bundle
         )
-        self.__github_projects_instance: GitHubProjects = GitHubProjects(token=github_token)
+        self.__github_projects_instance: GitHubProjects = GitHubProjects(token=github_token, ca_bundle=ca_bundle)
         self.__rate_limiter: GithubRateLimiter = GithubRateLimiter(self.__github_instance)
         self.__safe_call: Callable = safe_call_decorator(self.__rate_limiter)
 

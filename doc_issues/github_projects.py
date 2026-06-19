@@ -41,19 +41,22 @@ class GitHubProjects:
     processing the responses.
     """
 
-    def __init__(self, token: str):
+    def __init__(self, token: str, ca_bundle: str | bool = True):
         self.__token = token
+        self.__ca_bundle = ca_bundle
         self.__session: Optional[requests.Session] = None
 
     def __initialize_request_session(self) -> requests.Session:
         """
         Initializes the request Session and updates the headers.
+        Uses the CA bundle provided during initialization.
 
         @return: The request session object.
         """
 
         self.__session = requests.Session()
-        self.__session.verify = False  # Disable SSL verification for the session
+        self.__session.verify = self.__ca_bundle
+
         headers = {
             "Authorization": f"Bearer {self.__token}",
             "User-Agent": "IssueFetcher/1.0",
@@ -76,7 +79,7 @@ class GitHubProjects:
 
             # Fetch the response from the API in this line, the session will always be initialized
             response = self.__session.post(  # type: ignore[union-attr]
-                "https://api.github.com/graphql", json={"query": query}, verify=False
+                "https://api.github.com/graphql", json={"query": query}
             )
             # Check if the request was successful
             if "errors" in response.json():
