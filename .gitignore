@@ -177,3 +177,5 @@ run_script.sh
 output-example-project/
 output/doc-issues/doc-issues.json
 default_output.txt
+output/.DS_Store
+.DS_Store

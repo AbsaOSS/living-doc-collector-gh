@@ -1,6 +1,6 @@
 [project]
 name = "living-doc-collector-gh"
-version = "1.0.0"
+version = "0.1.1"
 description = "Collect living documentation data from GitHub repositories."
 
 [tool.black]
