@@ -1,5 +1,34 @@
 {
   "$defs": {
+    "AcceptanceCriterion": {
+      "description": "A single acceptance criterion parsed from the issue body table.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "version",
+        "description"
+      ],
+      "title": "AcceptanceCriterion",
+      "type": "object"
+    },
     "AdapterItem": {
       "description": "Represents a single item (issue) from the collector output.",
       "properties": {
@@ -29,7 +58,7 @@
         "timestamps": {
           "$ref": "#/$defs/AdapterItemTimestamps"
         },
-        "body": {
+        "description": {
           "anyOf": [
             {
               "type": "string"
@@ -39,7 +68,52 @@
             }
           ],
           "default": null,
-          "title": "Body"
+          "title": "Description"
+        },
+        "business_value": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Business Value"
+        },
+        "preconditions": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Preconditions"
+        },
+        "acceptance_criteria": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AcceptanceCriterion"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acceptance Criteria"
         }
       },
       "required": [

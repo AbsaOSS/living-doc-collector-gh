@@ -344,7 +344,7 @@ class GHDocIssuesCollector:
     ) -> None:
         """
         Save issues to JSON with audit enrichment and file-level metadata.
-        Conforms to doc-issues-v2.0.0-schema.json format.
+        Conforms to doc-issues-v1.0.0-schema.json format.
 
         @param file_path: Path to save the JSON file.
         @param issues: Issues object containing base issue data.
@@ -397,7 +397,7 @@ class GHDocIssuesCollector:
 
     def _get_file_metadata(self) -> dict:
         """
-        Generate file-level metadata matching AdapterMetadata structure (v2.0.0 schema).
+        Generate file-level metadata matching AdapterMetadata structure (v1.0.0 schema).
 
         @return: Dictionary containing file metadata.
         """
@@ -428,7 +428,7 @@ class GHDocIssuesCollector:
             },
             "original_metadata": {
                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                "schema_version": "2.0.0",
+                "schema_version": "1.0.0",
                 "inputs": {
                     "project_state_mining_enabled": ActionInputs.is_project_state_mining_enabled(),
                 },
