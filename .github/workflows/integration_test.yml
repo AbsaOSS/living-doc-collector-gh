@@ -88,29 +88,30 @@ jobs:
 
           # Check top-level structure
           assert 'metadata' in data, "Missing 'metadata' section"
-          assert 'issues' in data, "Missing 'issues' section"
+          assert 'items' in data, "Missing 'items' section"
           print("✓ Top-level structure is correct")
 
           # Validate metadata
           metadata = data['metadata']
-          required_metadata_fields = ['generated_at', 'generator', 'source', 'run', 'inputs']
+          required_metadata_fields = ['producer', 'source', 'run', 'original_metadata']
           for field in required_metadata_fields:
               assert field in metadata, f"Missing metadata field: {field}"
           print("✓ Metadata section has all required fields")
 
-          # Validate generator
-          assert 'name' in metadata['generator'], "Missing generator name"
-          assert metadata['generator']['name'] == 'AbsaOSS/living-doc-collector-gh', "Incorrect generator name"
-          assert 'version' in metadata['generator'], "Missing generator version"
-          print("✓ Generator metadata is correct")
+          # Validate producer
+          assert 'name' in metadata['producer'], "Missing producer name"
+          assert metadata['producer']['name'] == 'AbsaOSS/living-doc-collector-gh', "Incorrect producer name"
+          assert 'version' in metadata['producer'], "Missing producer version"
+          print("✓ Producer metadata is correct")
 
           # Validate schema_version
-          assert 'schema_version' in metadata, "Missing schema_version in metadata"
-          print(f"✓ Schema version: {metadata['schema_version']}")
+          original_metadata = metadata['original_metadata']
+          assert 'schema_version' in original_metadata, "Missing schema_version in original_metadata"
+          print(f"✓ Schema version: {original_metadata['schema_version']}")
 
           # Validate timestamp format
           try:
-              datetime.fromisoformat(metadata['generated_at'].replace('Z', '+00:00'))
+              datetime.fromisoformat(original_metadata['generated_at'].replace('Z', '+00:00'))
               print("✓ Timestamp format is valid ISO-8601")
           except ValueError as e:
               print(f"✗ Invalid timestamp format: {e}")
@@ -125,38 +126,22 @@ jobs:
           assert 'run_id' in metadata['run'], "Missing run_id in run metadata"
           print("✓ Run metadata is present")
 
-          # Validate issues
-          issues = data['issues']
-          print(f"Found {len(issues)} issue(s)")
+          # Validate items
+          items = data['items']
+          print(f"Found {len(items)} item(s)")
 
-          # Check audit enrichment on at least one issue if available
-          if issues:
-              # Get first issue
-              first_issue_key = list(issues.keys())[0]
-              first_issue = issues[first_issue_key]
-              
+          if items:
+              first_item = items[0]
+
               # Check required base fields
-              required_fields = ['type', 'repository_id', 'title', 'issue_number']
+              required_fields = ['id', 'title', 'state', 'url']
               for field in required_fields:
-                  assert field in first_issue, f"Missing required field: {field}"
-              print("✓ Issue base fields are present")
-              
-              # Check audit fields (they should be present if audit data was available)
-              # Note: These may not always be present due to API permissions
-              if 'created_by' in first_issue:
-                  print(f"✓ Audit enrichment present: created_by = {first_issue['created_by']}")
-              
-              if 'comments_count' in first_issue:
-                  print(f"✓ Comments summary present: comments_count = {first_issue['comments_count']}")
-              
-              if 'audit_events' in first_issue:
-                  print(f"✓ Audit events present: {len(first_issue['audit_events'])} event(s)")
-              
-              print("✓ Issue structure validated")
+                  assert field in first_item, f"Missing required field: {field}"
+              print("✓ Item base fields are present")
 
           print("\n✅ All validation checks passed!")
-          print(f"Generated file: {metadata['generated_at']}")
-          print(f"Total issues: {len(issues)}")
+          print(f"Generated file: {original_metadata['generated_at']}")
+          print(f"Total items: {len(items)}")
           EOF
 
       - name: Upload output artifact
@@ -181,9 +166,9 @@ jobs:
           print("\n--- File Metadata ---")
           print(json.dumps(data['metadata'], indent=2))
           
-          # Print first issue (if exists)
-          if data['issues']:
-              first_key = list(data['issues'].keys())[0]
-              print(f"\n--- Sample Issue ({first_key}) ---")
-              print(json.dumps(data['issues'][first_key], indent=2))
+          # Print first item (if exists)
+          if data['items']:
+              first_item = data['items'][0]
+              print(f"\n--- Sample Item ({first_item.get('id', 'unknown')}) ---")
+              print(json.dumps(first_item, indent=2))
           EOF
