@@ -117,7 +117,7 @@ This section outlines the essential parameters that are common to all modes a us
 | Variable Name                | Description                                                                                                | Required | Usage                                                                                                                              |
 |------------------------------|------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------|
 | `REPOSITORIES_ACCESS_TOKEN`  | GitHub access token for authentication, that has permission to access all defined repositories / projects. | Yes      | Store it in the GitHub repository secrets and reference it in the workflow file using  `${{ secrets.REPOSITORIES_ACCESS_TOKEN }}`. |
-
+| `REQUESTS_CA_BUNDLE`         | Path to a custom CA bundle file for HTTPS certificate verification (e.g., corporate/proxy CA certificates). | No       | Set this when running in an environment with SSL interception. See [DEVELOPER.md](DEVELOPER.md#ssl--tls-certificate-verification) for details. |
 - **Example**:
   ```yaml
   env:

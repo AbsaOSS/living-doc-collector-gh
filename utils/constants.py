@@ -18,7 +18,26 @@
 This module contains all constants and enums used across the project.
 """
 
+import os
+import tomllib
 from enum import Enum
+
+
+def get_package_version() -> str:
+    """
+    Read the package version from pyproject.toml.
+    Falls back to "unknown" if not found.
+
+    @return: Version string.
+    """
+    try:
+        pyproject_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyproject.toml")
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+            return data.get("project", {}).get("version", "unknown")
+    except Exception:
+        return "unknown"
+
 
 VERBOSE_LOGGING = "VERBOSE_LOGGING"
 

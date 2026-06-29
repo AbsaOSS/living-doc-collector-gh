@@ -25,8 +25,10 @@ import shutil
 from datetime import datetime, timezone
 from typing import Callable
 
-from github import Github, Auth
+from github import Auth, Github
 from github.Issue import Issue
+
+from utils.constants import get_package_version
 
 from living_doc_utilities.decorators import safe_call_decorator
 from living_doc_utilities.github.rate_limiter import GithubRateLimiter
@@ -64,10 +66,13 @@ class GHDocIssuesCollector:
         github_token = ActionInputs.get_github_token()
 
         self.__output_path = os.path.join(output_path, "doc-issues")
+
+        ca_bundle = ActionInputs.get_ca_bundle()
+
         self.__github_instance: Github = Github(
-            auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=False
+            auth=Auth.Token(token=github_token), per_page=ISSUES_PER_PAGE_LIMIT, verify=ca_bundle
         )
-        self.__github_projects_instance: GitHubProjects = GitHubProjects(token=github_token)
+        self.__github_projects_instance: GitHubProjects = GitHubProjects(token=github_token, ca_bundle=ca_bundle)
         self.__rate_limiter: GithubRateLimiter = GithubRateLimiter(self.__github_instance)
         self.__safe_call: Callable = safe_call_decorator(self.__rate_limiter)
 
@@ -338,14 +343,17 @@ class GHDocIssuesCollector:
     ) -> None:
         """
         Save issues to JSON with audit enrichment and file-level metadata.
+        Conforms to doc-issues-v1.0.0-schema.json format.
 
         @param file_path: Path to save the JSON file.
         @param issues: Issues object containing base issue data.
         @param consolidated_issues: Consolidated issues with audit data.
         @return: None
         """
-        # Build issue data with audit enrichment
-        issues_data = {}
+        # Build items array with audit enrichment
+        items_list = []
+        warnings_list: list[str] = []
+
         for key, issue in issues.issues.items():
             issue_dict = issue.to_dict()
 
@@ -354,12 +362,25 @@ class GHDocIssuesCollector:
                 audit_data = consolidated_issues[key].get_audit_data()
                 issue_dict.update(audit_data)
 
-            issues_data[key] = issue_dict
+            adapter_item = {
+                "id": key,  # owner/repo#number format
+                "title": issue_dict.get("title", ""),
+                "state": issue_dict.get("state", ""),
+                "tags": issue_dict.get("labels", []),
+                "url": issue_dict.get("html_url", ""),
+                "timestamps": {
+                    "created": issue_dict.get("created_at", ""),
+                    "updated": issue_dict.get("updated_at", ""),
+                },
+                "body": issue_dict.get("body"),
+            }
+            items_list.append(adapter_item)
 
-        # Wrap with file-level metadata
+        # Wrap with file-level metadata matching AdapterMetadata structure
         output_data = {
+            "items": items_list,
             "metadata": self._get_file_metadata(),
-            "issues": issues_data,
+            "warnings": warnings_list,
         }
 
         # Ensure directory exists
@@ -371,68 +392,42 @@ class GHDocIssuesCollector:
 
     def _get_file_metadata(self) -> dict:
         """
-        Generate file-level metadata (provenance, run info).
+        Generate file-level metadata matching AdapterMetadata structure (v1.0.0 schema).
 
         @return: Dictionary containing file metadata.
         """
+        repositories = ActionInputs.get_repositories()
+        repository_list = (
+            [f"{repo.organization_name}/{repo.repository_name}" for repo in repositories] if repositories else []
+        )
+
         metadata = {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "generator": {
+            "producer": {
                 "name": "AbsaOSS/living-doc-collector-gh",
-                "version": self._get_action_version(),
+                "version": get_package_version(),
+                "build": os.getenv("GITHUB_RUN_ID"),  # CI/CD build identifier
+            },
+            "run": {
+                "run_id": os.getenv("GITHUB_RUN_ID"),
+                "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
+                "actor": os.getenv("GITHUB_ACTOR"),
+                "workflow": os.getenv("GITHUB_WORKFLOW"),
+                "ref": os.getenv("GITHUB_REF"),
+                "sha": os.getenv("GITHUB_SHA"),
+            },
+            "source": {
+                "systems": ["GitHub"],
+                "repositories": repository_list,
+                "organization": repositories[0].organization_name if repositories else None,
+                "enterprise": None,  # Not currently captured
+            },
+            "original_metadata": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "schema_version": "1.0.0",
+                "inputs": {
+                    "project_state_mining_enabled": ActionInputs.is_project_state_mining_enabled(),
+                },
             },
         }
 
-        # Add source info
-        source_info = {}
-        repositories = ActionInputs.get_repositories()
-        if repositories:
-            # Use the first repository as the primary source for metadata
-            source_info["repositories"] = [f"{repo.organization_name}/{repo.repository_name}" for repo in repositories]
-        metadata["source"] = source_info
-
-        # Add run info (from GitHub Actions environment)
-        run_info = {}
-        github_env_vars = {
-            "workflow": os.getenv("GITHUB_WORKFLOW"),
-            "run_id": os.getenv("GITHUB_RUN_ID"),
-            "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
-            "actor": os.getenv("GITHUB_ACTOR"),
-            "ref": os.getenv("GITHUB_REF"),
-            "sha": os.getenv("GITHUB_SHA"),
-        }
-
-        # Only add non-None values
-        for key, value in github_env_vars.items():
-            if value:
-                run_info[key] = value
-
-        if run_info:
-            metadata["run"] = run_info
-
-        # Add non-sensitive inputs
-        inputs_info = {
-            "project_state_mining_enabled": ActionInputs.is_project_state_mining_enabled(),
-        }
-        metadata["inputs"] = inputs_info
-
         return metadata
-
-    @staticmethod
-    def _get_action_version() -> str:
-        """
-        Get the action version from environment or package.
-
-        @return: Version string.
-        """
-        # Try to get from GitHub Actions ref (e.g., refs/tags/v1.0.0)
-        github_ref = os.getenv("GITHUB_ACTION_REF", "")
-        if github_ref:
-            return github_ref
-
-        # Try to get from SHA
-        github_sha = os.getenv("GITHUB_SHA", "")
-        if github_sha:
-            return github_sha[:7]  # Short SHA
-
-        return "unknown"

@@ -21,6 +21,7 @@ which are essential for running the GH action.
 
 import json
 import logging
+import os
 import requests
 from living_doc_utilities.github.utils import get_action_input
 
@@ -63,6 +64,17 @@ class ActionInputs(BaseActionInputs):
         @return: True if verbose logging is enabled, False otherwise.
         """
         return get_action_input(VERBOSE_LOGGING, "false").lower() == "true"
+
+    @staticmethod
+    def get_ca_bundle() -> str | bool:
+        """
+        Get the CA bundle for HTTPS certificate verification.
+        Reads from REQUESTS_CA_BUNDLE environment variable if set.
+
+        @return: Path to CA bundle file, or True to use system default CA bundle.
+        """
+        ca_bundle: str | None = os.getenv("REQUESTS_CA_BUNDLE")
+        return ca_bundle if ca_bundle else True
 
     @staticmethod
     def get_repositories() -> list[ConfigRepository]:
@@ -108,9 +120,10 @@ class ActionInputs(BaseActionInputs):
 
         github_token = self.get_github_token()
         headers = {"Authorization": f"token {github_token}"}
+        verify_cert = self.get_ca_bundle()
 
         # Validate GitHub token
-        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10)
+        response = requests.get("https://api.github.com/octocat", headers=headers, timeout=10, verify=verify_cert)
         if response.status_code != 200:
             logger.error(
                 "Can not connect to GitHub. Possible cause: Invalid GitHub token. Status code: %s, Response: %s",
@@ -129,7 +142,7 @@ class ActionInputs(BaseActionInputs):
             repo_name = repository.repository_name
             github_repo_url = f"https://api.github.com/repos/{org_name}/{repo_name}"
 
-            response = requests.get(github_repo_url, headers=headers, timeout=10)
+            response = requests.get(github_repo_url, headers=headers, timeout=10, verify=verify_cert)
 
             if response.status_code == 404:
                 logger.error(
