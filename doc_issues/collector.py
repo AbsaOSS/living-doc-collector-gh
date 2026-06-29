@@ -352,7 +352,7 @@ class GHDocIssuesCollector:
         """
         # Build items array with audit enrichment
         items_list = []
-        warnings_list = []
+        warnings_list: list[str] = []
 
         for key, issue in issues.issues.items():
             issue_dict = issue.to_dict()
@@ -397,7 +397,9 @@ class GHDocIssuesCollector:
         @return: Dictionary containing file metadata.
         """
         repositories = ActionInputs.get_repositories()
-        repository_list = [f"{repo.organization_name}/{repo.repository_name}" for repo in repositories] if repositories else []
+        repository_list = (
+            [f"{repo.organization_name}/{repo.repository_name}" for repo in repositories] if repositories else []
+        )
 
         metadata = {
             "producer": {

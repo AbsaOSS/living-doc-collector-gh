@@ -31,14 +31,11 @@ def get_package_version() -> str:
     @return: Version string.
     """
     try:
-        pyproject_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "pyproject.toml"
-        )
+        pyproject_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyproject.toml")
         with open(pyproject_path, "rb") as f:
             data = tomllib.load(f)
             return data.get("project", {}).get("version", "unknown")
-    except (FileNotFoundError, KeyError, Exception):
+    except Exception:
         return "unknown"
 
 
