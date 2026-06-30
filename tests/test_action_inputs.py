@@ -247,3 +247,73 @@ def test_validate_user_configuration_wrong_repository_non_200(mocker, config_rep
         ],
         any_order=False,
     )
+
+
+# doc-source and ui-tests mode inputs
+
+
+def test_is_doc_source_mode_enabled(mocker):
+    # Arrange
+    mocker.patch("action_inputs.get_action_input", return_value="true")
+
+    # Act & Assert
+    assert ActionInputs.is_doc_source_mode_enabled() is True
+
+
+def test_get_doc_source_repositories(mocker):
+    # Arrange
+    repositories_json = [
+        {
+            "organization-name": "absa-group",
+            "repository-name": "aul-ui",
+            "local-path": "/path/to/aul-ui",
+            "paths": ["features/**/*.feature"],
+        }
+    ]
+    mocker.patch("action_inputs.get_action_input", return_value=json.dumps(repositories_json))
+
+    # Act
+    actual = ActionInputs.get_doc_source_repositories()
+
+    # Assert
+    assert actual == repositories_json
+
+
+def test_is_ui_tests_mode_enabled(mocker):
+    # Arrange
+    mocker.patch("action_inputs.get_action_input", return_value="true")
+
+    # Act & Assert
+    assert ActionInputs.is_ui_tests_mode_enabled() is True
+
+
+def test_get_ui_tests_repositories_default(mocker):
+    # Arrange
+    mocker.patch("action_inputs.get_action_input", return_value="[]")
+
+    # Act
+    actual = ActionInputs.get_ui_tests_repositories()
+
+    # Assert
+    assert actual == []
+
+
+def test_validate_warns_when_source_modes_enabled_without_repositories(mocker, config_repository):
+    # Arrange
+    mock_log_warning = mocker.patch("action_inputs.logger.warning")
+    mocker.patch("action_inputs.ActionInputs.get_repositories", return_value=[config_repository])
+    mocker.patch("action_inputs.ActionInputs.get_github_token", return_value="correct_token")
+    mocker.patch("action_inputs.ActionInputs.is_doc_source_mode_enabled", return_value=True)
+    mocker.patch("action_inputs.ActionInputs.get_doc_source_repositories", return_value=[])
+    mocker.patch("action_inputs.ActionInputs.is_ui_tests_mode_enabled", return_value=True)
+    mocker.patch("action_inputs.ActionInputs.get_ui_tests_repositories", return_value=[])
+    fake_response = mocker.Mock()
+    fake_response.status_code = 200
+    mocker.patch("action_inputs.requests.get", return_value=fake_response)
+
+    # Act
+    ActionInputs().validate_user_configuration()
+
+    # Assert
+    mock_log_warning.assert_any_call("`doc-source` mode is enabled but `doc-source-repositories` is empty.")
+    mock_log_warning.assert_any_call("`ui-tests` mode is enabled but `ui-tests-repositories` is empty.")

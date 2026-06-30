@@ -23,6 +23,24 @@ inputs:
     required: false
     default: 'false'
 
+  # doc-source mode action inputs
+  doc-source:
+    description: 'Enable or disable `Documentation Source` mode.'
+    required: true
+  doc-source-repositories:
+    description: 'JSON string defining the repositories for doc-source mode.'
+    required: false
+    default: '[]'
+
+  # ui-tests mode action inputs
+  ui-tests:
+    description: 'Enable or disable `UI Tests` mode.'
+    required: true
+  ui-tests-repositories:
+    description: 'JSON string defining the repositories for ui-tests mode.'
+    required: false
+    default: '[]'
+
 outputs:
   output-path:
     description: 'Path to the collected living documentation files.'
@@ -59,6 +77,18 @@ runs:
           echo "INPUT_DOC_ISSUES_REPOSITORIES=$(echo '${{ inputs.doc-issues-repositories }}' | jq -c .)" >> $GITHUB_ENV
           echo "INPUT_DOC_ISSUES_PROJECT_STATE_MINING=${{ inputs.doc-issues-project-state-mining }}" >> $GITHUB_ENV
         fi
+
+        # Add source-mode env variables
+        echo "INPUT_DOC_SOURCE=${{ inputs.doc-source }}" >> $GITHUB_ENV
+        echo "INPUT_UI_TESTS=${{ inputs.ui-tests }}" >> $GITHUB_ENV
+
+        if [[ "${{ inputs.doc-source }}" == "true" ]]; then
+          echo "INPUT_DOC_SOURCE_REPOSITORIES=$(echo '${{ inputs.doc-source-repositories }}' | jq -c .)" >> $GITHUB_ENV
+        fi
+
+        if [[ "${{ inputs.ui-tests }}" == "true" ]]; then
+          echo "INPUT_UI_TESTS_REPOSITORIES=$(echo '${{ inputs.ui-tests-repositories }}' | jq -c .)" >> $GITHUB_ENV
+        fi
       shell: bash
 
     - name: Run Living Documentation Collector for GitHub
@@ -71,6 +101,11 @@ runs:
 
         INPUT_DOC_ISSUES_REPOSITORIES: ${{ env.INPUT_DOC_ISSUES_REPOSITORIES }}
         INPUT_DOC_ISSUES_PROJECT_STATE_MINING: ${{ env.INPUT_DOC_ISSUES_PROJECT_STATE_MINING }}
+
+        INPUT_DOC_SOURCE: ${{ env.INPUT_DOC_SOURCE }}
+        INPUT_UI_TESTS: ${{ env.INPUT_UI_TESTS }}
+        INPUT_DOC_SOURCE_REPOSITORIES: ${{ env.INPUT_DOC_SOURCE_REPOSITORIES }}
+        INPUT_UI_TESTS_REPOSITORIES: ${{ env.INPUT_UI_TESTS_REPOSITORIES }}
       run: |
         python ${{ github.action_path }}/main.py
       shell: bash

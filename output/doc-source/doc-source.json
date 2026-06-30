@@ -1,0 +1,32 @@
+{
+    "items": [],
+    "metadata": {
+        "producer": {
+            "name": "AbsaOSS/living-doc-collector-gh",
+            "version": "0.1.1",
+            "build": null
+        },
+        "run": {
+            "run_id": null,
+            "run_attempt": null,
+            "actor": null,
+            "workflow": null,
+            "ref": null,
+            "sha": null
+        },
+        "source": {
+            "systems": [
+                "GitHub"
+            ],
+            "repositories": [],
+            "organization": null,
+            "enterprise": null
+        },
+        "original_metadata": {
+            "generated_at": "2026-06-30T12:54:25.770660+00:00",
+            "schema_version": "1.0.0",
+            "inputs": {}
+        }
+    },
+    "warnings": []
+}
