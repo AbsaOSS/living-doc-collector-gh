@@ -46,8 +46,7 @@ See the default minimal UI Tests mode action step definition:
           {
             "organization-name": "absa-group",
             "repository-name": "aul-ui",
-            "local-path": "/path/to/checkout/aul-ui",
-            "paths": ["playwright/features/liv_doc_us/**/*.feature"]
+            "paths": ["/path/to/checkout/aul-ui/playwright/features/liv_doc_us"]
           }
         ]
 ```
@@ -57,7 +56,7 @@ See the default minimal UI Tests mode action step definition:
 
 | Input Name              | Description                                                            | Required | Default | Usage |
 |-------------------------|------------------------------------------------------------------------|----------|---------|-------|
-| `ui-tests-repositories` | A JSON string defining the locally checked-out repositories to scan.   | No       | `'[]'`  | Provide a list of repositories with `organization-name`, `repository-name`, `local-path`, and `paths` (glob patterns relative to `local-path`). |
+| `ui-tests-repositories` | A JSON string defining the locally checked-out repositories to scan.   | No       | `'[]'`  | Provide a list of repositories with `organization-name`, `repository-name`, and `paths` (absolute directory paths to scan). |
 
 Each repository entry uses the same shape as the [Documentation Source](../doc_source/README.md#mode-inputs) mode.
 

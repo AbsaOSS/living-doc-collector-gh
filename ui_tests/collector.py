@@ -25,7 +25,6 @@ import logging
 import os
 import shutil
 from datetime import datetime, timezone
-from pathlib import Path
 
 from action_inputs import ActionInputs
 from ui_tests.model.config_repository import ConfigRepository
@@ -82,24 +81,21 @@ class GHUITestsCollector:
     @staticmethod
     def _collect_repository(config: ConfigRepository) -> list[dict]:
         """Collect output items for a single configured repository."""
-        if not os.path.exists(config.local_path):
-            logger.error(
-                "Local path `%s` for repository `%s/%s` does not exist - skipping.",
-                config.local_path,
-                config.organization_name,
-                config.repository_name,
-            )
-            return []
-
         items: list[dict] = []
-        for file_path in discover_feature_files(config.local_path, config.paths):
+        for file_path in discover_feature_files(config.paths):
             try:
                 lines = file_path.read_text(encoding="utf-8").splitlines()
             except OSError as e:
                 logger.warning("Could not read file `%s`: %s - skipping.", file_path, e)
                 continue
 
-            rel_path = file_path.relative_to(Path(config.local_path)).as_posix()
+            rel_path = file_path.name
+            for base in config.paths:
+                try:
+                    rel_path = file_path.relative_to(base).as_posix()
+                    break
+                except ValueError:
+                    continue
             items.extend(
                 parse_scenarios(lines, config.organization_name, config.repository_name, rel_path)
             )

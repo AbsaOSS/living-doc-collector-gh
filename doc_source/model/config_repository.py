@@ -34,7 +34,6 @@ class ConfigRepository:
     def __init__(self):
         self.__organization_name: str = ""
         self.__repository_name: str = ""
-        self.__local_path: str = ""
         self.__paths: list[str] = []
 
     @property
@@ -46,11 +45,6 @@ class ConfigRepository:
     def repository_name(self) -> str:
         """Getter of the repository name."""
         return self.__repository_name
-
-    @property
-    def local_path(self) -> str:
-        """Getter of the local checkout path."""
-        return self.__local_path
 
     @property
     def paths(self) -> list[str]:
@@ -67,7 +61,6 @@ class ConfigRepository:
         try:
             self.__organization_name = repository_json["organization-name"]
             self.__repository_name = repository_json["repository-name"]
-            self.__local_path = repository_json["local-path"]
             self.__paths = repository_json["paths"]
             return True
         except KeyError as e:
@@ -79,5 +72,5 @@ class ConfigRepository:
     def __repr__(self):
         return (
             f"ConfigRepository(organization_name={self.organization_name}, repository_name={self.repository_name}, "
-            f"local_path={self.local_path}, paths={self.paths})"
+            f"paths={self.paths})"
         )

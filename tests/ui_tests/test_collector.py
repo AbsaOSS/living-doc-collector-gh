@@ -51,8 +51,7 @@ def test_collect_single_repo(tmp_path, mocker):
             {
                 "organization-name": "absa-group",
                 "repository-name": "aul-ui",
-                "local-path": str(repo_dir),
-                "paths": ["features/*.feature"],
+                "paths": [str(repo_dir)],
             }
         ],
     )
@@ -82,8 +81,7 @@ def test_collect_local_path_missing(tmp_path, mocker):
             {
                 "organization-name": "absa-group",
                 "repository-name": "aul-ui",
-                "local-path": str(tmp_path / "missing"),
-                "paths": ["features/*.feature"],
+                "paths": [str(tmp_path / "missing")],
             }
         ],
     )

@@ -1,0 +1,366 @@
+{
+    "items": [
+        {
+            "id": "absa-group/unify-living-documentation/domain_create.feature/user-can-complete-the-create-domain-wizard-and-create-a-new-domain",
+            "us_id": "US-26",
+            "ac_ids": [
+                "US-26-01"
+            ],
+            "scenario_name": "User can complete the Create Domain wizard and create a new domain",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user is on the Create Domain wizard About screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user fills in the domain name \"<unique>\""
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user fills in the description \"domain for automated testing\""
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user fills in the cost center \"AB123456\""
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user fills in the cost center owner \"ab024ll\""
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user clicks Continue"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is on the Create Domain wizard Owner screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user clicks Continue"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is on the Create Domain wizard Classification screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user clicks Continue"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is on the Create Domain wizard Scheduling screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user clicks Continue"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is on the Create Domain wizard Availability screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user clicks Continue"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is on the Create Domain wizard Target dataset screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user add attribute with name \"name\", description \"description\", nullable \"true\", and type \"string\""
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user clicks Finish domain setup"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is on the Edit Domain Summary screen"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user should see success message \"The domain was successfully updated\" on the Edit Domain Summary screen"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_create.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_create.feature/invalid-cost-center-format-shows-an-error-message-in-the-create-domain-wizard",
+            "us_id": "US-26",
+            "ac_ids": [
+                "US-26-02"
+            ],
+            "scenario_name": "Invalid cost center format shows an error message in the Create Domain wizard",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user is on the Create Domain wizard About screen"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user enters a \"wrong\" value in the cost center field"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the cost center field shows an validation message containing \"Field must contain 2 alpha characters followed by 6 digits (e.g. SA123456)\""
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_create.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_create.feature/save-button-is-disabled-when-mandatory-fields-are-incomplete-on-the-about-step-o",
+            "us_id": "US-26",
+            "ac_ids": [
+                "US-26-03"
+            ],
+            "scenario_name": "Save button is disabled when mandatory fields are incomplete on the About step of the Create Domain wizard",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user is on the Create Domain wizard About screen"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the Save button is disabled"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_create.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/user_login.feature/user-logs-in-with-valid-credentials",
+            "us_id": "US-1",
+            "ac_ids": [
+                "US-1-01",
+                "US-1-02"
+            ],
+            "scenario_name": "User logs in with valid credentials",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the web browser is on the Login page"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user logs in as user \"1\""
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user should be logged in"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "user_login.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/user_login.feature/user-logs-in-with-invalid-credentials",
+            "us_id": "US-1",
+            "ac_ids": [
+                "US-1-03",
+                "US-1-06"
+            ],
+            "scenario_name": "User logs in with invalid credentials",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the web browser is on the Login page"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user enters \"wrong\" as username"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the login button should be disabled"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user enters \"wrong\" as password"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user clicks the login button"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user should see an error toast containing \"Login failed: 401 please enter a valid username and password and try again\""
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "user_login.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/user_login.feature/already-logged-in-user-navigating-to-login-url-is-redirected-to-dashboard",
+            "us_id": "US-1",
+            "ac_ids": [
+                "US-1-05"
+            ],
+            "scenario_name": "Already logged-in user navigating to login URL is redirected to dashboard",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user navigates to the login page URL"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is automatically redirected to the dashboard"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "user_login.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/user_login.feature/user-initiates-msal-sso-login-and-is-redirected-to-the-corporate-identity-provid",
+            "us_id": "US-1",
+            "ac_ids": [
+                "US-1-07"
+            ],
+            "scenario_name": "User initiates MSAL SSO login and is redirected to the corporate identity provider",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the web browser is on the Login page"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user clicks the MSAL SSO login button"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user is redirected to the corporate identity provider to complete authentication"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "user_login.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/user_logout.feature/user-logs-out",
+            "us_id": "US-15",
+            "ac_ids": [
+                "US-15-01"
+            ],
+            "scenario_name": "User logs out",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression",
+                "skip"
+            ],
+            "steps": [
+                {
+                    "keyword": "When",
+                    "text": "I log out"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the page url should contain \"login\""
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "user_logout.feature"
+            }
+        }
+    ],
+    "metadata": {
+        "producer": {
+            "name": "AbsaOSS/living-doc-collector-gh",
+            "version": "0.1.1",
+            "build": null
+        },
+        "run": {
+            "run_id": null,
+            "run_attempt": null,
+            "actor": null,
+            "workflow": null,
+            "ref": null,
+            "sha": null
+        },
+        "source": {
+            "systems": [
+                "GitHub"
+            ],
+            "repositories": [
+                "absa-group/unify-living-documentation"
+            ],
+            "organization": "absa-group",
+            "enterprise": null
+        },
+        "original_metadata": {
+            "generated_at": "2026-06-30T13:09:47.117998+00:00",
+            "schema_version": "1.0.0",
+            "inputs": {}
+        }
+    },
+    "warnings": []
+}

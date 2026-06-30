@@ -8,3 +8,5 @@ output-path=/Users/ab024ll/repos/absa/branches/living-doc-collector-gh/output
 output-path=/Users/ab024ll/repos/absa/branches/living-doc-collector-gh/output
 output-path=/Users/ab024ll/repos/absa/branches/living-doc-collector-gh/output
 output-path=/Users/ab024ll/repos/absa/branches/living-doc-collector-gh/output
+output-path=/Users/ab024ll/repos/absa/branches/living-doc-collector-gh/output
+output-path=/Users/ab024ll/repos/absa/branches/living-doc-collector-gh/output

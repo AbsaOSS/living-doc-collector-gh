@@ -25,30 +25,26 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def discover_feature_files(local_path: str, patterns: list[str]) -> list[Path]:
+def discover_feature_files(paths: list[str]) -> list[Path]:
     """
-    Resolve glob patterns under local_path and return matching .feature file paths.
+    Recursively scan each absolute directory path for .feature files.
 
     Parameters:
-        local_path: Path to the checked-out repository root.
-        patterns: Glob patterns relative to local_path.
+        paths: Absolute directory paths to scan.
 
     Returns:
-        Sorted list of unique matching file paths. Empty list if local_path does
-        not exist (caller is expected to log the error).
+        Sorted list of unique matching file paths.
     """
-    root = Path(local_path)
-    if not root.exists():
-        return []
-
     matched: set[Path] = set()
-    for pattern in patterns:
-        found = list(root.glob(pattern))
-        if not found:
-            logger.warning("No files match glob pattern `%s` under `%s`.", pattern, local_path)
+    for path in paths:
+        root = Path(path)
+        if not root.exists():
+            logger.warning("Path `%s` does not exist - skipping.", path)
             continue
-        for path in found:
-            if path.is_file():
-                matched.add(path)
+        found = [p for p in root.rglob("*.feature") if p.is_file()]
+        if not found:
+            logger.warning("No .feature files found under `%s`.", path)
+            continue
+        matched.update(found)
 
     return sorted(matched)

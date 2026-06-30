@@ -81,17 +81,8 @@ class GHDocSourceCollector:
     @staticmethod
     def _collect_repository(config: ConfigRepository) -> list[dict]:
         """Collect output items for a single configured repository."""
-        if not os.path.exists(config.local_path):
-            logger.error(
-                "Local path `%s` for repository `%s/%s` does not exist - skipping.",
-                config.local_path,
-                config.organization_name,
-                config.repository_name,
-            )
-            return []
-
         items: list[dict] = []
-        for file_path in discover_feature_files(config.local_path, config.paths):
+        for file_path in discover_feature_files(config.paths):
             try:
                 lines = file_path.read_text(encoding="utf-8").splitlines()
             except OSError as e:

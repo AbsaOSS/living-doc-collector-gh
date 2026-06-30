@@ -69,8 +69,7 @@ INPUT_DOC_SOURCE_REPOSITORIES=<JSON string>
   {
     "organization-name": "absa-group",
     "repository-name":   "aul-ui",
-    "local-path":        "/path/to/checkout/aul-ui",
-    "paths":             ["playwright/features/liv_doc_us/**/*.feature"]
+    "paths":             ["/path/to/checkout/aul-ui/playwright/features/liv_doc_us"]
   }
 ]
 ```
@@ -79,8 +78,7 @@ INPUT_DOC_SOURCE_REPOSITORIES=<JSON string>
 |---|---|---|---|
 | `organization-name` | string | yes | GitHub org name (used in output `id`) |
 | `repository-name` | string | yes | GitHub repo name (used in output `id`) |
-| `local-path` | string | yes | Absolute or workspace-relative path to the checked-out repo root |
-| `paths` | string[] | yes | Glob patterns relative to `local-path`; resolved with `pathlib.Path.glob()` |
+| `paths` | string[] | yes | Absolute directory paths to scan recursively for `.feature` files |
 
 ### 3.5 Feature file header format
 
@@ -245,7 +243,7 @@ issue labels. No tag extraction for this mode.
 
 | Situation | Behaviour |
 |---|---|
-| `local-path` does not exist on disk | Log error, skip repository, continue |
+| Path in `paths` does not exist on disk | Log warning, skip path, continue |
 | No files match a `paths` glob pattern | Log warning, skip pattern, continue |
 | Header block missing from file | Log warning, skip file, continue |
 | Required header field missing (US ID, title) | Log warning, skip file, continue |
@@ -297,8 +295,7 @@ Same shape as `doc-source-repositories`:
   {
     "organization-name": "absa-group",
     "repository-name":   "aul-ui",
-    "local-path":        "/path/to/checkout/aul-ui",
-    "paths":             ["playwright/features/liv_doc_us/**/*.feature"]
+    "paths":             ["/path/to/checkout/aul-ui/playwright/features/liv_doc_us"]
   }
 ]
 ```
@@ -386,7 +383,7 @@ Example:
 absa-group/aul-ui/playwright/features/liv_doc_us/domain_create.feature/user-can-complete-the-create-domain-wizard-and-create-a-new-domain
 ```
 
-`relative-file-path` is the path from `local-path` to the file, using `/` separators.
+`relative-file-path` is the path from the matched `paths` entry to the file, using `/` separators.
 
 ### 4.7 Output item schema (new: `ui-tests-v1.0.0`)
 
@@ -426,7 +423,7 @@ absa-group/aul-ui/playwright/features/liv_doc_us/domain_create.feature/user-can-
 
 | Situation | Behaviour |
 |---|---|
-| `local-path` does not exist | Log error, skip repository, continue |
+| Path in `paths` does not exist | Log warning, skip path, continue |
 | No files match glob | Log warning, skip pattern, continue |
 | File has no `@US_ID:` tag | Log warning, set `us_id: null` for all its scenarios |
 | Scenario has no `@AC:` tag | `ac_ids: []` — valid, no warning |
@@ -443,10 +440,10 @@ absa-group/aul-ui/playwright/features/liv_doc_us/domain_create.feature/user-can-
 New module: `utils/feature_file_discovery.py`
 
 ```python
-def discover_feature_files(local_path: str, patterns: list[str]) -> list[Path]:
+def discover_feature_files(paths: list[str]) -> list[Path]:
     """
-    Resolve glob patterns under local_path and return matching .feature file paths.
-    Returns empty list if local_path does not exist (caller logs the error).
+    Recursively scan each absolute directory path for .feature files.
+    Logs a warning and skips any path that does not exist or has no matches.
     """
 ```
 
@@ -456,7 +453,7 @@ Used by both `doc_source` and `ui_tests` collectors.
 
 Both `doc_source` and `ui_tests` define their own `ConfigRepository` model under their
 respective `model/` packages. They do **not** share the `doc_issues` version because the
-field set differs (`local-path`, `paths` instead of `projects-title-filter`).
+field set differs (`paths` instead of `projects-title-filter`).
 
 Fields loaded from JSON:
 
@@ -464,7 +461,6 @@ Fields loaded from JSON:
 |---|---|
 | `organization-name` | `organization_name` |
 | `repository-name` | `repository_name` |
-| `local-path` | `local_path` |
 | `paths` | `paths` |
 
 ---

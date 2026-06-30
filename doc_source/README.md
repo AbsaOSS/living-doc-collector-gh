@@ -47,8 +47,7 @@ See the default minimal Documentation Source mode action step definition:
           {
             "organization-name": "absa-group",
             "repository-name": "aul-ui",
-            "local-path": "/path/to/checkout/aul-ui",
-            "paths": ["playwright/features/liv_doc_us/**/*.feature"]
+            "paths": ["/path/to/checkout/aul-ui/playwright/features/liv_doc_us"]
           }
         ]
 ```
@@ -58,7 +57,7 @@ See the default minimal Documentation Source mode action step definition:
 
 | Input Name                | Description                                                              | Required | Default | Usage |
 |---------------------------|--------------------------------------------------------------------------|----------|---------|-------|
-| `doc-source-repositories` | A JSON string defining the locally checked-out repositories to scan.     | No       | `'[]'`  | Provide a list of repositories with `organization-name`, `repository-name`, `local-path`, and `paths` (glob patterns relative to `local-path`). |
+| `doc-source-repositories` | A JSON string defining the locally checked-out repositories to scan.     | No       | `'[]'`  | Provide a list of repositories with `organization-name`, `repository-name`, and `paths` (absolute directory paths to scan). |
 
 Each repository entry has the following fields:
 
@@ -66,8 +65,7 @@ Each repository entry has the following fields:
 |---------------------|----------|----------|-------------|
 | `organization-name` | string   | yes      | GitHub org name (used in the output `id`). |
 | `repository-name`   | string   | yes      | GitHub repo name (used in the output `id`). |
-| `local-path`        | string   | yes      | Absolute or workspace-relative path to the checked-out repo root. |
-| `paths`             | string[] | yes      | Glob patterns relative to `local-path`; resolved with `pathlib.Path.glob()`. |
+| `paths`             | string[] | yes      | Absolute directory paths to scan recursively for `.feature` files. |
 
 ---
 ## Feature File Header Format

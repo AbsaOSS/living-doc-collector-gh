@@ -1,5 +1,1293 @@
 {
-    "items": [],
+    "items": [
+        {
+            "id": "absa-group/unify-living-documentation/US-2",
+            "title": "View Dashboard",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/12",
+            "timestamps": null,
+            "description": "As a user, I want to view a dashboard that gives me an overview of all domains in the system so that I can navigate to the domains relevant to me.",
+            "business_value": [
+                "Streamlines view domains for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-2-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can see the domains they have access to on the dashboard."
+                },
+                {
+                    "id": "US-2-02",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "Dashboard displays an empty state message when no domains are accessible to the user."
+                },
+                {
+                    "id": "US-2-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "Each domain card displays: name, creation date, primary owner, and classification."
+                },
+                {
+                    "id": "US-2-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The dashboard shows three separate domain carousels: recently visited domains, primary owned domains, and draft domains."
+                },
+                {
+                    "id": "US-2-05",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "Each domain card on the dashboard exposes a More Actions menu with context-sensitive options: owned domains additionally show \"Grant access\" and \"Edit domain\"; all cards show \"View data feeds\", \"View statistics\", \"View questions\", and \"Survivorship\"."
+                },
+                {
+                    "id": "US-2-06",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "Each domain card on the dashboard shows the count of pending access requests and open questions for that domain."
+                },
+                {
+                    "id": "US-2-07",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A \"View all domains\" button on the dashboard navigates the user to the full Domain Catalogue page."
+                },
+                {
+                    "id": "US-2-08",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The dashboard toolbar provides \"Create Domain\" and \"Import domain\" buttons that launch the respective flows without leaving the dashboard."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-9",
+            "title": "Edit Data Feeds",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/26",
+            "timestamps": null,
+            "description": "As a user, I want to edit data feeds so that I can keep data feed configuration up to date.",
+            "business_value": [
+                "Streamlines data feed edit for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user at least owns one data feed."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-9-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can edit fields such as owner tab, type of domain, target dataset, classification, Availability and schedule."
+                },
+                {
+                    "id": "US-9-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User cannot edit fields such domain name, type of domain and country code after creation of data feed."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-18",
+            "title": "View Data Feed",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/14",
+            "timestamps": null,
+            "description": "As a user, I want to view data feeds so that I can understand their configuration and status.",
+            "business_value": [
+                "Streamlines view of data feeds for authorized users."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "The user has domain with data feed."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-18-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can access the data feeds details."
+                },
+                {
+                    "id": "US-18-02",
+                    "state": "Active",
+                    "version": "v1.4.3",
+                    "description": "The user can see all data feeds across all domains, regardless of ownership."
+                },
+                {
+                    "id": "US-18-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "Data feed detail view displays: name, description, availability status, and tabs for About, Data sources, Mapping, and Version management."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-3",
+            "title": "Add Data Feeds",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/24",
+            "timestamps": null,
+            "description": "As a user, I want to add data feeds so that I can make data sources available within a domain.",
+            "business_value": [
+                "Streamlines data feeds addition for authorized users."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "User has at least one domain.",
+                "The user must be part of Dehdl-uat-za-trnd-sudo-users, Dehdl-uat-za-aqdt-sudo, UnifyAppAdmin-UAT-ZA-users, Pam-uat-za-dehftrnd-users, Pam-uat-za-dehftrnd-users."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-3-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "The user must capture all mandatory fields."
+                },
+                {
+                    "id": "US-3-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "The user can import the data source from a file or from a Glue table when."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-6",
+            "title": "Delete Data Feeds",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/25",
+            "timestamps": null,
+            "description": "As a user, I want to delete data feeds so that I can remove data feeds that are no longer required.",
+            "business_value": [
+                "Streamlines data feed deletion for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user must be owner of domain.",
+                "The user must at least have one data feeds.",
+                "The user should own the data feed."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-6-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can delete data feeds."
+                },
+                {
+                    "id": "US-6-02",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "User is prompted with a confirmation dialog before data feed deletion."
+                },
+                {
+                    "id": "US-6-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "A user who does not own the data feed cannot delete it."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-12",
+            "title": "Search Data Feeds",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/20",
+            "timestamps": null,
+            "description": "As a user, I want to search among all data feeds so that I can quickly find the data feed I need.",
+            "business_value": [
+                "Saves time for users managing numerous data feeds.",
+                "Improves navigation and clarity."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "User can search among all data feeds."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-12-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can search data feed by name or partial name."
+                },
+                {
+                    "id": "US-12-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "Each data feed from search results displays its details such as data feed name, description, and the domain it belongs to."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-24",
+            "title": "Domain Access - Direct Granting Access",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/18",
+            "timestamps": null,
+            "description": "As a user, I want to view and direct access management from the domain page so that I can efficiently manage who has access to my domain.",
+            "business_value": [
+                "Streamlines directly view and manage access domain for authorized users."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "The user must at least have one domain."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-24-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "The user can directly approve or reject the domain access request."
+                },
+                {
+                    "id": "US-24-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "Only the domain owner can directly grant or reject access."
+                },
+                {
+                    "id": "US-24-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "After approving or rejecting, the requester receives a status update notification."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-27",
+            "title": "Request Access to Domain",
+            "state": "active",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a data consumer, I want to request access to a domain I do not own so that I can be granted the permissions needed to use its data.",
+            "business_value": [
+                "Enables data consumers to gain access to domains they need.",
+                "Provides a governed, auditable access-request workflow."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "At least one domain exists that the user does not currently own or have access to."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-27-01",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user who is not the domain owner can open the Access tab on the Domain Detail page and see a \"Request access\" button."
+                },
+                {
+                    "id": "US-27-02",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "After submitting an access request, the user receives an on-screen confirmation and the request appears in their Domain Access Rights page with status \"Pending\"."
+                },
+                {
+                    "id": "US-27-03",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user who has already submitted a pending request for a domain cannot submit a duplicate request for the same domain."
+                },
+                {
+                    "id": "US-27-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A domain owner cannot request access to their own domain; the \"Request access\" button is not shown for owned domains."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-23",
+            "title": "Domain Access - Requests Approval",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/22",
+            "timestamps": null,
+            "description": "As a user, I want to view bulk access request management from the Access Requests overview screen so that I can control who has access to my domain.",
+            "business_value": [
+                "Streamlines access to domain access requests for domain owner."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user has at least one domain access request."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-23-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can view domain access request in states: Pending, Approved, and Rejected."
+                },
+                {
+                    "id": "US-23-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can manage pending requests by approving or rejecting them."
+                },
+                {
+                    "id": "US-23-03",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "Each item in the domain access request overview shows this information: domain name, domain version, requesting user, requested access level, and request timestamp."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-28",
+            "title": "View My Domain Access Rights",
+            "state": "active",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a data consumer, I want to see all domain access requests I have submitted so that I can track the status of each request and act on any that need attention.",
+            "business_value": [
+                "Gives data consumers full visibility into which domains they have requested or been granted access to."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user has submitted at least one domain access request."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-28-01",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user can open the \"My access rights to domains\" page from the Settings overlay and see a table listing all their access requests."
+                },
+                {
+                    "id": "US-28-02",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "Each row in the table displays: domain name, domain version, requested access level, request status, and time of request."
+                },
+                {
+                    "id": "US-28-03",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user can request access to a new domain directly from this page using the \"Request access\" button."
+                },
+                {
+                    "id": "US-28-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user can view the detail of any access request in the list using the \"View\" action."
+                },
+                {
+                    "id": "US-28-05",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "When the user has no access requests, the page displays an empty state."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-25",
+            "title": "Domain Access - Overview of Users with Access",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/23",
+            "timestamps": null,
+            "description": "As a domain owner, I want to see all users who have access to my domain, so that I can manage domain access effectively.",
+            "business_value": [
+                "Improves navigation and clarity."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "At least one visible domain exists.",
+                "At least one user with access exists."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-25-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can search users with access by name or partial name."
+                },
+                {
+                    "id": "US-25-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "Each users from search results shows this information: user name and Ab number."
+                },
+                {
+                    "id": "US-25-03",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can search users among domains in primary of secondary ownership."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-26",
+            "title": "Create Domain",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/3",
+            "timestamps": null,
+            "description": "As a user, I want to create domain so that I can make it available for data consumers.",
+            "business_value": [
+                "Streamlines domain creation for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-26-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can create a new domain."
+                },
+                {
+                    "id": "US-26-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can see an error message when entering information in the wrong format on cost center field."
+                },
+                {
+                    "id": "US-26-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "Save button remains disabled until all mandatory fields are filled on create domain wizard {aspect} step. Aspect: About"
+                },
+                {
+                    "id": "US-26-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The Create Domain wizard autosaves the user's progress; an autosave status indicator is visible and can be toggled on or off by the user."
+                },
+                {
+                    "id": "US-26-05",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The user can undo and redo changes made within the wizard before committing."
+                },
+                {
+                    "id": "US-26-06",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The wizard guides the user through sequential steps: About, Owner, Classification, Scheduling, Availability, and Target dataset; the user can continue to the next step or navigate back to a previous step."
+                },
+                {
+                    "id": "US-26-07",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "In the Target dataset step, the user can add schema attributes manually, import them from a file, or populate them from a Glue table."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-30",
+            "title": "View Domain Data Flow",
+            "state": "planned",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a user, I want to view the data flow of a domain so that I can understand how data enters and exits the domain.",
+            "business_value": [
+                "Gives users a visual map of how data moves through and around a domain, supporting impact analysis and audit readiness."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "At least one domain exists."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-30-01",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "A user can navigate to the \"Data flow\" tab on the Domain Detail page and the tab URL changes to /auth/all-domains/{domainId}/{version}/data-flow."
+                },
+                {
+                    "id": "US-30-02",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "The Data flow tab displays a visualisation of the domain's upstream data sources and downstream consumers."
+                },
+                {
+                    "id": "US-30-03",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "When a domain has no configured data sources or consumers, the tab shows an empty-state message."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-7",
+            "title": "Delete Domain",
+            "state": null,
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a user, I want to delete a domain so that I can remove domains I no longer need.",
+            "business_value": [],
+            "preconditions": [],
+            "acceptance_criteria": []
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-10",
+            "title": "Edit Domain",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/9",
+            "timestamps": null,
+            "description": "As a user, I want to edit domain details so that I can keep domain information accurate and up to date.",
+            "business_value": [
+                "Streamlines domain edit for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user owns at least one domain."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-10-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The domain name and country are locked for edit after domain creation."
+                },
+                {
+                    "id": "US-10-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can edit editable fields such as description, type of domain, target dataset, classification and schedule."
+                },
+                {
+                    "id": "US-10-03",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can add target data set schema: manually, import from file, populate glue table."
+                },
+                {
+                    "id": "US-10-04",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "Invalid updates on cost center shows an error message on label."
+                },
+                {
+                    "id": "US-10-05",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "User can save changes — updated values are persisted and visible on reload."
+                },
+                {
+                    "id": "US-10-06",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "User can cancel edit — original values are restored without saving."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-31",
+            "title": "View Domain Hygiene (Survivorship)",
+            "state": "planned",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a domain owner or steward, I want to view hygiene and survivorship metrics for a domain so that I can assess data quality, coverage, and consumer adoption at a glance.",
+            "business_value": [
+                "Gives domain owners and stewards a quick health snapshot of their domain, covering data quality, coverage, consumer count, and optimisation score."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "At least one domain exists."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-31-01",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "A user can navigate to the Hygiene page for a domain via the \"Survivorship\" option in the domain card More Actions menu on the Dashboard."
+                },
+                {
+                    "id": "US-31-02",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "The Hygiene page displays a metrics bar containing cards for: Coverage, Domain optimisation score, Total records from last run, Data quality score, and Consumers."
+                },
+                {
+                    "id": "US-31-03",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "Each metric card displays the current computed value for the domain; when a metric is not yet available, the card shows an \"under development\" indicator."
+                },
+                {
+                    "id": "US-31-04",
+                    "state": "Planned",
+                    "version": "v1.9.0",
+                    "description": "The Hygiene page also displays the standard domain About information below the metrics bar, consistent with the Domain Detail About tab."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-22",
+            "title": "Import Domain",
+            "state": "active",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a user, I want to import a domain from a JSON export file so that I can restore or replicate a domain without re-creating it manually.",
+            "business_value": [
+                "Allows users to restore or share a domain by importing an exported JSON file.",
+                "Reduces manual re-creation effort."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user has a valid domain export JSON file."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-22-01",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "An authenticated user can open the Import Domain dialog from the Dashboard or from the All Domains page using the \"Import domain\" button."
+                },
+                {
+                    "id": "US-22-02",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The Import Domain dialog requires the user to provide a domain name and select a JSON file before the submit button becomes enabled."
+                },
+                {
+                    "id": "US-22-03",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "After a successful import the dialog closes and the newly imported domain is visible in the domain list."
+                },
+                {
+                    "id": "US-22-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user who submits an invalid or malformed JSON file is shown an error message and the dialog remains open for correction."
+                },
+                {
+                    "id": "US-22-05",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user can cancel the import at any point; no domain is created and the dialog closes."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-13",
+            "title": "Search Domain",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/19",
+            "timestamps": null,
+            "description": "As a user, I want to search among all domains so that I can quickly find the domain I need.",
+            "business_value": [
+                "Saves time for users managing numerous domains.",
+                "Improves navigation and clarity."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "At least one visible domain exist."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-13-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can search domain by name or partial name."
+                },
+                {
+                    "id": "US-13-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "Each domain from search results displays its domain details card such as name, version, primary owner, creation date, and domain type."
+                },
+                {
+                    "id": "US-13-03",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user can filter the domain list by one or more status values: Active, Draft, Cold, and Testing; the list updates to show only domains matching the selected statuses."
+                },
+                {
+                    "id": "US-13-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "When the search term and applied filters produce no matching domains, the list displays an empty-state message."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-29",
+            "title": "Manage Domain Versions",
+            "state": "active",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a domain owner, I want to manage the lifecycle versions of my domain so that I can evolve domain schema and configuration without disrupting active consumers.",
+            "business_value": [
+                "Enables domain owners to evolve a domain through a structured lifecycle (Draft → Testing → Active → Cold) without disrupting current consumers."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user is the primary owner of the domain."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-29-01",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A domain owner can navigate to the \"Version management\" tab on the Domain Detail page and see the current version and its lifecycle status."
+                },
+                {
+                    "id": "US-29-02",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A domain owner can create a new draft version of a domain from the Version management tab; the new version appears with status \"Draft\"."
+                },
+                {
+                    "id": "US-29-03",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A domain owner can start the testing phase for a draft version; the version status changes to \"Testing\"."
+                },
+                {
+                    "id": "US-29-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A domain owner can make an active version cold from the Version management tab; the version status changes to \"Cold\"."
+                },
+                {
+                    "id": "US-29-05",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A domain owner can delete a version from the Version management tab after confirming a deletion prompt; the version no longer appears in the list."
+                },
+                {
+                    "id": "US-29-06",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user who is not the domain owner sees the Version management tab in read-only mode — lifecycle action buttons are not visible."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-16",
+            "title": "View Domain",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/28",
+            "timestamps": null,
+            "description": "As a user, I want to view the details of a selected domain so that I can understand its details and manage it effectively.",
+            "business_value": [
+                "Streamlines domain details visibility for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "User can see at least one domain."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-16-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can access the domain details, schema, run history, data feed, data flow, statistics, question, access and version management."
+                },
+                {
+                    "id": "US-16-02",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "Domain card details on dashboard displays information about name, creation date, primary owner attributes summary details about access request, questions and classification."
+                },
+                {
+                    "id": "US-16-03",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "Each Domain Detail tab (About, Schema, Run history, Data feed, Data flow, Statistics, Questions, Access, Version management) has its own distinct URL, allowing deep-linking directly to any tab."
+                },
+                {
+                    "id": "US-16-04",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The Schema tab displays the domain attribute list in a tree table; when no attributes are defined, an empty state is shown."
+                },
+                {
+                    "id": "US-16-05",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "The More Actions menu on the Domain Detail page shows a different set of actions depending on ownership: domain owners see \"Edit domain\", \"Delete domain\", \"Grant access\", and \"Manage versions\" in addition to the options available to all users."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-19",
+            "title": "On-screen Notifications",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/17",
+            "timestamps": null,
+            "description": "As a user, I want to receive on-screen notifications so that I can stay informed about changes in real time.",
+            "business_value": [
+                "User wants to stay informed about changes.",
+                "Streamlines notifications for authorized users."
+            ],
+            "preconditions": [
+                "The user logged in.",
+                "User has necessary permissions to receive notifications."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-19-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when a domain is successfully created."
+                },
+                {
+                    "id": "US-19-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when a question is successfully created."
+                },
+                {
+                    "id": "US-19-03",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when domain is successfully modified."
+                },
+                {
+                    "id": "US-19-04",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when access to domain successfully requested."
+                },
+                {
+                    "id": "US-19-05",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when user successfully replied on a question."
+                },
+                {
+                    "id": "US-19-06",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when question is marked as helpful."
+                },
+                {
+                    "id": "US-19-07",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when question is unmarked as helpful."
+                },
+                {
+                    "id": "US-19-08",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when data feed successfully added."
+                },
+                {
+                    "id": "US-19-09",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "An on-screen notification is displayed when data feed edited successfully."
+                },
+                {
+                    "id": "US-19-10",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "An on-screen notification is displayed when a question is successfully deleted."
+                },
+                {
+                    "id": "US-19-11",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "An on-screen notification is displayed when a domain is successfully deleted."
+                },
+                {
+                    "id": "US-19-12",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "An on-screen notification is displayed when a data feed is successfully deleted."
+                },
+                {
+                    "id": "US-19-13",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "An on-screen notification is displayed when a domain access request is approved or rejected."
+                },
+                {
+                    "id": "US-19-14",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "An on-screen notification is displayed when a domain is successfully imported."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-4",
+            "title": "Close Question",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/8",
+            "timestamps": null,
+            "description": "As a question owner, I want to close one or more questions so that I can mark them as resolved and prevent further replies.",
+            "business_value": [
+                "Streamlines of closing question for users."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "Only the owner of question can close a question.",
+                "User can close to any question in state OPEN.",
+                "User has at least one question exists."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-4-01",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "Only the owner can close one or more questions."
+                },
+                {
+                    "id": "US-4-02",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "A closed question cannot receive new replies."
+                },
+                {
+                    "id": "US-4-03",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "User cannot close an already-closed question."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-5",
+            "title": "Create Question",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/11",
+            "timestamps": null,
+            "description": "As a user, I want to ask a question so that I can get help or information from other users.",
+            "business_value": [
+                "Streamlines question creation for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-5-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The user clicks on tab question to access ask a question button to fill in all mandatory fields such as subject, description and select a domain for a new question."
+                },
+                {
+                    "id": "US-5-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The post question button is enabled when all mandatory fields are filled."
+                },
+                {
+                    "id": "US-5-03",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "Question can hold any amount of Tags including no one."
+                },
+                {
+                    "id": "US-5-04",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "A successfully submitted question is immediately visible in the question list."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-8",
+            "title": "Delete Question",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/5",
+            "timestamps": null,
+            "description": "As a user, I want to delete a question so that I can remove questions that are no longer relevant.",
+            "business_value": [
+                "Streamlines question deletion for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user must be owner of question."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-8-01",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "User can delete question."
+                },
+                {
+                    "id": "US-8-02",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "User is prompted with a confirmation dialog before question deletion."
+                },
+                {
+                    "id": "US-8-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "A user who is not the question owner cannot delete the question."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-20",
+            "title": "Mark Question Helpful",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/13",
+            "timestamps": null,
+            "description": "As a user, I want to mark replies to questions as helpful so that the community can identify the best answer.",
+            "business_value": [
+                "Streamlines marking of question replies for authorized users."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "User has a reply to their question."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-20-01",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "The question owner can mark one reply on their question as helpful."
+                },
+                {
+                    "id": "US-20-02",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "A question can have at most one reply marked as helpful at a time."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-11",
+            "title": "Reply Question",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/7",
+            "timestamps": null,
+            "description": "As a user, I want to reply to a question so that I can contribute answers to other users' questions.",
+            "business_value": [
+                "Streamlines question reply for users."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "User can reply to any question in state OPEN."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-11-01",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "User can reply one or more questions."
+                },
+                {
+                    "id": "US-11-02",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "Each question can have more than one dialogue reply."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-14",
+            "title": "Search Question",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/6",
+            "timestamps": null,
+            "description": "As a user, I want to search among all questions so that I can quickly find questions relevant to me.",
+            "business_value": [
+                "Saves time for users managing numerous questions.",
+                "Improves navigation and clarity."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "User can search among all questions."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-14-01",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "User can search question by name or partial name."
+                },
+                {
+                    "id": "US-14-02",
+                    "state": "Active",
+                    "version": "v1.2.2",
+                    "description": "Each question from search results displays its details such as subject, question details, domain name, creation date, and question owner."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-21",
+            "title": "Unmark Helpful Question Reply",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/27",
+            "timestamps": null,
+            "description": "As a user, I want to unmark replies on questions that were marked as helpful so that I can correct my helpful marking when needed.",
+            "business_value": [
+                "Streamlines unmark replies on question that marked as helpful."
+            ],
+            "preconditions": [
+                "User logged in.",
+                "User has a reply on their question that is marked as helpful."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-21-01",
+                    "state": "Active",
+                    "version": "v1.5.0",
+                    "description": "User can unmark one or more questions that marked as helpful."
+                },
+                {
+                    "id": "US-21-02",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "After unmarking, the reply no longer displays the helpful indicator."
+                },
+                {
+                    "id": "US-21-03",
+                    "state": "Active",
+                    "version": "v1.8.2",
+                    "description": "Only the question owner can unmark a helpful reply."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-17",
+            "title": "View Question",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/4",
+            "timestamps": null,
+            "description": "As a user, I want to view question details so that I can read its full context and responses.",
+            "business_value": [
+                "Streamlines view question details for authorized users."
+            ],
+            "preconditions": [
+                "The user has logged in.",
+                "The user can see all questions asked by other users."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-17-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "User can access the question details."
+                },
+                {
+                    "id": "US-17-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "Question details displays information such as subject, details, domain, creation date and the question owner."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-1",
+            "title": "User Login",
+            "state": "active",
+            "tags": [],
+            "url": "https://github.com/absa-group/unify-living-documentation/issues/2",
+            "timestamps": null,
+            "description": "As a user with valid credentials, I want to log into the Unify application so that I can securely access the application.",
+            "business_value": [
+                "Ensures secure, controlled access",
+                "Prevents unauthorized access to application"
+            ],
+            "preconditions": [
+                "The user is part of the PAM/dehdl group and has valid credentials."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-1-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The login screen is accessible and displays all {aspects}. Aspects: username field, password field, login button"
+                },
+                {
+                    "id": "US-1-02",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The user with valid username and password successfully logs in."
+                },
+                {
+                    "id": "US-1-03",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The user with invalid username and password is prompted with error message on screen."
+                },
+                {
+                    "id": "US-1-04",
+                    "state": "Active",
+                    "version": "v2.2.7",
+                    "description": "An authenticated user whose session has expired is redirected to the login screen with an informative message."
+                },
+                {
+                    "id": "US-1-05",
+                    "state": "Active",
+                    "version": "v2.2.7",
+                    "description": "A user who is already logged in and navigates to the login URL is automatically redirected to the dashboard."
+                },
+                {
+                    "id": "US-1-06",
+                    "state": "Active",
+                    "version": "v2.2.7",
+                    "description": "The login button should be disabled until {aspects} fields are filled out. Aspects: username field, password field"
+                },
+                {
+                    "id": "US-1-07",
+                    "state": "Active",
+                    "version": "v1.9.0",
+                    "description": "A user can initiate login via the MSAL SSO option on the login screen and is redirected through the corporate identity provider to complete authentication."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/unify-living-documentation/US-15",
+            "title": "User Logout",
+            "state": "active",
+            "tags": [],
+            "url": null,
+            "timestamps": null,
+            "description": "As a user, I want to log out of the application so that I can end my session securely.",
+            "business_value": [
+                "Ensures secure, controlled access",
+                "Consistent user experience across application"
+            ],
+            "preconditions": [
+                "The user has logged in."
+            ],
+            "acceptance_criteria": [
+                {
+                    "id": "US-15-01",
+                    "state": "Active",
+                    "version": "v1.4.2",
+                    "description": "The user can log out and is redirected to the login screen."
+                }
+            ]
+        }
+    ],
     "metadata": {
         "producer": {
             "name": "AbsaOSS/living-doc-collector-gh",
@@ -18,12 +1306,14 @@
             "systems": [
                 "GitHub"
             ],
-            "repositories": [],
-            "organization": null,
+            "repositories": [
+                "absa-group/unify-living-documentation"
+            ],
+            "organization": "absa-group",
             "enterprise": null
         },
         "original_metadata": {
-            "generated_at": "2026-06-30T12:54:25.770660+00:00",
+            "generated_at": "2026-06-30T13:08:22.347115+00:00",
             "schema_version": "1.0.0",
             "inputs": {}
         }

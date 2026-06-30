@@ -29,10 +29,6 @@ This Collector supports multiple mining modes, each with its own unique function
 - [Documentation Issues](doc_issues/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
 - [Documentation Source](doc_source/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
 - [UI Tests](ui_tests/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
-- [Code Tags](code_tags/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [Release Notes](release_notes/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [Workflows](workflows/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [User Guide](user_guide/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
 
 ---
 ## Usage
@@ -58,10 +54,6 @@ See the default action step definition:
     doc-issues: false
     doc-source: false
     ui-tests: false
-    code-tags: false
-    release-notes: false
-    workflows: false
-    user-guide: false
 ```
 
 See the default action step definitions for each mode:
@@ -69,10 +61,6 @@ See the default action step definitions for each mode:
 - [Documentation Issues mode default step definition](doc_issues/README.md#adding-doc-issues-mode-to-the-workflow)
 - [Documentation Source mode default step definition](doc_source/README.md#usage)
 - [UI Tests mode default step definition](ui_tests/README.md#usage)
-- [Code Tags mode default step definition](code_tags/README.md#adding-code-tags-mode-to-the-workflow)
-- [Release Notes mode default step definition](release_notes/README.md#adding-release-notes-mode-to-the-workflow)
-- [Workflows mode default step definition](workflows/README.md#adding-workflows-mode-to-the-workflow)
-- [User Guide mode default step definition](user_guide/README.md#adding-user-guide-mode-to-the-workflow)
 
 #### Full Example of Action Step Definition
 
@@ -137,10 +125,6 @@ These inputs are common to all modes.
 | `doc-issues`      | Enables or disables `Documentation Issues` mode. | No       | `false` | Set to true to activate.  |
 | `doc-source`      | Enables or disables `Documentation Source` mode. | No       | `false` | Set to true to activate.  |
 | `ui-tests`        | Enables or disables `UI Tests` mode.             | No       | `false` | Set to true to activate.  |
-| `code-tags`       | Enables or disables `Code tags` mode.            | No       | `false` | Set to true to activate.  |
-| `release-notes`   | Enables or disables `Release Notes` mode.        | No       | `false` | Set to true to activate.  |
-| `workflows`       | Enables or disables `Workflows` mode.            | No       | `false` | Set to true to activate.  |
-| `user-guide`      | Enables or disables `User guide` mode.           | No       | `false` | Set to true to activate.  |
 | `verbose-logging` | Enables or disables verbose (debug) logging.       | No       | `false` | Set to true to activate.  |
 
 
@@ -161,10 +145,6 @@ Mode-specific inputs and outputs are detailed in the respective mode's documenta
 - [Documentation Issues mode specific inputs](doc_issues/README.md#mode-inputs)
 - [Documentation Source mode specific inputs](doc_source/README.md#mode-inputs)
 - [UI Tests mode specific inputs](ui_tests/README.md#mode-inputs)
-- [Code Tags mode specific inputs](code_tags/README.md#mode-configuration)
-- [Release Notes mode specific inputs](release_notes/README.md#mode-configuration)
-- [Workflows mode specific inputs](workflows/README.md#mode-configuration)
-- [User Guide mode specific inputs](user_guide/README.md#mode-configuration)
     
 ---
 ## Action Outputs

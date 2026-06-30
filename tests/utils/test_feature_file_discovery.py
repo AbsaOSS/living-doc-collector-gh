@@ -27,7 +27,7 @@ def test_matching_glob(tmp_path):
     (features / "ignore.txt").write_text("nope", encoding="utf-8")
 
     # Act
-    result = discover_feature_files(str(tmp_path), ["features/*.feature"])
+    result = discover_feature_files([str(tmp_path)])
 
     # Assert
     assert result == [file_a, file_b]
@@ -35,16 +35,16 @@ def test_matching_glob(tmp_path):
 
 def test_no_match(tmp_path, caplog):
     # Act
-    result = discover_feature_files(str(tmp_path), ["features/*.feature"])
+    result = discover_feature_files([str(tmp_path)])
 
     # Assert
     assert result == []
-    assert any("No files match glob pattern" in message for message in caplog.messages)
+    assert any("No .feature files found under" in message for message in caplog.messages)
 
 
 def test_missing_local_path(tmp_path):
     # Act
-    result = discover_feature_files(str(tmp_path / "missing"), ["**/*.feature"])
+    result = discover_feature_files([str(tmp_path / "missing")])
 
     # Assert
     assert result == []
@@ -56,7 +56,7 @@ def test_directory_match_excluded(tmp_path):
     nested.mkdir()
 
     # Act
-    result = discover_feature_files(str(tmp_path), ["*.feature"])
+    result = discover_feature_files([str(tmp_path)])
 
     # Assert
     assert result == []

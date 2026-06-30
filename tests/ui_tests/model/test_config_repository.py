@@ -22,8 +22,7 @@ def test_load_from_json_with_valid_input_loads_correctly():
     repository_json = {
         "organization-name": "absa-group",
         "repository-name": "aul-ui",
-        "local-path": "/path/to/checkout/aul-ui",
-        "paths": ["playwright/features/**/*.feature"],
+        "paths": ["/path/to/checkout/aul-ui/playwright/features/**/*.feature"],
     }
 
     # Act
@@ -33,8 +32,7 @@ def test_load_from_json_with_valid_input_loads_correctly():
     assert actual
     assert config_repository.organization_name == "absa-group"
     assert config_repository.repository_name == "aul-ui"
-    assert config_repository.local_path == "/path/to/checkout/aul-ui"
-    assert config_repository.paths == ["playwright/features/**/*.feature"]
+    assert config_repository.paths == ["/path/to/checkout/aul-ui/playwright/features/**/*.feature"]
     assert "aul-ui" in repr(config_repository)
 
 
