@@ -38,6 +38,7 @@ from living_doc_utilities.model.issues import Issues
 from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 from action_inputs import ActionInputs
+from doc_issues.body_parser import parse_body
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
@@ -362,6 +363,7 @@ class GHDocIssuesCollector:
                 audit_data = consolidated_issues[key].get_audit_data()
                 issue_dict.update(audit_data)
 
+            parsed_body = parse_body(issue_dict.get("body"))
             adapter_item = {
                 "id": key,  # owner/repo#number format
                 "title": issue_dict.get("title", ""),
@@ -372,7 +374,10 @@ class GHDocIssuesCollector:
                     "created": issue_dict.get("created_at", ""),
                     "updated": issue_dict.get("updated_at", ""),
                 },
-                "body": issue_dict.get("body"),
+                "description": parsed_body["description"],
+                "business_value": parsed_body["business_value"],
+                "preconditions": parsed_body["preconditions"],
+                "acceptance_criteria": parsed_body["acceptance_criteria"],
             }
             items_list.append(adapter_item)
 
