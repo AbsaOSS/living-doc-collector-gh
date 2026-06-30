@@ -69,9 +69,7 @@ def _extract_subsection(body: str, heading: str) -> Optional[str]:
             content_start = m.end()
             # End at the next ### sub-section or the next ## section, whichever comes first
             next_subsection = sub_matches[i + 1].start() if i + 1 < len(sub_matches) else len(body)
-            next_section = next(
-                (boundary for boundary in section_starts if boundary > m.start()), len(body)
-            )
+            next_section = next((boundary for boundary in section_starts if boundary > m.start()), len(body))
             content_end = min(next_subsection, next_section)
             return body[content_start:content_end].strip()
     return None
