@@ -1,47 +1,95 @@
 {
   "$defs": {
-    "AcceptanceCriterion": {
-      "description": "A single acceptance criterion parsed from the issue body table.",
+    "Step": {
+      "description": "A single Gherkin step within a scenario.",
       "properties": {
-        "id": {
-          "title": "Id",
+        "keyword": {
+          "title": "Keyword",
           "type": "string"
         },
-        "state": {
-          "title": "State",
-          "type": "string"
-        },
-        "version": {
-          "title": "Version",
-          "type": "string"
-        },
-        "description": {
-          "title": "Description",
+        "text": {
+          "title": "Text",
           "type": "string"
         }
       },
       "required": [
-        "id",
-        "state",
-        "version",
-        "description"
+        "keyword",
+        "text"
       ],
-      "title": "AcceptanceCriterion",
+      "title": "Step",
       "type": "object"
     },
-    "AdapterItem": {
-      "description": "Represents a single item (issue) from the collector output.",
+    "ScenarioSource": {
+      "description": "Source identity of a scenario.",
+      "properties": {
+        "org": {
+          "title": "Org",
+          "type": "string"
+        },
+        "repo": {
+          "title": "Repo",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "org",
+        "repo",
+        "file",
+        "line"
+      ],
+      "title": "ScenarioSource",
+      "type": "object"
+    },
+    "UITestItem": {
+      "description": "Represents a single UI test scenario from the collector output.",
       "properties": {
         "id": {
           "title": "Id",
           "type": "string"
         },
-        "title": {
-          "title": "Title",
+        "us_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Us Id"
+        },
+        "func_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Func Id"
+        },
+        "ac_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ac Ids",
+          "type": "array"
+        },
+        "scenario_name": {
+          "title": "Scenario Name",
           "type": "string"
         },
-        "state": {
-          "title": "State",
+        "scenario_type": {
+          "title": "Scenario Type",
           "type": "string"
         },
         "tags": {
@@ -51,126 +99,29 @@
           "title": "Tags",
           "type": "array"
         },
-        "url": {
-          "title": "Url",
-          "type": "string"
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "title": "Steps",
+          "type": "array"
         },
-        "timestamps": {
-          "$ref": "#/$defs/AdapterItemTimestamps"
-        },
-        "description": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Description"
-        },
-        "business_value": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Business Value"
-        },
-        "preconditions": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Preconditions"
-        },
-        "acceptance_criteria": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/AcceptanceCriterion"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Acceptance Criteria"
+        "source": {
+          "$ref": "#/$defs/ScenarioSource"
         }
       },
       "required": [
         "id",
-        "title",
-        "state",
+        "us_id",
+        "func_id",
+        "ac_ids",
+        "scenario_name",
+        "scenario_type",
         "tags",
-        "url",
-        "timestamps"
+        "steps",
+        "source"
       ],
-      "title": "AdapterItem",
-      "type": "object"
-    },
-    "AdapterItemTimestamps": {
-      "description": "Timestamps for an adapter item.",
-      "properties": {
-        "created": {
-          "title": "Created",
-          "type": "string"
-        },
-        "updated": {
-          "title": "Updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "created",
-        "updated"
-      ],
-      "title": "AdapterItemTimestamps",
-      "type": "object"
-    },
-    "AdapterMetadata": {
-      "description": "Metadata information from the adapter.",
-      "properties": {
-        "producer": {
-          "$ref": "#/$defs/AdapterMetadataProducer"
-        },
-        "run": {
-          "$ref": "#/$defs/AdapterMetadataRun"
-        },
-        "source": {
-          "$ref": "#/$defs/AdapterMetadataSource"
-        },
-        "original_metadata": {
-          "additionalProperties": true,
-          "title": "Original Metadata",
-          "type": "object"
-        }
-      },
-      "required": [
-        "producer",
-        "run",
-        "source",
-        "original_metadata"
-      ],
-      "title": "AdapterMetadata",
+      "title": "UITestItem",
       "type": "object"
     },
     "AdapterMetadataProducer": {
@@ -334,6 +285,33 @@
       "title": "AdapterMetadataSource",
       "type": "object"
     },
+    "AdapterMetadata": {
+      "description": "Metadata information from the adapter.",
+      "properties": {
+        "producer": {
+          "$ref": "#/$defs/AdapterMetadataProducer"
+        },
+        "run": {
+          "$ref": "#/$defs/AdapterMetadataRun"
+        },
+        "source": {
+          "$ref": "#/$defs/AdapterMetadataSource"
+        },
+        "original_metadata": {
+          "additionalProperties": true,
+          "title": "Original Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "producer",
+        "run",
+        "source",
+        "original_metadata"
+      ],
+      "title": "AdapterMetadata",
+      "type": "object"
+    },
     "CompatibilityWarning": {
       "description": "Represents a compatibility warning during adapter processing.",
       "properties": {
@@ -366,13 +344,13 @@
       "type": "object"
     }
   },
-  "description": "Complete result from adapter parsing.",
+  "description": "Complete UI test catalog result from the ui-tests collector.",
   "properties": {
-    "user_stories": {
+    "items": {
       "items": {
-        "$ref": "#/$defs/AdapterItem"
+        "$ref": "#/$defs/UITestItem"
       },
-      "title": "User Stories",
+      "title": "Items",
       "type": "array"
     },
     "metadata": {
@@ -387,11 +365,11 @@
     }
   },
   "required": [
-    "user_stories",
+    "items",
     "metadata",
     "warnings"
   ],
-  "title": "AdapterResult",
+  "title": "UITestsResult",
   "type": "object",
   "$schema_version": "1.0.0"
 }

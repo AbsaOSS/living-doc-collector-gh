@@ -27,12 +27,8 @@ Addresses the need for continuously updated documentation accessible to all team
 
 This Collector supports multiple mining modes, each with its own unique functionality. Read more about the modes at their respective links:
 - [Documentation Issues](doc_issues/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
-- [Test Catalog](test_catalog/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [Test Headers](test_headers/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [Code Tags](code_tags/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [Release Notes](release_notes/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [Workflows](workflows/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
-- [User Guide](user_guide/README.md) ![Status](https://img.shields.io/badge/status-todo-lightgrey)
+- [Documentation Source](doc_source/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
+- [UI Tests](ui_tests/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
 
 ---
 ## Usage
@@ -56,23 +52,15 @@ See the default action step definition:
   with:
     # modes de/activation
     doc-issues: false
-    tests: false
-    test-headers: false
-    code-tags: false
-    release-notes: false
-    workflows: false
-    user-guide: false
+    doc-source: false
+    ui-tests: false
 ```
 
 See the default action step definitions for each mode:
 
 - [Documentation Issues mode default step definition](doc_issues/README.md#adding-doc-issues-mode-to-the-workflow)
-- [Tests mode default step definition](test_catalog/README.md#adding-tests-mode-to-the-workflow)
-- [Test Headers mode default step definition](test_headers/README.md#adding-test-headers-mode-to-the-workflow)
-- [Code Tags mode default step definition](code_tags/README.md#adding-code-tags-mode-to-the-workflow)
-- [Release Notes mode default step definition](release_notes/README.md#adding-release-notes-mode-to-the-workflow)
-- [Workflows mode default step definition](workflows/README.md#adding-workflows-mode-to-the-workflow)
-- [User Guide mode default step definition](user_guide/README.md#adding-user-guide-mode-to-the-workflow)
+- [Documentation Source mode default step definition](doc_source/README.md#usage)
+- [UI Tests mode default step definition](ui_tests/README.md#usage)
 
 #### Full Example of Action Step Definition
 
@@ -135,12 +123,8 @@ These inputs are common to all modes.
 | Input Name        | Description                                        | Required | Default | Usage                     | 
 |-------------------|----------------------------------------------------|----------|---------|---------------------------|
 | `doc-issues`      | Enables or disables `Documentation Issues` mode. | No       | `false` | Set to true to activate.  |
-| `tests`           | Enables or disables `Tests` mode.                | No       | `false` | Set to true to activate.  |
-| `test-headers`    | Enables or disables `Test headers` mode.         | No       | `false` | Set to true to activate.  |
-| `code-tags`       | Enables or disables `Code tags` mode.            | No       | `false` | Set to true to activate.  |
-| `release-notes`   | Enables or disables `Release Notes` mode.        | No       | `false` | Set to true to activate.  |
-| `workflows`       | Enables or disables `Workflows` mode.            | No       | `false` | Set to true to activate.  |
-| `user-guide`      | Enables or disables `User guide` mode.           | No       | `false` | Set to true to activate.  |
+| `doc-source`      | Enables or disables `Documentation Source` mode. | No       | `false` | Set to true to activate.  |
+| `ui-tests`        | Enables or disables `UI Tests` mode.             | No       | `false` | Set to true to activate.  |
 | `verbose-logging` | Enables or disables verbose (debug) logging.       | No       | `false` | Set to true to activate.  |
 
 
@@ -148,7 +132,8 @@ These inputs are common to all modes.
 ```yaml
 with:
   doc-issues: true          # Activation of Documentation Issues mode
-  test-headers: true        # Activation of Test Headers mode
+  doc-source: true          # Activation of Documentation Source mode
+  ui-tests: true            # Activation of UI Tests mode
   
   verbose-logging: true     # Activation of verbose (debug) logging
 ```
@@ -157,13 +142,9 @@ with:
 
 Mode-specific inputs and outputs are detailed in the respective mode's documentation:
 
-- [Documentation Issues mode specific inputs](doc_issues/README.md#mode-configuration)
-- [Tests mode specific inputs](test_catalog/README.md#mode-configuration)
-- [Test Headers mode specific inputs](test_headers/README.md#mode-configuration)
-- [Code Tags mode specific inputs](code_tags/README.md#mode-configuration)
-- [Release Notes mode specific inputs](release_notes/README.md#mode-configuration)
-- [Workflows mode specific inputs](workflows/README.md#mode-configuration)
-- [User Guide mode specific inputs](user_guide/README.md#mode-configuration)
+- [Documentation Issues mode specific inputs](doc_issues/README.md#mode-inputs)
+- [Documentation Source mode specific inputs](doc_source/README.md#mode-inputs)
+- [UI Tests mode specific inputs](ui_tests/README.md#mode-inputs)
     
 ---
 ## Action Outputs
