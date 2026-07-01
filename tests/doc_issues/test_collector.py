@@ -552,14 +552,14 @@ def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
     assert "original_metadata" in metadata
     assert "generated_at" in metadata["original_metadata"]
 
-    # Check items array (not issues dict)
-    assert "items" in data
+    # Check user_stories array (not issues dict)
+    assert "user_stories" in data
     assert "warnings" in data
-    assert isinstance(data["items"], list)
-    assert len(data["items"]) > 0
+    assert isinstance(data["user_stories"], list)
+    assert len(data["user_stories"]) > 0
     
     # Check item structure
-    item = data["items"][0]
+    item = data["user_stories"][0]
     assert item["id"] == "test_org/test_repo#1"
     assert "title" in item
     assert "state" in item

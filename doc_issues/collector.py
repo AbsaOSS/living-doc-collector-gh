@@ -351,8 +351,8 @@ class GHDocIssuesCollector:
         @param consolidated_issues: Consolidated issues with audit data.
         @return: None
         """
-        # Build items array with audit enrichment
-        items_list = []
+        # Build user_stories array with audit enrichment
+        user_stories_list = []
         warnings_list: list[str] = []
 
         for key, issue in issues.issues.items():
@@ -379,11 +379,11 @@ class GHDocIssuesCollector:
                 "preconditions": parsed_body["preconditions"],
                 "acceptance_criteria": parsed_body["acceptance_criteria"],
             }
-            items_list.append(adapter_item)
+            user_stories_list.append(adapter_item)
 
         # Wrap with file-level metadata matching AdapterMetadata structure
         output_data = {
-            "items": items_list,
+            "user_stories": user_stories_list,
             "metadata": self._get_file_metadata(),
             "warnings": warnings_list,
         }

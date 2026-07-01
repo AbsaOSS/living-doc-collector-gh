@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from doc_source.header_parser import parse_header
+from doc_source.header_parser import parse_func_header, parse_header
 
 FULL_HEADER = """# =============================================================================
 # LIVING DOC — US-27 · Request Access to Domain
@@ -212,4 +212,111 @@ def test_us_id_tag_mismatch_uses_header(caplog):
     # Assert
     assert result is not None
     assert result["us_id"] == "US-7"
+    assert any("mismatches header ID" in message for message in caplog.messages)
+
+
+# ---------------------------------------------------------------------------
+# parse_func_header tests
+# ---------------------------------------------------------------------------
+
+FULL_FUNC_HEADER = """# =============================================================================
+# LIVING DOC — FUNC-001 · Authentication Screen — Credential-based Login
+# =============================================================================
+# status:    active
+# parent:    FEAT-001
+# func_type: button_action
+#
+# acceptance_criteria:
+#
+#   AC:FUNC-001-01 (v1.0.0 - Active)
+#     - Submitting valid credentials navigates to the dashboard.
+#
+#   AC:FUNC-001-02 (v1.0.0 - Active)
+#     - A user with an active session is automatically redirected.
+# =============================================================================
+
+@FUNC_ID:FUNC-001
+Feature: Authentication Screen — Credential-based Login
+Outcome of triggering the login button.
+"""
+
+
+def test_func_full_header():
+    # Act
+    result = parse_func_header(FULL_FUNC_HEADER.splitlines())
+
+    # Assert
+    assert result is not None
+    assert result["func_id"] == "FUNC-001"
+    assert result["title"] == "Authentication Screen — Credential-based Login"
+    assert result["state"] == "active"
+    assert result["parent"] == "FEAT-001"
+    assert result["func_type"] == "button_action"
+    assert result["acceptance_criteria"] == [
+        {
+            "id": "FUNC-001-01",
+            "state": "Active",
+            "version": "v1.0.0",
+            "description": "Submitting valid credentials navigates to the dashboard.",
+        },
+        {
+            "id": "FUNC-001-02",
+            "state": "Active",
+            "version": "v1.0.0",
+            "description": "A user with an active session is automatically redirected.",
+        },
+    ]
+
+
+def test_func_missing_optional_fields():
+    # Arrange
+    lines = [
+        "# =============================================================================",
+        "# LIVING DOC — FUNC-005 · Minimal Functionality",
+        "# =============================================================================",
+        "@FUNC_ID:FUNC-005",
+        "Feature: Minimal Functionality",
+        "Description.",
+    ]
+
+    # Act
+    result = parse_func_header(lines)
+
+    # Assert
+    assert result is not None
+    assert result["func_id"] == "FUNC-005"
+    assert result["title"] == "Minimal Functionality"
+    assert result["state"] is None
+    assert result["parent"] is None
+    assert result["func_type"] is None
+    assert result["acceptance_criteria"] == []
+
+
+def test_func_missing_header_block_returns_none():
+    # Arrange
+    lines = ["@FUNC_ID:FUNC-9", "Feature: No Header"]
+
+    # Act
+    result = parse_func_header(lines)
+
+    # Assert
+    assert result is None
+
+
+def test_func_id_tag_mismatch_uses_header(caplog):
+    # Arrange
+    lines = [
+        "# =============================================================================",
+        "# LIVING DOC — FUNC-003 · Something",
+        "# =============================================================================",
+        "@FUNC_ID:FUNC-099",
+        "Feature: Something",
+    ]
+
+    # Act
+    result = parse_func_header(lines)
+
+    # Assert
+    assert result is not None
+    assert result["func_id"] == "FUNC-003"
     assert any("mismatches header ID" in message for message in caplog.messages)

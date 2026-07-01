@@ -35,6 +35,8 @@ class ConfigRepository:
         self.__organization_name: str = ""
         self.__repository_name: str = ""
         self.__paths: list[str] = []
+        self.__func_paths: list[str] = []
+        self.__pages_paths: list[str] = []
 
     @property
     def organization_name(self) -> str:
@@ -48,8 +50,18 @@ class ConfigRepository:
 
     @property
     def paths(self) -> list[str]:
-        """Getter of the glob patterns relative to the local path."""
+        """Getter of absolute paths to scan for User Story .feature files."""
         return self.__paths
+
+    @property
+    def func_paths(self) -> list[str]:
+        """Getter of absolute paths to scan for Functionality .feature files."""
+        return self.__func_paths
+
+    @property
+    def pages_paths(self) -> list[str]:
+        """Getter of absolute paths to scan for TypeScript page object files."""
+        return self.__pages_paths
 
     def load_from_json(self, repository_json: dict) -> bool:
         """
@@ -61,7 +73,13 @@ class ConfigRepository:
         try:
             self.__organization_name = repository_json["organization-name"]
             self.__repository_name = repository_json["repository-name"]
-            self.__paths = repository_json["paths"]
+            # "us-paths" is canonical; "paths" is accepted for backward compatibility.
+            if "us-paths" in repository_json:
+                self.__paths = repository_json["us-paths"]
+            else:
+                self.__paths = repository_json["paths"]
+            self.__func_paths = repository_json.get("func-paths", [])
+            self.__pages_paths = repository_json.get("pages-paths", [])
             return True
         except KeyError as e:
             logger.error("The key is not found in the repository JSON input: %s.", e, exc_info=True)
@@ -72,5 +90,5 @@ class ConfigRepository:
     def __repr__(self):
         return (
             f"ConfigRepository(organization_name={self.organization_name}, repository_name={self.repository_name}, "
-            f"paths={self.paths})"
+            f"paths={self.paths}, func_paths={self.func_paths}, pages_paths={self.pages_paths})"
         )

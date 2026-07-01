@@ -1,6 +1,388 @@
 {
     "items": [
         {
+            "id": "absa-group/unify-living-documentation/dashboard_view.feature/user-sees-the-domains-they-have-access-to-on-the-dashboard",
+            "us_id": "US-2",
+            "ac_ids": [
+                "US-2-01"
+            ],
+            "scenario_name": "User sees the domains they have access to on the dashboard",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user views the dashboard"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user sees the domains they have access to"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "dashboard_view.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/data_feed_edit.feature/user-edits-a-data-feed-and-saves-the-changes",
+            "us_id": "US-9",
+            "ac_ids": [
+                "US-9-01"
+            ],
+            "scenario_name": "User edits a data feed and saves the changes",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a data feed"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user updates the data feed classification and saves the changes"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the updated data feed configuration is persisted"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "data_feed_edit.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/data_feed_view.feature/user-opens-a-data-feed-and-views-its-details",
+            "us_id": "US-18",
+            "ac_ids": [
+                "US-18-01"
+            ],
+            "scenario_name": "User opens a data feed and views its details",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "a domain with a data feed exists"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user opens the data feed"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the data feed details are displayed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "data_feed_view.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/data_feeds_add.feature/user-adds-a-new-data-feed-by-completing-all-mandatory-fields",
+            "us_id": "US-3",
+            "ac_ids": [
+                "US-3-01"
+            ],
+            "scenario_name": "User adds a new data feed by completing all mandatory fields",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a domain"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user adds a data feed with all mandatory fields completed"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the new data feed is added to the domain"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "data_feeds_add.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/data_feeds_delete.feature/owner-deletes-a-data-feed-after-confirming-the-prompt",
+            "us_id": "US-6",
+            "ac_ids": [
+                "US-6-01",
+                "US-6-02"
+            ],
+            "scenario_name": "Owner deletes a data feed after confirming the prompt",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a domain with a data feed"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user deletes the data feed and confirms the deletion prompt"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the data feed is removed from the domain"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "data_feeds_delete.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/data_feeds_search.feature/user-searches-for-a-data-feed-by-name",
+            "us_id": "US-12",
+            "ac_ids": [
+                "US-12-01"
+            ],
+            "scenario_name": "User searches for a data feed by name",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user searches for a data feed by name"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the matching data feeds are displayed in the results"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "data_feeds_search.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_access_direct_granting.feature/domain-owner-directly-approves-a-pending-access-request-from-the-domain-page",
+            "us_id": "US-24",
+            "ac_ids": [
+                "US-24-01"
+            ],
+            "scenario_name": "Domain owner directly approves a pending access request from the domain page",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a domain with a pending access request"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the owner directly approves the access request"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the request is approved and access is granted"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_access_direct_granting.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_access_request.feature/user-requests-access-to-a-domain-they-do-not-own",
+            "us_id": "US-27",
+            "ac_ids": [
+                "US-27-02"
+            ],
+            "scenario_name": "User requests access to a domain they do not own",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "a domain exists that the user does not own or have access to"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user submits an access request for the domain"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the user sees an on-screen confirmation"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the request appears in their Domain Access Rights page with status \"Pending\""
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_access_request.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_access_requests_approval.feature/domain-owner-approves-a-pending-access-request-from-the-access-requests-overview",
+            "us_id": "US-23",
+            "ac_ids": [
+                "US-23-02"
+            ],
+            "scenario_name": "Domain owner approves a pending access request from the Access Requests overview",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user has a pending domain access request"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user approves the pending request from the Access Requests overview"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the request status changes to Approved"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_access_requests_approval.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_access_rights_view.feature/user-views-their-domain-access-rights",
+            "us_id": "US-28",
+            "ac_ids": [
+                "US-28-01"
+            ],
+            "scenario_name": "User views their domain access rights",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user has submitted at least one domain access request"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user opens the \"My access rights to domains\" page from the Settings overlay"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "a table listing all their access requests is displayed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_access_rights_view.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_access_users_overview.feature/domain-owner-searches-users-with-access-by-name",
+            "us_id": "US-25",
+            "ac_ids": [
+                "US-25-01"
+            ],
+            "scenario_name": "Domain owner searches users with access by name",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a domain with at least one user that has access"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the owner searches for a user with access by name"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the matching users are displayed in the results"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_access_users_overview.feature"
+            }
+        },
+        {
             "id": "absa-group/unify-living-documentation/domain_create.feature/user-can-complete-the-create-domain-wizard-and-create-a-new-domain",
             "us_id": "US-26",
             "ac_ids": [
@@ -163,6 +545,522 @@
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
                 "file": "domain_create.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_delete.feature/owner-deletes-a-domain-after-confirming-the-prompt",
+            "us_id": "US-7",
+            "ac_ids": [
+                "US-7-01",
+                "US-7-02"
+            ],
+            "scenario_name": "Owner deletes a domain after confirming the prompt",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a domain"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user deletes the domain and confirms the deletion prompt"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the domain is removed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_delete.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_edit.feature/user-edits-a-domain-description-and-saves-the-changes",
+            "us_id": "US-10",
+            "ac_ids": [
+                "US-10-02",
+                "US-10-05"
+            ],
+            "scenario_name": "User edits a domain description and saves the changes",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a domain"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user updates the domain description and saves the changes"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the updated description is persisted and visible on reload"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_edit.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_import.feature/user-imports-a-domain-from-a-valid-json-export-file",
+            "us_id": "US-22",
+            "ac_ids": [
+                "US-22-01",
+                "US-22-03"
+            ],
+            "scenario_name": "User imports a domain from a valid JSON export file",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user has a valid domain export JSON file"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user opens the Import Domain dialog and imports the domain with a valid name and file"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the dialog closes"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the newly imported domain is visible in the domain list"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_import.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_search.feature/user-searches-for-a-domain-by-name",
+            "us_id": "US-13",
+            "ac_ids": [
+                "US-13-01"
+            ],
+            "scenario_name": "User searches for a domain by name",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user searches for a domain by name"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the matching domains are displayed in the results"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_search.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_version_management.feature/domain-owner-views-the-version-management-tab",
+            "us_id": "US-29",
+            "ac_ids": [
+                "US-29-01"
+            ],
+            "scenario_name": "Domain owner views the version management tab",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user is the primary owner of a domain"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the owner opens the \"Version management\" tab on the Domain Detail page"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the current version and its lifecycle status are displayed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_version_management.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/domain_view.feature/user-opens-a-domain-and-views-its-details",
+            "us_id": "US-16",
+            "ac_ids": [
+                "US-16-01"
+            ],
+            "scenario_name": "User opens a domain and views its details",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user can see at least one domain"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user opens the domain"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the domain details are displayed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "domain_view.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/notifications_on_screen.feature/on-screen-notification-is-shown-when-a-domain-is-created",
+            "us_id": "US-19",
+            "ac_ids": [
+                "US-19-01"
+            ],
+            "scenario_name": "On-screen notification is shown when a domain is created",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user successfully creates a domain"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "an on-screen notification confirming the domain creation is displayed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "notifications_on_screen.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_close.feature/question-owner-closes-an-open-question",
+            "us_id": "US-4",
+            "ac_ids": [
+                "US-4-01"
+            ],
+            "scenario_name": "Question owner closes an open question",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns an open question"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the owner closes the question"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the question is marked as closed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_close.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_create.feature/user-creates-a-question-with-all-mandatory-fields",
+            "us_id": "US-5",
+            "ac_ids": [
+                "US-5-01",
+                "US-5-04"
+            ],
+            "scenario_name": "User creates a question with all mandatory fields",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user asks a question with a subject, a description, and a selected domain"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the question is immediately visible in the question list"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_create.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_delete.feature/owner-deletes-a-question-after-confirming-the-prompt",
+            "us_id": "US-8",
+            "ac_ids": [
+                "US-8-01",
+                "US-8-02"
+            ],
+            "scenario_name": "Owner deletes a question after confirming the prompt",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a question"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user deletes the question and confirms the deletion prompt"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the question is removed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_delete.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_mark_helpful.feature/question-owner-marks-a-reply-as-helpful",
+            "us_id": "US-20",
+            "ac_ids": [
+                "US-20-01"
+            ],
+            "scenario_name": "Question owner marks a reply as helpful",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a question that has a reply"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the owner marks the reply as helpful"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the reply is displayed with the helpful indicator"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_mark_helpful.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_reply.feature/user-replies-to-an-open-question",
+            "us_id": "US-11",
+            "ac_ids": [
+                "US-11-01"
+            ],
+            "scenario_name": "User replies to an open question",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "an open question exists"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user posts a reply to the question"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the reply is added to the question dialogue"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_reply.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_search.feature/user-searches-for-a-question-by-name",
+            "us_id": "US-14",
+            "ac_ids": [
+                "US-14-01"
+            ],
+            "scenario_name": "User searches for a question by name",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user searches for a question by name"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the matching questions are displayed in the results"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_search.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_unmark_helpful_reply.feature/question-owner-unmarks-a-helpful-reply",
+            "us_id": "US-21",
+            "ac_ids": [
+                "US-21-01",
+                "US-21-02"
+            ],
+            "scenario_name": "Question owner unmarks a helpful reply",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "And",
+                    "text": "the user owns a question with a reply marked as helpful"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the owner unmarks the helpful reply"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the reply no longer displays the helpful indicator"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_unmark_helpful_reply.feature"
+            }
+        },
+        {
+            "id": "absa-group/unify-living-documentation/question_view.feature/user-opens-a-question-and-views-its-details",
+            "us_id": "US-17",
+            "ac_ids": [
+                "US-17-01",
+                "US-17-02"
+            ],
+            "scenario_name": "User opens a question and views its details",
+            "scenario_type": "Scenario",
+            "tags": [
+                "Regression"
+            ],
+            "steps": [
+                {
+                    "keyword": "Given",
+                    "text": "the user \"1\" is logged in"
+                },
+                {
+                    "keyword": "When",
+                    "text": "the user opens a question"
+                },
+                {
+                    "keyword": "Then",
+                    "text": "the question details are displayed"
+                }
+            ],
+            "source": {
+                "org": "absa-group",
+                "repo": "unify-living-documentation",
+                "file": "question_view.feature"
             }
         },
         {
@@ -357,7 +1255,7 @@
             "enterprise": null
         },
         "original_metadata": {
-            "generated_at": "2026-06-30T13:09:47.117998+00:00",
+            "generated_at": "2026-07-01T10:38:58.329935+00:00",
             "schema_version": "1.0.0",
             "inputs": {}
         }

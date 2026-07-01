@@ -48,3 +48,28 @@ def discover_feature_files(paths: list[str]) -> list[Path]:
         matched.update(found)
 
     return sorted(matched)
+
+
+def discover_ts_files(paths: list[str]) -> list[Path]:
+    """
+    Recursively scan each absolute directory path for .ts files.
+
+    Parameters:
+        paths: Absolute directory paths to scan.
+
+    Returns:
+        Sorted list of unique matching file paths.
+    """
+    matched: set[Path] = set()
+    for path in paths:
+        root = Path(path)
+        if not root.exists():
+            logger.warning("Path `%s` does not exist - skipping.", path)
+            continue
+        found = [p for p in root.rglob("*.ts") if p.is_file()]
+        if not found:
+            logger.warning("No .ts files found under `%s`.", path)
+            continue
+        matched.update(found)
+
+    return sorted(matched)

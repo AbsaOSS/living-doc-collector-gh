@@ -18,7 +18,7 @@ import os
 
 from doc_source.collector import GHDocSourceCollector
 
-FEATURE_TEMPLATE = """# =============================================================================
+US_FEATURE_TEMPLATE = """# =============================================================================
 # LIVING DOC — US-{num} · Story {num}
 # =============================================================================
 # source:         https://github.com/org/repo/issues/{num}
@@ -37,20 +37,69 @@ Feature: Story {num}
 As a user, I want story {num} so that value.
 """
 
+FUNC_FEATURE_TEMPLATE = """# =============================================================================
+# LIVING DOC — FUNC-{num} · Functionality {num}
+# =============================================================================
+# status:    active
+# parent:    FEAT-001
+# func_type: button_action
+#
+# acceptance_criteria:
+#
+#   AC:FUNC-{num}-01 (v1.0.0 - Active)
+#     - Criterion for functionality {num}.
+# =============================================================================
 
-def _write_feature(directory, num):
+@FUNC_ID:FUNC-{num}
+Feature: Functionality {num}
+Description of functionality {num}.
+"""
+
+TS_PAGE_OBJECT_TEMPLATE = """/* =============================================================================
+ * LIVING DOC — FEAT-{num} · Feature {num}
+ * =============================================================================
+ * surface_type:          UI
+ * route:                 /feat-{num}
+ * owners:                Test Team
+ * status:                active
+ * purpose:               Purpose of feature {num}.
+ * user_stories:          US-{num}
+ * functionalities:       FUNC-{num}
+ * external_dependencies: none
+ * page-object:           Feature{num}Page.ts
+ * ============================================================================= */
+
+import type {{ Page }} from '@playwright/test';
+
+export class Feature{num}Page {{}}
+"""
+
+
+def _write_us_feature(directory, num):
     path = directory / f"story_{num}.feature"
-    path.write_text(FEATURE_TEMPLATE.format(num=num), encoding="utf-8")
+    path.write_text(US_FEATURE_TEMPLATE.format(num=num), encoding="utf-8")
+    return path
+
+
+def _write_func_feature(directory, num):
+    path = directory / f"func_{num}.feature"
+    path.write_text(FUNC_FEATURE_TEMPLATE.format(num=num), encoding="utf-8")
+    return path
+
+
+def _write_ts_page_object(directory, num):
+    path = directory / f"Feature{num}Page.ts"
+    path.write_text(TS_PAGE_OBJECT_TEMPLATE.format(num=num), encoding="utf-8")
     return path
 
 
 def test_collect_single_repo(tmp_path, mocker):
     # Arrange
     repo_dir = tmp_path / "repo"
-    features_dir = repo_dir / "features"
-    features_dir.mkdir(parents=True)
-    _write_feature(features_dir, 1)
-    _write_feature(features_dir, 2)
+    us_dir = repo_dir / "us"
+    us_dir.mkdir(parents=True)
+    _write_us_feature(us_dir, 1)
+    _write_us_feature(us_dir, 2)
 
     output_dir = tmp_path / "output"
     output_dir.mkdir()
@@ -61,7 +110,7 @@ def test_collect_single_repo(tmp_path, mocker):
             {
                 "organization-name": "absa-group",
                 "repository-name": "aul-ui",
-                "paths": [str(repo_dir)],
+                "us-paths": [str(repo_dir)],
             }
         ],
     )
@@ -74,11 +123,94 @@ def test_collect_single_repo(tmp_path, mocker):
     output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
     with open(output_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-    assert len(data["items"]) == 2
-    ids = sorted(item["id"] for item in data["items"])
+    assert len(data["user_stories"]) == 2
+    ids = sorted(item["id"] for item in data["user_stories"])
     assert ids == ["absa-group/aul-ui/US-1", "absa-group/aul-ui/US-2"]
-    assert all(item["timestamps"] is None for item in data["items"])
-    assert all(item["tags"] == [] for item in data["items"])
+    assert all(item["timestamps"] is None for item in data["user_stories"])
+    assert all(item["tags"] == [] for item in data["user_stories"])
+    assert all(item["repository_name"] == "aul-ui" for item in data["user_stories"])
+
+
+def test_collect_functionalities(tmp_path, mocker):
+    # Arrange
+    func_dir = tmp_path / "func"
+    func_dir.mkdir(parents=True)
+    _write_func_feature(func_dir, 1)
+    _write_func_feature(func_dir, 2)
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[
+            {
+                "organization-name": "absa-group",
+                "repository-name": "aul-ui",
+                "us-paths": [],
+                "func-paths": [str(func_dir)],
+            }
+        ],
+    )
+
+    # Act
+    result = GHDocSourceCollector(str(output_dir)).collect()
+
+    # Assert
+    assert result is True
+    output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
+    with open(output_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    assert data["user_stories"] == []
+    assert len(data["functionalities"]) == 2
+    ids = sorted(item["id"] for item in data["functionalities"])
+    assert ids == ["absa-group/aul-ui/FUNC-1", "absa-group/aul-ui/FUNC-2"]
+    assert all(item["parent"] == "FEAT-001" for item in data["functionalities"])
+    assert all(item["func_type"] == "button_action" for item in data["functionalities"])
+    assert all(item["repository_name"] == "aul-ui" for item in data["functionalities"])
+
+
+def test_collect_features(tmp_path, mocker):
+    # Arrange
+    pages_dir = tmp_path / "pages"
+    pages_dir.mkdir(parents=True)
+    _write_ts_page_object(pages_dir, 1)
+    _write_ts_page_object(pages_dir, 2)
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[
+            {
+                "organization-name": "absa-group",
+                "repository-name": "aul-ui",
+                "us-paths": [],
+                "pages-paths": [str(pages_dir)],
+            }
+        ],
+    )
+
+    # Act
+    result = GHDocSourceCollector(str(output_dir)).collect()
+
+    # Assert
+    assert result is True
+    output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
+    with open(output_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    assert data["user_stories"] == []
+    assert len(data["features"]) == 2
+    ids = sorted(item["id"] for item in data["features"])
+    assert ids == ["absa-group/aul-ui/FEAT-1", "absa-group/aul-ui/FEAT-2"]
+    feat = next(item for item in data["features"] if item["id"] == "absa-group/aul-ui/FEAT-1")
+    assert feat["surface_type"] == "UI"
+    assert feat["route"] == "/feat-1"
+    assert feat["user_stories"] == ["US-1"]
+    assert feat["functionalities"] == ["FUNC-1"]
+    assert feat["page_object"] == "Feature1Page.ts"
+    assert feat["repository_name"] == "aul-ui"
 
 
 def test_collect_local_path_missing(tmp_path, mocker):
@@ -92,7 +224,7 @@ def test_collect_local_path_missing(tmp_path, mocker):
             {
                 "organization-name": "absa-group",
                 "repository-name": "aul-ui",
-                "paths": [str(tmp_path / "does-not-exist")],
+                "us-paths": [str(tmp_path / "does-not-exist")],
             }
         ],
     )
@@ -105,7 +237,7 @@ def test_collect_local_path_missing(tmp_path, mocker):
     output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
     with open(output_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-    assert data["items"] == []
+    assert data["user_stories"] == []
 
 
 def test_collect_no_matching_files(tmp_path, mocker):
@@ -121,7 +253,7 @@ def test_collect_no_matching_files(tmp_path, mocker):
             {
                 "organization-name": "absa-group",
                 "repository-name": "aul-ui",
-                "paths": [str(repo_dir)],
+                "us-paths": [str(repo_dir)],
             }
         ],
     )
@@ -134,7 +266,7 @@ def test_collect_no_matching_files(tmp_path, mocker):
     output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
     with open(output_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-    assert data["items"] == []
+    assert data["user_stories"] == []
 
 
 def test_collect_invalid_repository_json_logs_error(tmp_path, mocker):

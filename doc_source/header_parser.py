@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 _DELIMITER_PATTERN = re.compile(r"^#\s*=+\s*$")
 _TITLE_PATTERN = re.compile(r"US-(\d+)\s*·\s*(.+?)\s*$")
 _US_ID_TAG_PATTERN = re.compile(r"^@US_ID:\s*US-(\d+)")
+_FUNC_TITLE_PATTERN = re.compile(r"FUNC-(\d+)\s*·\s*(.+?)\s*$")
+_FUNC_ID_TAG_PATTERN = re.compile(r"^@FUNC_ID:\s*FUNC-(\d+)")
 _KEY_PATTERN = re.compile(r"^(\w+):\s*(.*)$")
 _AC_HEADER_PATTERN = re.compile(r"^AC:(\S+)\s*\(([^)]*)\)")
 
@@ -216,3 +218,85 @@ def _find_us_id_tag(lines: list[str]) -> Optional[str]:
         if match:
             return f"US-{match.group(1)}"
     return None
+
+
+def _find_func_id_tag(lines: list[str]) -> Optional[str]:
+    """Find the `@FUNC_ID:FUNC-{id}` tag value in the file lines, if present."""
+    for line in lines:
+        match = _FUNC_ID_TAG_PATTERN.match(line.strip())
+        if match:
+            return f"FUNC-{match.group(1)}"
+    return None
+
+
+def parse_func_header(lines: list[str]) -> Optional[dict]:
+    """
+    Parse a FUNC .feature file header block into a structured dict.
+
+    Parameters:
+        lines: All raw lines of the .feature file.
+
+    Returns:
+        A dict with keys: func_id, title, state, parent, func_type,
+        acceptance_criteria. Returns None when required fields are missing.
+    """
+    block = _extract_header_block(lines)
+    if block is None:
+        logger.warning("Header block missing from FUNC file - skipping.")
+        return None
+
+    title_id: Optional[str] = None
+    title: Optional[str] = None
+    state: Optional[str] = None
+    parent: Optional[str] = None
+    func_type: Optional[str] = None
+    sections: dict[str, list[str]] = {}
+    current_section: Optional[str] = None
+
+    for content in block:
+        if title_id is None:
+            m = _FUNC_TITLE_PATTERN.search(content)
+            if m:
+                title_id = f"FUNC-{m.group(1)}"
+                title = m.group(2).strip()
+                continue
+
+        if not content.startswith(" "):
+            key_match = _KEY_PATTERN.match(content)
+            if key_match:
+                key, value = key_match.group(1).lower(), key_match.group(2).strip()
+                if key == "status":
+                    state = value.lower() or None
+                    current_section = None
+                elif key == "parent":
+                    parent = value or None
+                    current_section = None
+                elif key == "func_type":
+                    func_type = value or None
+                    current_section = None
+                elif key == "acceptance_criteria":
+                    current_section = key
+                    sections[key] = []
+                else:
+                    current_section = None
+                continue
+
+        if current_section is not None:
+            sections[current_section].append(content)
+
+    if title_id is None or not title:
+        logger.warning("Required FUNC header field missing (FUNC ID or title) - skipping file.")
+        return None
+
+    tag_id = _find_func_id_tag(lines)
+    if tag_id is not None and tag_id != title_id:
+        logger.warning("`@FUNC_ID` tag `%s` mismatches header ID `%s` - using header ID.", tag_id, title_id)
+
+    return {
+        "func_id": title_id,
+        "title": title,
+        "state": state,
+        "parent": parent,
+        "func_type": func_type,
+        "acceptance_criteria": _parse_acceptance_criteria(sections.get("acceptance_criteria", [])),
+    }

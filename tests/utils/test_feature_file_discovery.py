@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from utils.feature_file_discovery import discover_feature_files
+from utils.feature_file_discovery import discover_feature_files, discover_ts_files
 
 
 def test_matching_glob(tmp_path):
@@ -57,6 +57,57 @@ def test_directory_match_excluded(tmp_path):
 
     # Act
     result = discover_feature_files([str(tmp_path)])
+
+    # Assert
+    assert result == []
+
+
+# ---------------------------------------------------------------------------
+# discover_ts_files tests
+# ---------------------------------------------------------------------------
+
+
+def test_ts_matching_files(tmp_path):
+    # Arrange
+    pages = tmp_path / "pages"
+    pages.mkdir()
+    file_a = pages / "LoginPage.ts"
+    file_b = pages / "DashboardPage.ts"
+    file_a.write_text("export class LoginPage {}", encoding="utf-8")
+    file_b.write_text("export class DashboardPage {}", encoding="utf-8")
+    (pages / "ignore.js").write_text("nope", encoding="utf-8")
+
+    # Act
+    result = discover_ts_files([str(tmp_path)])
+
+    # Assert
+    assert result == [file_b, file_a]
+
+
+def test_ts_no_match(tmp_path, caplog):
+    # Act
+    result = discover_ts_files([str(tmp_path)])
+
+    # Assert
+    assert result == []
+    assert any("No .ts files found under" in message for message in caplog.messages)
+
+
+def test_ts_missing_local_path(tmp_path):
+    # Act
+    result = discover_ts_files([str(tmp_path / "missing")])
+
+    # Assert
+    assert result == []
+
+
+def test_ts_directory_match_excluded(tmp_path):
+    # Arrange
+    nested = tmp_path / "page.ts"
+    nested.mkdir()
+
+    # Act
+    result = discover_ts_files([str(tmp_path)])
 
     # Assert
     assert result == []

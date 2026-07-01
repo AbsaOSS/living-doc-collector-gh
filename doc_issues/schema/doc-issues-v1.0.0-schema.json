@@ -368,11 +368,11 @@
   },
   "description": "Complete result from adapter parsing.",
   "properties": {
-    "items": {
+    "user_stories": {
       "items": {
         "$ref": "#/$defs/AdapterItem"
       },
-      "title": "Items",
+      "title": "User Stories",
       "type": "array"
     },
     "metadata": {
@@ -387,7 +387,7 @@
     }
   },
   "required": [
-    "items",
+    "user_stories",
     "metadata",
     "warnings"
   ],

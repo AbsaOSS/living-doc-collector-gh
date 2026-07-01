@@ -15,9 +15,9 @@
 #
 
 """
-This module contains the `doc-source` collector, which mines User Story living
-documentation from `.feature` file header blocks in locally checked-out
-repositories and emits JSON in the `doc-issues` schema.
+This module contains the `doc-source` collector, which mines User Story,
+Functionality, and Feature living documentation from locally checked-out
+repositories and emits JSON.
 """
 
 import json
@@ -27,10 +27,11 @@ import shutil
 from datetime import datetime, timezone
 
 from action_inputs import ActionInputs
-from doc_source.header_parser import parse_header
+from doc_source.header_parser import parse_func_header, parse_header
 from doc_source.model.config_repository import ConfigRepository
+from doc_source.page_object_parser import parse_page_object_header
 from utils.constants import DOC_SOURCE_OUTPUT_PATH, get_package_version
-from utils.feature_file_discovery import discover_feature_files
+from utils.feature_file_discovery import discover_feature_files, discover_ts_files
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 class GHDocSourceCollector:
     """
     A class representing the `doc-source` collector. It scans local `.feature`
-    files for header blocks and exports the parsed living documentation as JSON.
+    and `.ts` files for LIVING DOC header blocks and exports the parsed data as JSON.
     """
 
     def __init__(self, output_path: str):
@@ -47,18 +48,23 @@ class GHDocSourceCollector:
 
     def collect(self) -> bool:
         """
-        Collect `doc-source` data from local `.feature` files and export the output.
+        Collect `doc-source` data from local files and export the output.
 
         @return: True if collection completed, False only if the output cannot be written.
         """
         self._clean_output_directory()
         logger.debug("'doc-source' mode output directory cleaned.")
 
-        items: list[dict] = []
-        for config in self._load_repositories():
-            items.extend(self._collect_repository(config))
+        user_stories: list[dict] = []
+        functionalities: list[dict] = []
+        features: list[dict] = []
 
-        return self._store_items(items)
+        for config in self._load_repositories():
+            user_stories.extend(self._collect_user_stories(config))
+            functionalities.extend(self._collect_functionalities(config))
+            features.extend(self._collect_features(config))
+
+        return self._store_items(user_stories, functionalities, features)
 
     def _clean_output_directory(self) -> None:
         """Clean the output directory from the previous run."""
@@ -79,8 +85,8 @@ class GHDocSourceCollector:
         return repositories
 
     @staticmethod
-    def _collect_repository(config: ConfigRepository) -> list[dict]:
-        """Collect output items for a single configured repository."""
+    def _collect_user_stories(config: ConfigRepository) -> list[dict]:
+        """Collect User Story items from US .feature files for a single configured repository."""
         items: list[dict] = []
         for file_path in discover_feature_files(config.paths):
             try:
@@ -96,6 +102,7 @@ class GHDocSourceCollector:
             items.append(
                 {
                     "id": f"{config.organization_name}/{config.repository_name}/{parsed['us_id']}",
+                    "repository_name": config.repository_name,
                     "title": parsed["title"],
                     "state": parsed["state"],
                     "tags": [],
@@ -110,13 +117,83 @@ class GHDocSourceCollector:
 
         return items
 
-    def _store_items(self, items: list[dict]) -> bool:
+    @staticmethod
+    def _collect_functionalities(config: ConfigRepository) -> list[dict]:
+        """Collect Functionality items from FUNC .feature files for a single configured repository."""
+        items: list[dict] = []
+        for file_path in discover_feature_files(config.func_paths):
+            try:
+                lines = file_path.read_text(encoding="utf-8").splitlines()
+            except OSError as e:
+                logger.warning("Could not read FUNC file `%s`: %s - skipping.", file_path, e)
+                continue
+
+            parsed = parse_func_header(lines)
+            if parsed is None:
+                continue
+
+            items.append(
+                {
+                    "id": f"{config.organization_name}/{config.repository_name}/{parsed['func_id']}",
+                    "repository_name": config.repository_name,
+                    "title": parsed["title"],
+                    "state": parsed["state"],
+                    "parent": parsed["parent"],
+                    "func_type": parsed["func_type"],
+                    "acceptance_criteria": parsed["acceptance_criteria"],
+                }
+            )
+
+        return items
+
+    @staticmethod
+    def _collect_features(config: ConfigRepository) -> list[dict]:
+        """Collect Feature items from TypeScript page object files for a single configured repository."""
+        items: list[dict] = []
+        for file_path in discover_ts_files(config.pages_paths):
+            try:
+                lines = file_path.read_text(encoding="utf-8").splitlines()
+            except OSError as e:
+                logger.warning("Could not read page object file `%s`: %s - skipping.", file_path, e)
+                continue
+
+            parsed = parse_page_object_header(lines)
+            if parsed is None:
+                continue
+
+            items.append(
+                {
+                    "id": f"{config.organization_name}/{config.repository_name}/{parsed['feat_id']}",
+                    "repository_name": config.repository_name,
+                    "title": parsed["title"],
+                    "state": parsed["state"],
+                    "surface_type": parsed["surface_type"],
+                    "route": parsed["route"],
+                    "owners": parsed["owners"],
+                    "purpose": parsed["purpose"],
+                    "user_stories": parsed["user_stories"],
+                    "functionalities": parsed["functionalities"],
+                    "external_dependencies": parsed["external_dependencies"],
+                    "page_object": parsed["page_object"],
+                }
+            )
+
+        return items
+
+    def _store_items(
+        self,
+        user_stories: list[dict],
+        functionalities: list[dict],
+        features: list[dict],
+    ) -> bool:
         """Persist the collected items as JSON. Returns False on write failure."""
         output_file_path = os.path.join(self.__output_path, "doc-source.json")
         logger.info("Exporting doc-source items - exporting to `%s`.", output_file_path)
 
         output_data = {
-            "items": items,
+            "user_stories": user_stories,
+            "functionalities": functionalities,
+            "features": features,
             "metadata": self._get_file_metadata(),
             "warnings": [],
         }

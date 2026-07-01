@@ -1,11 +1,12 @@
 {
-    "items": [
+    "user_stories": [
         {
-            "id": "absa-group/unify-living-documentation/US-2",
+            "id": "absa-group/aul/US-2",
+            "repository_name": "aul",
             "title": "View Dashboard",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/12",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to view a dashboard that gives me an overview of all domains in the system so that I can navigate to the domains relevant to me.",
             "business_value": [
@@ -66,11 +67,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-9",
+            "id": "absa-group/aul/US-9",
+            "repository_name": "aul",
             "title": "Edit Data Feeds",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/26",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to edit data feeds so that I can keep data feed configuration up to date.",
             "business_value": [
@@ -96,11 +98,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-18",
+            "id": "absa-group/aul/US-18",
+            "repository_name": "aul",
             "title": "View Data Feed",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/14",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to view data feeds so that I can understand their configuration and status.",
             "business_value": [
@@ -132,11 +135,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-3",
+            "id": "absa-group/aul/US-3",
+            "repository_name": "aul",
             "title": "Add Data Feeds",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/24",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to add data feeds so that I can make data sources available within a domain.",
             "business_value": [
@@ -163,11 +167,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-6",
+            "id": "absa-group/aul/US-6",
+            "repository_name": "aul",
             "title": "Delete Data Feeds",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/25",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to delete data feeds so that I can remove data feeds that are no longer required.",
             "business_value": [
@@ -201,11 +206,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-12",
+            "id": "absa-group/aul/US-12",
+            "repository_name": "aul",
             "title": "Search Data Feeds",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/20",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to search among all data feeds so that I can quickly find the data feed I need.",
             "business_value": [
@@ -232,11 +238,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-24",
+            "id": "absa-group/aul/US-24",
+            "repository_name": "aul",
             "title": "Domain Access - Direct Granting Access",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/18",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to view and direct access management from the domain page so that I can efficiently manage who has access to my domain.",
             "business_value": [
@@ -268,7 +275,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-27",
+            "id": "absa-group/aul/US-27",
+            "repository_name": "aul",
             "title": "Request Access to Domain",
             "state": "active",
             "tags": [],
@@ -311,11 +319,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-23",
+            "id": "absa-group/aul/US-23",
+            "repository_name": "aul",
             "title": "Domain Access - Requests Approval",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/22",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to view bulk access request management from the Access Requests overview screen so that I can control who has access to my domain.",
             "business_value": [
@@ -347,7 +356,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-28",
+            "id": "absa-group/aul/US-28",
+            "repository_name": "aul",
             "title": "View My Domain Access Rights",
             "state": "active",
             "tags": [],
@@ -395,11 +405,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-25",
+            "id": "absa-group/aul/US-25",
+            "repository_name": "aul",
             "title": "Domain Access - Overview of Users with Access",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/23",
+            "url": null,
             "timestamps": null,
             "description": "As a domain owner, I want to see all users who have access to my domain, so that I can manage domain access effectively.",
             "business_value": [
@@ -432,11 +443,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-26",
+            "id": "absa-group/aul/US-26",
+            "repository_name": "aul",
             "title": "Create Domain",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/3",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to create domain so that I can make it available for data consumers.",
             "business_value": [
@@ -491,7 +503,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-30",
+            "id": "absa-group/aul/US-30",
+            "repository_name": "aul",
             "title": "View Domain Data Flow",
             "state": "planned",
             "tags": [],
@@ -527,7 +540,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-7",
+            "id": "absa-group/aul/US-7",
+            "repository_name": "aul",
             "title": "Delete Domain",
             "state": null,
             "tags": [],
@@ -539,11 +553,12 @@
             "acceptance_criteria": []
         },
         {
-            "id": "absa-group/unify-living-documentation/US-10",
+            "id": "absa-group/aul/US-10",
+            "repository_name": "aul",
             "title": "Edit Domain",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/9",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to edit domain details so that I can keep domain information accurate and up to date.",
             "business_value": [
@@ -593,7 +608,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-31",
+            "id": "absa-group/aul/US-31",
+            "repository_name": "aul",
             "title": "View Domain Hygiene (Survivorship)",
             "state": "planned",
             "tags": [],
@@ -635,7 +651,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-22",
+            "id": "absa-group/aul/US-22",
+            "repository_name": "aul",
             "title": "Import Domain",
             "state": "active",
             "tags": [],
@@ -684,11 +701,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-13",
+            "id": "absa-group/aul/US-13",
+            "repository_name": "aul",
             "title": "Search Domain",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/19",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to search among all domains so that I can quickly find the domain I need.",
             "business_value": [
@@ -727,7 +745,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-29",
+            "id": "absa-group/aul/US-29",
+            "repository_name": "aul",
             "title": "Manage Domain Versions",
             "state": "active",
             "tags": [],
@@ -781,11 +800,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-16",
+            "id": "absa-group/aul/US-16",
+            "repository_name": "aul",
             "title": "View Domain",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/28",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to view the details of a selected domain so that I can understand its details and manage it effectively.",
             "business_value": [
@@ -829,11 +849,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-19",
+            "id": "absa-group/aul/US-19",
+            "repository_name": "aul",
             "title": "On-screen Notifications",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/17",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to receive on-screen notifications so that I can stay informed about changes in real time.",
             "business_value": [
@@ -932,11 +953,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-4",
+            "id": "absa-group/aul/US-4",
+            "repository_name": "aul",
             "title": "Close Question",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/8",
+            "url": null,
             "timestamps": null,
             "description": "As a question owner, I want to close one or more questions so that I can mark them as resolved and prevent further replies.",
             "business_value": [
@@ -970,11 +992,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-5",
+            "id": "absa-group/aul/US-5",
+            "repository_name": "aul",
             "title": "Create Question",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/11",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to ask a question so that I can get help or information from other users.",
             "business_value": [
@@ -1011,11 +1034,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-8",
+            "id": "absa-group/aul/US-8",
+            "repository_name": "aul",
             "title": "Delete Question",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/5",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to delete a question so that I can remove questions that are no longer relevant.",
             "business_value": [
@@ -1047,11 +1071,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-20",
+            "id": "absa-group/aul/US-20",
+            "repository_name": "aul",
             "title": "Mark Question Helpful",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/13",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to mark replies to questions as helpful so that the community can identify the best answer.",
             "business_value": [
@@ -1077,11 +1102,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-11",
+            "id": "absa-group/aul/US-11",
+            "repository_name": "aul",
             "title": "Reply Question",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/7",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to reply to a question so that I can contribute answers to other users' questions.",
             "business_value": [
@@ -1107,11 +1133,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-14",
+            "id": "absa-group/aul/US-14",
+            "repository_name": "aul",
             "title": "Search Question",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/6",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to search among all questions so that I can quickly find questions relevant to me.",
             "business_value": [
@@ -1138,11 +1165,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-21",
+            "id": "absa-group/aul/US-21",
+            "repository_name": "aul",
             "title": "Unmark Helpful Question Reply",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/27",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to unmark replies on questions that were marked as helpful so that I can correct my helpful marking when needed.",
             "business_value": [
@@ -1174,11 +1202,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-17",
+            "id": "absa-group/aul/US-17",
+            "repository_name": "aul",
             "title": "View Question",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/4",
+            "url": null,
             "timestamps": null,
             "description": "As a user, I want to view question details so that I can read its full context and responses.",
             "business_value": [
@@ -1204,11 +1233,12 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-1",
+            "id": "absa-group/aul/US-1",
+            "repository_name": "aul",
             "title": "User Login",
             "state": "active",
             "tags": [],
-            "url": "https://github.com/absa-group/unify-living-documentation/issues/2",
+            "url": null,
             "timestamps": null,
             "description": "As a user with valid credentials, I want to log into the Unify application so that I can securely access the application.",
             "business_value": [
@@ -1264,7 +1294,8 @@
             ]
         },
         {
-            "id": "absa-group/unify-living-documentation/US-15",
+            "id": "absa-group/aul/US-15",
+            "repository_name": "aul",
             "title": "User Logout",
             "state": "active",
             "tags": [],
@@ -1288,6 +1319,1092 @@
             ]
         }
     ],
+    "functionalities": [
+        {
+            "id": "absa-group/aul/FUNC-001",
+            "repository_name": "aul",
+            "title": "Authentication Screen — Credential-based Login",
+            "state": "active",
+            "parent": "FEAT-001",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-001-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Submitting valid credentials navigates to the dashboard."
+                },
+                {
+                    "id": "FUNC-001-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "A user with an active session navigating to the login page is automatically redirected to the dashboard without seeing the login form."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-002",
+            "repository_name": "aul",
+            "title": "Authentication Screen — Login Form Initial State",
+            "state": "active",
+            "parent": "FEAT-001",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-002-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "On load the form renders: logo, username field, password field, and login button."
+                },
+                {
+                    "id": "FUNC-002-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The login button is disabled while either the username or password field is empty."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-003",
+            "repository_name": "aul",
+            "title": "Authentication Screen — Invalid Credential Rejection",
+            "state": "active",
+            "parent": "FEAT-001",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-003-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Submitting invalid credentials displays an error notification on screen."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-004",
+            "repository_name": "aul",
+            "title": "Application Shell — Toolbar Controls",
+            "state": "active",
+            "parent": "FEAT-002",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-004-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "On load of any authenticated page, the toolbar renders the global search control, the settings control, and the user menu trigger."
+                },
+                {
+                    "id": "FUNC-004-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The user menu trigger displays the signed-in user's display name and role."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-005",
+            "repository_name": "aul",
+            "title": "Application Shell — Sidebar Navigation",
+            "state": "active",
+            "parent": "FEAT-002",
+            "func_type": "navigation_rule",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-005-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting the Dashboard or Domains sidebar item routes to that page."
+                },
+                {
+                    "id": "FUNC-005-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting the global search control routes to the domain catalogue."
+                },
+                {
+                    "id": "FUNC-005-03",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "For the standard user role, selecting the Domain Access or Community sidebar items does not navigate away from the current page."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-006",
+            "repository_name": "aul",
+            "title": "Dashboard — Domain Carousels",
+            "state": "active",
+            "parent": "FEAT-003",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-006-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "On load the dashboard displays the primary-owned domains carousel."
+                },
+                {
+                    "id": "FUNC-006-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Domains where the user is a secondary steward appear in the secondary-steward domains carousel."
+                },
+                {
+                    "id": "FUNC-006-03",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Draft domains appear in the draft-domains carousel."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-007",
+            "repository_name": "aul",
+            "title": "Dashboard — Launch Create Domain Wizard",
+            "state": "active",
+            "parent": "FEAT-003",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-007-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Create Domain routes to the create-domain wizard About step."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-008",
+            "repository_name": "aul",
+            "title": "Dashboard — Open Import Domain Dialog",
+            "state": "active",
+            "parent": "FEAT-003",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-008-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Import domain opens the import domain dialog."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-009",
+            "repository_name": "aul",
+            "title": "Dashboard — Domain Card Actions by Ownership",
+            "state": "active",
+            "parent": "FEAT-003",
+            "func_type": "visibility",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-009-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "For a non-owned domain, the card actions menu offers view-only actions (view data feeds, view statistics, view questions, survivorship) and disables Edit domain."
+                },
+                {
+                    "id": "FUNC-009-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "For an owned domain, the card actions menu additionally offers Grant access and an enabled Edit domain action."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-010",
+            "repository_name": "aul",
+            "title": "Domain Catalogue — Search Filter",
+            "state": "active",
+            "parent": "FEAT-004",
+            "func_type": "component_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-010-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The catalogue presents a \"Search domains\" field with a GO control that searches the domain list for the entered term."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-011",
+            "repository_name": "aul",
+            "title": "Domain Catalogue — Status Filters",
+            "state": "active",
+            "parent": "FEAT-004",
+            "func_type": "component_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-011-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The filter panel offers domain status filters (Active, Cold, Draft, Testing) that are applied to the list via Apply filters."
+                },
+                {
+                    "id": "FUNC-011-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Clear filter removes the applied filters."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-012",
+            "repository_name": "aul",
+            "title": "Domain Catalogue — Navigate to Domain Detail",
+            "state": "active",
+            "parent": "FEAT-004",
+            "func_type": "navigation_rule",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-012-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting a domain name in the catalogue routes to that domain's About detail page for its version."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-013",
+            "repository_name": "aul",
+            "title": "Domain Detail — Summary Fields",
+            "state": "active",
+            "parent": "FEAT-005",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-013-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "On load the About tab displays the domain name, domain type, primary owner, and creation date."
+                },
+                {
+                    "id": "FUNC-013-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The About tab displays the adoption status, cost centre, cost centre owner, and tenant id."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-014",
+            "repository_name": "aul",
+            "title": "Domain Detail — Tab Navigation",
+            "state": "active",
+            "parent": "FEAT-005",
+            "func_type": "navigation_rule",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-014-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting a domain detail tab routes to that tab's dedicated URL for the domain version (About, Schema, Run history, Data feed, Data flow, Statistics, Questions, Access, Version management)."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-015",
+            "repository_name": "aul",
+            "title": "Domain Detail — Owner-only Actions",
+            "state": "active",
+            "parent": "FEAT-005",
+            "func_type": "visibility",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-015-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "For an owned domain, the More actions menu offers View data feeds, View statistics, Grant access, Edit domain, Delete domain, Manage versions, and Export domain."
+                },
+                {
+                    "id": "FUNC-015-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "For a non-owned domain, the More actions menu offers View data feeds, View statistics, Manage versions, and Export domain only (no Grant access, Edit domain, or Delete domain)."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-016",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard — About Field Validation",
+            "state": "active",
+            "parent": "FEAT-006",
+            "func_type": "field_validation",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-016-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The cost centre field accepts a value of two letters followed by six digits and rejects any other format."
+                },
+                {
+                    "id": "FUNC-016-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Submitting a domain name that already exists is rejected as a duplicate."
+                },
+                {
+                    "id": "FUNC-016-03",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The cost centre owner is chosen via an autocomplete that matches a partial term and resolves to the full owner option."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-017",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard — Step Progression",
+            "state": "active",
+            "parent": "FEAT-006",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-017-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Continue advances the wizard through its steps in order: About, Owner, Classification, Scheduling, Availability, Target dataset."
+                },
+                {
+                    "id": "FUNC-017-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Cancel exits the create-domain wizard."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-018",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard — Draft Editing Controls",
+            "state": "active",
+            "parent": "FEAT-006",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-018-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The wizard toolbar presents an autosave toggle and an autosave status indicator reflecting the save state."
+                },
+                {
+                    "id": "FUNC-018-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The wizard toolbar presents undo, redo, and commit controls for the draft domain."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-019",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard — Summary",
+            "state": "active",
+            "parent": "FEAT-006",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-019-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The final step displays read-only summary sections for About, Ownership, Classification, Availability, Scheduling, and Schema, each with an Edit control that returns to the corresponding step."
+                },
+                {
+                    "id": "FUNC-019-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "A success notification is displayed with a link to the created domain."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-020",
+            "repository_name": "aul",
+            "title": "Edit Domain — Immutable Fields",
+            "state": "active",
+            "parent": "FEAT-007",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-020-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "In edit mode the domain name field is disabled and cannot be changed."
+                },
+                {
+                    "id": "FUNC-020-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "In edit mode the domain type is disabled and cannot be changed."
+                },
+                {
+                    "id": "FUNC-020-03",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "In edit mode the description, cost centre, and adoption status remain editable."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-021",
+            "repository_name": "aul",
+            "title": "Edit Domain — Autosave Changes",
+            "state": "active",
+            "parent": "FEAT-007",
+            "func_type": "component_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-021-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Editing an editable field in edit mode (description, cost centre, or adoption status) persists the change via autosave."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-022",
+            "repository_name": "aul",
+            "title": "Domain Questions — Filter and Sort",
+            "state": "active",
+            "parent": "FEAT-008",
+            "func_type": "component_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-022-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "A search field with a GO control is presented to search the domain's questions list."
+                },
+                {
+                    "id": "FUNC-022-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "A sort selector and a filter panel with an Apply control are presented to reorder and filter the questions list."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-023",
+            "repository_name": "aul",
+            "title": "Domain Questions — Ask a Question",
+            "state": "active",
+            "parent": "FEAT-008",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-023-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Ask a question routes to the ask-question form."
+                },
+                {
+                    "id": "FUNC-023-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The ask-question form presents a subject field, a details editor, a tag entry, and a post control."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-024",
+            "repository_name": "aul",
+            "title": "Domain Questions — Open Question Detail",
+            "state": "active",
+            "parent": "FEAT-008",
+            "func_type": "navigation_rule",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-024-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting a question in the list routes to that question's detail page."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-025",
+            "repository_name": "aul",
+            "title": "Data Feed Populate Wizard — Step Progression",
+            "state": "active",
+            "parent": "FEAT-009",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-025-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Continue advances the populate wizard through its stepper."
+                },
+                {
+                    "id": "FUNC-025-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Cancel exits the populate wizard, and selecting Save persists the in-progress data feed."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-026",
+            "repository_name": "aul",
+            "title": "Domain Access Control — Filter Requests",
+            "state": "active",
+            "parent": "FEAT-010",
+            "func_type": "component_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-026-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting an access status (Pending, Approved, or Rejected) filters the requests list to that status."
+                },
+                {
+                    "id": "FUNC-026-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Enabling \"show only domains in my primary ownership\" restricts the list to domains the user primarily owns."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-027",
+            "repository_name": "aul",
+            "title": "Domain Access Rights — Requests Table",
+            "state": "active",
+            "parent": "FEAT-011",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-027-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The access rights table lists the user's requests with columns Domain, Domain version, Requested access, Status, and Time of request."
+                },
+                {
+                    "id": "FUNC-027-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "A Request access control and a per-row View control are presented."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-028",
+            "repository_name": "aul",
+            "title": "Data Feed Detail — Feed Information",
+            "state": "active",
+            "parent": "FEAT-012",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-028-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "On load the data feed detail page displays the feed name, description, and availability."
+                },
+                {
+                    "id": "FUNC-028-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The page presents the About, Data sources, Mapping, and Version management tabs."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-029",
+            "repository_name": "aul",
+            "title": "Domain Data Flow — Tab Navigation",
+            "state": "active",
+            "parent": "FEAT-013",
+            "func_type": "navigation_rule",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-029-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting the Data flow tab routes to the domain's data-flow page for its version."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-030",
+            "repository_name": "aul",
+            "title": "Domain Hygiene — Metrics Display",
+            "state": "active",
+            "parent": "FEAT-014",
+            "func_type": "component_state",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-030-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Selecting Survivorship from a domain card's action menu opens the domain hygiene view."
+                },
+                {
+                    "id": "FUNC-030-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The hygiene view displays metric cards for Coverage, Domain optimisation score, Total records from last run, Data quality score, and Consumers."
+                }
+            ]
+        },
+        {
+            "id": "absa-group/aul/FUNC-031",
+            "repository_name": "aul",
+            "title": "Import Domain Dialog — Submission",
+            "state": "active",
+            "parent": "FEAT-015",
+            "func_type": "button_action",
+            "acceptance_criteria": [
+                {
+                    "id": "FUNC-031-01",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "The import dialog presents a domain name field, a choose-file control, and submit and cancel controls."
+                },
+                {
+                    "id": "FUNC-031-02",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Choosing a file replaces the default \"No file selected\" text with the selected file name."
+                },
+                {
+                    "id": "FUNC-031-03",
+                    "state": "Active",
+                    "version": "v1.0.0",
+                    "description": "Submission requires a valid .json domain export file to be attached."
+                }
+            ]
+        }
+    ],
+    "features": [
+        {
+            "id": "absa-group/aul/FEAT-016",
+            "repository_name": "aul",
+            "title": "Add Schema Attribute Dialog",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "modal overlay — no dedicated URL; triggered from the Target Dataset step of Create Domain (FEAT-006) and Edit Domain (FEAT-007) wizards",
+            "owners": "Unify Team",
+            "purpose": "Modal form for adding/editing schema attributes (name, description, type, nullable).",
+            "user_stories": [
+                "US-26",
+                "US-10"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "AddSchemaAttributeDialogPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-002",
+            "repository_name": "aul",
+            "title": "Application Shell",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/* (persistent shell on all authenticated pages)",
+            "owners": "Unify Team",
+            "purpose": "Persistent authenticated shell present on every /auth/* page; provides left-sidebar navigation and top toolbar.",
+            "user_stories": [
+                "US-15",
+                "US-19"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "AppPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-008",
+            "repository_name": "aul",
+            "title": "Domain Questions  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/questions/ask-question",
+            "owners": "Unify Team",
+            "purpose": "Full-page form for submitting a question on a domain.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "AskQuestionPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-006",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/create-domain/about  (stays on this URL for all steps)",
+            "owners": "Unify Team",
+            "purpose": "Step 1 (About) — domain name, description, type, adoption status, cost centre, and tenant ID fields.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "CreateDomainAboutPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-006",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/create-domain/about  (single URL for all steps)",
+            "owners": "Unify Team",
+            "purpose": "Shared wizard toolbar (autosave, undo/redo, cancel, continue, submit) and step-header navigation helper.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "CreateDomainWizardPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-003",
+            "repository_name": "aul",
+            "title": "Dashboard",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/dashboard",
+            "owners": "Unify Team",
+            "purpose": "Home screen for authenticated users; surfaces owned-domain, draft-domain, and recently-visited-domain carousels.",
+            "user_stories": [
+                "US-2",
+                "US-16",
+                "US-26"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DashboardPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-012",
+            "repository_name": "aul",
+            "title": "Data Feed Detail",
+            "state": "candidate",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/data-feed/{feedId}/{feedVersion}",
+            "owners": "Unify Team",
+            "purpose": "Detail view for a specific data feed version; shows About, Data sources, Mapping, and Version management tabs.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DataFeedDetailPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-009",
+            "repository_name": "aul",
+            "title": "Data Feed Populate Wizard",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/data-feed/populate/about",
+            "owners": "Unify Team",
+            "purpose": "Multi-step wizard for populating a data feed on a domain.",
+            "user_stories": [
+                "US-3",
+                "US-9"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DataFeedPopulatePage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-013",
+            "repository_name": "aul",
+            "title": "Domain Data Flow",
+            "state": "candidate",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/data-flow",
+            "owners": "Unify Team",
+            "purpose": "Data Flow tab on the domain detail page — visualises data lineage / flow for a specific domain version.",
+            "user_stories": [
+                "US-30"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DataFlowPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-010",
+            "repository_name": "aul",
+            "title": "Domain Access Control",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/domain-access-control",
+            "owners": "Unify Team",
+            "purpose": "Settings page for domain owners to review and action access requests (Requests approval · Direct granting tabs).",
+            "user_stories": [
+                "US-23",
+                "US-24"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DomainAccessControlPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-011",
+            "repository_name": "aul",
+            "title": "Domain Access Rights",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/domain-access-rights",
+            "owners": "Unify Team",
+            "purpose": "Settings page showing the authenticated user's own access request history across all domains.",
+            "user_stories": [
+                "US-27",
+                "US-28"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DomainAccessRightsPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-005",
+            "repository_name": "aul",
+            "title": "Domain Detail",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/about",
+            "owners": "Unify Team",
+            "purpose": "Domain detail page with nine sub-tabs: About, Schema, Run history, Data feed, Data flow, Statistics, Questions, Access, Version management.",
+            "user_stories": [
+                "US-6",
+                "US-7",
+                "US-10",
+                "US-12",
+                "US-16",
+                "US-18",
+                "US-24",
+                "US-25",
+                "US-29"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DomainDetailPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-008",
+            "repository_name": "aul",
+            "title": "Domain Questions",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/questions /auth/all-domains/{domainId}/{version}/questions/ask-question",
+            "owners": "Unify Team",
+            "purpose": "Page for viewing, searching, filtering, and posting questions scoped to a specific domain version.",
+            "user_stories": [
+                "US-4",
+                "US-5",
+                "US-8",
+                "US-11",
+                "US-14",
+                "US-17",
+                "US-20",
+                "US-21"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DomainQuestionsPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-004",
+            "repository_name": "aul",
+            "title": "Domain Catalogue",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/all-domains",
+            "owners": "Unify Team",
+            "purpose": "Searchable and filterable catalogue listing all domains available to the authenticated user.",
+            "user_stories": [
+                "US-13",
+                "US-16",
+                "US-22",
+                "US-26"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "DomainsPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/about",
+            "owners": "Unify Team",
+            "purpose": "Step 1 (About) — domain description, type, adoption status, cost centre, and tenant ID fields. domain-name is disabled in edit mode.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainAboutPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/availability",
+            "owners": "Unify Team",
+            "purpose": "Step 5 (Availability) — domain availability frequency and schedule.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainAvailabilityPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/classification",
+            "owners": "Unify Team",
+            "purpose": "Step 3 (Classification) — domain classification tags management.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainClassificationPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/owner",
+            "owners": "Unify Team",
+            "purpose": "Step 2 (Owner) — domain owners/stewards table management.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainOwnerPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/about",
+            "owners": "Unify Team",
+            "purpose": "Multi-step wizard for editing an existing domain definition.",
+            "user_stories": [
+                "US-10"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "EditDomainPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/scheduling",
+            "owners": "Unify Team",
+            "purpose": "Step 4 (Scheduling) — domain scheduling and runtime parameters.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainSchedulingPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-006",
+            "repository_name": "aul",
+            "title": "Create Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/create-domain/target-dataset /auth/all-domains/{domainId}/{version}/edit-domain/target-dataset",
+            "owners": "Unify Team",
+            "purpose": "Final summary page shown after wizard completion (Create or Edit). Displays success notification and read-only section summaries with Edit buttons for navigating back to specific steps.",
+            "user_stories": [
+                "US-26",
+                "US-10"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "EditDomainSummaryPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/target-dataset",
+            "owners": "Unify Team",
+            "purpose": "Step 6 (Target dataset) — schema attributes table and import schema actions.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainTargetDatasetPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-007",
+            "repository_name": "aul",
+            "title": "Edit Domain Wizard  [cross-reference]",
+            "state": "active",
+            "surface_type": null,
+            "route": "/auth/all-domains/{domainId}/{version}/edit-domain/about  (single URL for all steps)",
+            "owners": "Unify Team",
+            "purpose": "Shared wizard toolbar (autosave, undo/redo, cancel, continue, submit) and step-header navigation helper.",
+            "user_stories": [],
+            "functionalities": [],
+            "external_dependencies": null,
+            "page_object": "EditDomainWizardPage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-014",
+            "repository_name": "aul",
+            "title": "Domain Hygiene",
+            "state": "candidate",
+            "surface_type": "UI",
+            "route": "/auth/all-domains/{domainId}/{version}/hygiene",
+            "owners": "Unify Team",
+            "purpose": "Hygiene view for a domain version — shows a metrics bar (Coverage, Domain optimisation score, Total records from last run, Data quality score, Consumers) alongside the domain detail content.",
+            "user_stories": [
+                "US-31"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "HygienePage.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-015",
+            "repository_name": "aul",
+            "title": "Import Domain Dialog",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "modal overlay — no dedicated URL; triggered from Dashboard (FEAT-003) and Domain Catalogue (FEAT-004)",
+            "owners": "Unify Team",
+            "purpose": "Modal overlay for importing an existing domain definition from a file; accessible from Dashboard and Domain Catalogue.",
+            "user_stories": [
+                "US-22"
+            ],
+            "functionalities": [],
+            "external_dependencies": "none",
+            "page_object": "ImportDomainDialog.ts"
+        },
+        {
+            "id": "absa-group/aul/FEAT-001",
+            "repository_name": "aul",
+            "title": "Authentication Screen",
+            "state": "active",
+            "surface_type": "UI",
+            "route": "/",
+            "owners": "Unify Team",
+            "purpose": "Authentication screen where users enter credentials to gain access to the application.",
+            "user_stories": [
+                "US-1"
+            ],
+            "functionalities": [
+                "FUNC-001",
+                "FUNC-002",
+                "FUNC-003"
+            ],
+            "external_dependencies": "none",
+            "page_object": "LoginPage.ts"
+        }
+    ],
     "metadata": {
         "producer": {
             "name": "AbsaOSS/living-doc-collector-gh",
@@ -1307,13 +2424,13 @@
                 "GitHub"
             ],
             "repositories": [
-                "absa-group/unify-living-documentation"
+                "absa-group/aul"
             ],
             "organization": "absa-group",
             "enterprise": null
         },
         "original_metadata": {
-            "generated_at": "2026-06-30T13:08:22.347115+00:00",
+            "generated_at": "2026-07-01T10:38:58.309856+00:00",
             "schema_version": "1.0.0",
             "inputs": {}
         }
