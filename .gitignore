@@ -179,3 +179,6 @@ output/doc-issues/doc-issues.json
 default_output.txt
 output/.DS_Store
 .DS_Store
+output/doc-source/doc-source.json
+output/ui-tests/ui-tests.json
+SPEC.md

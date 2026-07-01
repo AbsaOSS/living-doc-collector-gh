@@ -30,6 +30,7 @@ _STEP_KEYWORDS = ("Given", "When", "Then", "And", "But")
 _SLUG_INVALID_PATTERN = re.compile(r"[^a-z0-9\-]")
 _AC_TAG_PREFIX = "@AC:"
 _US_ID_TAG_PREFIX = "@US_ID:"
+_FUNC_ID_TAG_PREFIX = "@FUNC_ID:"
 
 
 def _slugify(name: str, used_slugs: dict[str, int]) -> str:
@@ -57,6 +58,8 @@ def _split_scenario_tags(pending_tags: list[str]) -> tuple[list[str], list[str]]
             ac_ids.append(tag[len(_AC_TAG_PREFIX) :])
         elif tag.startswith(_US_ID_TAG_PREFIX):
             logger.warning("`@US_ID:` tag on a scenario-level tag block is invalid - ignoring `%s`.", tag)
+        elif tag.startswith(_FUNC_ID_TAG_PREFIX):
+            logger.warning("`@FUNC_ID:` tag on a scenario-level tag block is invalid - ignoring `%s`.", tag)
         else:
             tags.append(tag.lstrip("@"))
     return ac_ids, tags
@@ -79,9 +82,10 @@ def parse_scenarios(lines: list[str], org: str, repo: str, rel_path: str) -> lis
     pending_tags: list[str] = []
     used_slugs: dict[str, int] = {}
     file_us_id: Optional[str] = None
+    file_func_id: Optional[str] = None
     current: Optional[dict] = None
 
-    for raw in lines:
+    for line_idx, raw in enumerate(lines):
         line = raw.strip()
 
         if not line or line.startswith("#"):
@@ -95,6 +99,8 @@ def parse_scenarios(lines: list[str], org: str, repo: str, rel_path: str) -> lis
             for tag in pending_tags:
                 if tag.startswith(_US_ID_TAG_PREFIX):
                     file_us_id = tag[len(_US_ID_TAG_PREFIX) :]
+                elif tag.startswith(_FUNC_ID_TAG_PREFIX):
+                    file_func_id = tag[len(_FUNC_ID_TAG_PREFIX) :]
             pending_tags = []
             continue
 
@@ -109,12 +115,13 @@ def parse_scenarios(lines: list[str], org: str, repo: str, rel_path: str) -> lis
             current = {
                 "id": f"{org}/{repo}/{rel_path}/{slug}",
                 "us_id": file_us_id,
+                "func_id": file_func_id,
                 "ac_ids": ac_ids,
                 "scenario_name": name,
                 "scenario_type": "Scenario Outline" if is_outline else "Scenario",
                 "tags": tags,
                 "steps": [],
-                "source": {"org": org, "repo": repo, "file": rel_path},
+                "source": {"org": org, "repo": repo, "file": rel_path, "line": line_idx + 1},
             }
             continue
 

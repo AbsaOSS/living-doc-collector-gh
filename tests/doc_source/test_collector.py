@@ -131,6 +131,74 @@ def test_collect_single_repo(tmp_path, mocker):
     assert all(item["repository_name"] == "aul-ui" for item in data["user_stories"])
 
 
+def test_collect_user_stories_url_built_from_git_root(tmp_path, mocker):
+    # Arrange
+    repo_dir = tmp_path / "repo"
+    us_dir = repo_dir / "us"
+    us_dir.mkdir(parents=True)
+    (repo_dir / ".git").mkdir()  # mark repo root
+    _write_us_feature(us_dir, 1)
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[
+            {
+                "organization-name": "absa-group",
+                "repository-name": "aul-ui",
+                "us-paths": [str(us_dir)],
+            }
+        ],
+    )
+
+    # Act
+    result = GHDocSourceCollector(str(output_dir)).collect()
+
+    # Assert
+    assert result is True
+    output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
+    with open(output_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    assert len(data["user_stories"]) == 1
+    assert data["user_stories"][0]["url"] == "https://github.com/absa-group/aul-ui/blob/main/us/story_1.feature"
+
+
+def test_collect_user_stories_url_is_none_outside_git_repo(tmp_path, mocker):
+    # Arrange - no .git directory anywhere above, so repo root detection fails
+    repo_dir = tmp_path / "repo"
+    us_dir = repo_dir / "us"
+    us_dir.mkdir(parents=True)
+    _write_us_feature(us_dir, 1)
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    mock_log_warning = mocker.patch("doc_source.collector.logger.warning")
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[
+            {
+                "organization-name": "absa-group",
+                "repository-name": "aul-ui",
+                "us-paths": [str(us_dir)],
+            }
+        ],
+    )
+
+    # Act
+    result = GHDocSourceCollector(str(output_dir)).collect()
+
+    # Assert
+    assert result is True
+    output_file = os.path.join(str(output_dir), "doc-source", "doc-source.json")
+    with open(output_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    assert data["user_stories"][0]["url"] is None
+    assert mock_log_warning.called
+
+
 def test_collect_functionalities(tmp_path, mocker):
     # Arrange
     func_dir = tmp_path / "func"

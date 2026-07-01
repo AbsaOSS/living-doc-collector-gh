@@ -25,6 +25,8 @@ import logging
 import os
 import shutil
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
 
 from action_inputs import ActionInputs
 from doc_source.header_parser import parse_func_header, parse_header
@@ -34,6 +36,34 @@ from utils.constants import DOC_SOURCE_OUTPUT_PATH, get_package_version
 from utils.feature_file_discovery import discover_feature_files, discover_ts_files
 
 logger = logging.getLogger(__name__)
+
+
+def _find_repo_root(file_path: Path) -> Optional[Path]:
+    """Walk up from file_path to find the Git repository root (.git directory)."""
+    current = file_path.parent
+    while True:
+        if (current / ".git").exists():
+            return current
+        parent = current.parent
+        if parent == current:
+            return None
+        current = parent
+
+
+def _build_file_url(org: str, repo: str, file_path: Path) -> Optional[str]:
+    """Build a GitHub web URL pointing to the source file in the repository.
+
+    Returns None when no Git root is found above the file.
+    """
+    root = _find_repo_root(file_path)
+    if root is None:
+        logger.warning(
+            "No git root found for `%s` - cannot build file URL.",
+            file_path.name,
+        )
+        return None
+    rel = file_path.relative_to(root).as_posix()
+    return f"https://github.com/{org}/{repo}/blob/main/{rel}"
 
 
 # pylint: disable=too-few-public-methods
@@ -106,7 +136,7 @@ class GHDocSourceCollector:
                     "title": parsed["title"],
                     "state": parsed["state"],
                     "tags": [],
-                    "url": parsed["url"],
+                    "url": _build_file_url(config.organization_name, config.repository_name, file_path),
                     "timestamps": None,
                     "description": parsed["description"],
                     "business_value": parsed["business_value"],

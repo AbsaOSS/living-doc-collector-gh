@@ -3,6 +3,7 @@
         {
             "id": "absa-group/unify-living-documentation/dashboard_view.feature/user-sees-the-domains-they-have-access-to-on-the-dashboard",
             "us_id": "US-2",
+            "func_id": null,
             "ac_ids": [
                 "US-2-01"
             ],
@@ -28,12 +29,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "dashboard_view.feature"
+                "file": "dashboard_view.feature",
+                "line": 51
             }
         },
         {
             "id": "absa-group/unify-living-documentation/data_feed_edit.feature/user-edits-a-data-feed-and-saves-the-changes",
             "us_id": "US-9",
+            "func_id": null,
             "ac_ids": [
                 "US-9-01"
             ],
@@ -63,12 +66,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "data_feed_edit.feature"
+                "file": "data_feed_edit.feature",
+                "line": 28
             }
         },
         {
             "id": "absa-group/unify-living-documentation/data_feed_view.feature/user-opens-a-data-feed-and-views-its-details",
             "us_id": "US-18",
+            "func_id": null,
             "ac_ids": [
                 "US-18-01"
             ],
@@ -98,12 +103,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "data_feed_view.feature"
+                "file": "data_feed_view.feature",
+                "line": 32
             }
         },
         {
             "id": "absa-group/unify-living-documentation/data_feeds_add.feature/user-adds-a-new-data-feed-by-completing-all-mandatory-fields",
             "us_id": "US-3",
+            "func_id": null,
             "ac_ids": [
                 "US-3-01"
             ],
@@ -133,12 +140,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "data_feeds_add.feature"
+                "file": "data_feeds_add.feature",
+                "line": 29
             }
         },
         {
             "id": "absa-group/unify-living-documentation/data_feeds_delete.feature/owner-deletes-a-data-feed-after-confirming-the-prompt",
             "us_id": "US-6",
+            "func_id": null,
             "ac_ids": [
                 "US-6-01",
                 "US-6-02"
@@ -169,12 +178,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "data_feeds_delete.feature"
+                "file": "data_feeds_delete.feature",
+                "line": 35
             }
         },
         {
             "id": "absa-group/unify-living-documentation/data_feeds_search.feature/user-searches-for-a-data-feed-by-name",
             "us_id": "US-12",
+            "func_id": null,
             "ac_ids": [
                 "US-12-01"
             ],
@@ -200,12 +211,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "data_feeds_search.feature"
+                "file": "data_feeds_search.feature",
+                "line": 30
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_access_direct_granting.feature/domain-owner-directly-approves-a-pending-access-request-from-the-domain-page",
             "us_id": "US-24",
+            "func_id": null,
             "ac_ids": [
                 "US-24-01"
             ],
@@ -235,12 +248,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_access_direct_granting.feature"
+                "file": "domain_access_direct_granting.feature",
+                "line": 31
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_access_request.feature/user-requests-access-to-a-domain-they-do-not-own",
             "us_id": "US-27",
+            "func_id": null,
             "ac_ids": [
                 "US-27-02"
             ],
@@ -274,12 +289,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_access_request.feature"
+                "file": "domain_access_request.feature",
+                "line": 39
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_access_requests_approval.feature/domain-owner-approves-a-pending-access-request-from-the-access-requests-overview",
             "us_id": "US-23",
+            "func_id": null,
             "ac_ids": [
                 "US-23-02"
             ],
@@ -309,12 +326,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_access_requests_approval.feature"
+                "file": "domain_access_requests_approval.feature",
+                "line": 32
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_access_rights_view.feature/user-views-their-domain-access-rights",
             "us_id": "US-28",
+            "func_id": null,
             "ac_ids": [
                 "US-28-01"
             ],
@@ -344,12 +363,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_access_rights_view.feature"
+                "file": "domain_access_rights_view.feature",
+                "line": 41
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_access_users_overview.feature/domain-owner-searches-users-with-access-by-name",
             "us_id": "US-25",
+            "func_id": null,
             "ac_ids": [
                 "US-25-01"
             ],
@@ -379,12 +400,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_access_users_overview.feature"
+                "file": "domain_access_users_overview.feature",
+                "line": 31
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_create.feature/user-can-complete-the-create-domain-wizard-and-create-a-new-domain",
             "us_id": "US-26",
+            "func_id": null,
             "ac_ids": [
                 "US-26-01"
             ],
@@ -478,12 +501,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_create.feature"
+                "file": "domain_create.feature",
+                "line": 50
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_create.feature/invalid-cost-center-format-shows-an-error-message-in-the-create-domain-wizard",
             "us_id": "US-26",
+            "func_id": null,
             "ac_ids": [
                 "US-26-02"
             ],
@@ -513,12 +538,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_create.feature"
+                "file": "domain_create.feature",
+                "line": 78
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_create.feature/save-button-is-disabled-when-mandatory-fields-are-incomplete-on-the-about-step-o",
             "us_id": "US-26",
+            "func_id": null,
             "ac_ids": [
                 "US-26-03"
             ],
@@ -544,12 +571,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_create.feature"
+                "file": "domain_create.feature",
+                "line": 87
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_delete.feature/owner-deletes-a-domain-after-confirming-the-prompt",
             "us_id": "US-7",
+            "func_id": null,
             "ac_ids": [
                 "US-7-01",
                 "US-7-02"
@@ -580,12 +609,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_delete.feature"
+                "file": "domain_delete.feature",
+                "line": 36
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_edit.feature/user-edits-a-domain-description-and-saves-the-changes",
             "us_id": "US-10",
+            "func_id": null,
             "ac_ids": [
                 "US-10-02",
                 "US-10-05"
@@ -616,12 +647,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_edit.feature"
+                "file": "domain_edit.feature",
+                "line": 43
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_import.feature/user-imports-a-domain-from-a-valid-json-export-file",
             "us_id": "US-22",
+            "func_id": null,
             "ac_ids": [
                 "US-22-01",
                 "US-22-03"
@@ -656,12 +689,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_import.feature"
+                "file": "domain_import.feature",
+                "line": 44
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_search.feature/user-searches-for-a-domain-by-name",
             "us_id": "US-13",
+            "func_id": null,
             "ac_ids": [
                 "US-13-01"
             ],
@@ -687,12 +722,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_search.feature"
+                "file": "domain_search.feature",
+                "line": 38
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_version_management.feature/domain-owner-views-the-version-management-tab",
             "us_id": "US-29",
+            "func_id": null,
             "ac_ids": [
                 "US-29-01"
             ],
@@ -722,12 +759,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_version_management.feature"
+                "file": "domain_version_management.feature",
+                "line": 47
             }
         },
         {
             "id": "absa-group/unify-living-documentation/domain_view.feature/user-opens-a-domain-and-views-its-details",
             "us_id": "US-16",
+            "func_id": null,
             "ac_ids": [
                 "US-16-01"
             ],
@@ -757,12 +796,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "domain_view.feature"
+                "file": "domain_view.feature",
+                "line": 42
             }
         },
         {
             "id": "absa-group/unify-living-documentation/notifications_on_screen.feature/on-screen-notification-is-shown-when-a-domain-is-created",
             "us_id": "US-19",
+            "func_id": null,
             "ac_ids": [
                 "US-19-01"
             ],
@@ -788,12 +829,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "notifications_on_screen.feature"
+                "file": "notifications_on_screen.feature",
+                "line": 65
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_close.feature/question-owner-closes-an-open-question",
             "us_id": "US-4",
+            "func_id": null,
             "ac_ids": [
                 "US-4-01"
             ],
@@ -823,12 +866,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_close.feature"
+                "file": "question_close.feature",
+                "line": 33
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_create.feature/user-creates-a-question-with-all-mandatory-fields",
             "us_id": "US-5",
+            "func_id": null,
             "ac_ids": [
                 "US-5-01",
                 "US-5-04"
@@ -855,12 +900,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_create.feature"
+                "file": "question_create.feature",
+                "line": 35
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_delete.feature/owner-deletes-a-question-after-confirming-the-prompt",
             "us_id": "US-8",
+            "func_id": null,
             "ac_ids": [
                 "US-8-01",
                 "US-8-02"
@@ -891,12 +938,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_delete.feature"
+                "file": "question_delete.feature",
+                "line": 33
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_mark_helpful.feature/question-owner-marks-a-reply-as-helpful",
             "us_id": "US-20",
+            "func_id": null,
             "ac_ids": [
                 "US-20-01"
             ],
@@ -926,12 +975,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_mark_helpful.feature"
+                "file": "question_mark_helpful.feature",
+                "line": 28
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_reply.feature/user-replies-to-an-open-question",
             "us_id": "US-11",
+            "func_id": null,
             "ac_ids": [
                 "US-11-01"
             ],
@@ -961,12 +1012,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_reply.feature"
+                "file": "question_reply.feature",
+                "line": 28
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_search.feature/user-searches-for-a-question-by-name",
             "us_id": "US-14",
+            "func_id": null,
             "ac_ids": [
                 "US-14-01"
             ],
@@ -992,12 +1045,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_search.feature"
+                "file": "question_search.feature",
+                "line": 30
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_unmark_helpful_reply.feature/question-owner-unmarks-a-helpful-reply",
             "us_id": "US-21",
+            "func_id": null,
             "ac_ids": [
                 "US-21-01",
                 "US-21-02"
@@ -1028,12 +1083,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_unmark_helpful_reply.feature"
+                "file": "question_unmark_helpful_reply.feature",
+                "line": 33
             }
         },
         {
             "id": "absa-group/unify-living-documentation/question_view.feature/user-opens-a-question-and-views-its-details",
             "us_id": "US-17",
+            "func_id": null,
             "ac_ids": [
                 "US-17-01",
                 "US-17-02"
@@ -1060,12 +1117,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "question_view.feature"
+                "file": "question_view.feature",
+                "line": 30
             }
         },
         {
             "id": "absa-group/unify-living-documentation/user_login.feature/user-logs-in-with-valid-credentials",
             "us_id": "US-1",
+            "func_id": null,
             "ac_ids": [
                 "US-1-01",
                 "US-1-02"
@@ -1092,12 +1151,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "user_login.feature"
+                "file": "user_login.feature",
+                "line": 51
             }
         },
         {
             "id": "absa-group/unify-living-documentation/user_login.feature/user-logs-in-with-invalid-credentials",
             "us_id": "US-1",
+            "func_id": null,
             "ac_ids": [
                 "US-1-03",
                 "US-1-06"
@@ -1136,12 +1197,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "user_login.feature"
+                "file": "user_login.feature",
+                "line": 61
             }
         },
         {
             "id": "absa-group/unify-living-documentation/user_login.feature/already-logged-in-user-navigating-to-login-url-is-redirected-to-dashboard",
             "us_id": "US-1",
+            "func_id": null,
             "ac_ids": [
                 "US-1-05"
             ],
@@ -1167,12 +1230,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "user_login.feature"
+                "file": "user_login.feature",
+                "line": 72
             }
         },
         {
             "id": "absa-group/unify-living-documentation/user_login.feature/user-initiates-msal-sso-login-and-is-redirected-to-the-corporate-identity-provid",
             "us_id": "US-1",
+            "func_id": null,
             "ac_ids": [
                 "US-1-07"
             ],
@@ -1198,12 +1263,14 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "user_login.feature"
+                "file": "user_login.feature",
+                "line": 80
             }
         },
         {
             "id": "absa-group/unify-living-documentation/user_logout.feature/user-logs-out",
             "us_id": "US-15",
+            "func_id": null,
             "ac_ids": [
                 "US-15-01"
             ],
@@ -1226,7 +1293,8 @@
             "source": {
                 "org": "absa-group",
                 "repo": "unify-living-documentation",
-                "file": "user_logout.feature"
+                "file": "user_logout.feature",
+                "line": 30
             }
         }
     ],
@@ -1255,7 +1323,7 @@
             "enterprise": null
         },
         "original_metadata": {
-            "generated_at": "2026-07-01T10:38:58.329935+00:00",
+            "generated_at": "2026-07-01T11:25:54.305533+00:00",
             "schema_version": "1.0.0",
             "inputs": {}
         }

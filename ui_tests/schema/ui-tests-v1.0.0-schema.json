@@ -33,12 +33,17 @@
         "file": {
           "title": "File",
           "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
         }
       },
       "required": [
         "org",
         "repo",
-        "file"
+        "file",
+        "line"
       ],
       "title": "ScenarioSource",
       "type": "object"
@@ -60,6 +65,17 @@
             }
           ],
           "title": "Us Id"
+        },
+        "func_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Func Id"
         },
         "ac_ids": {
           "items": {
@@ -97,6 +113,7 @@
       "required": [
         "id",
         "us_id",
+        "func_id",
         "ac_ids",
         "scenario_name",
         "scenario_type",

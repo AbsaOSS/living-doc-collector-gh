@@ -302,6 +302,12 @@ Same shape as `doc-source-repositories`:
 
 ### 4.5 Feature file scenario format
 
+Two kinds of feature file are supported: **User Story level** (`@US_ID:`) and
+**Functionality level** (`@FUNC_ID:`). Both are processed identically except for
+which file-level identity tag is extracted.
+
+**User Story level:**
+
 ```gherkin
 @US_ID:US-26
 @domain_create
@@ -319,15 +325,31 @@ Feature: Create Domain
         Then the user is on the Create Domain wizard Owner screen
 ```
 
+**Functionality level:**
+
+```gherkin
+@FUNC_ID:FUNC-024
+Feature: Domain Questions — Open Question Detail
+    Routing from a question list item to its dedicated detail page.
+
+    @AC:FUNC-024-01
+    @Regression
+    Scenario: Selecting a question in the list routes to its detail page
+        Given an open question exists
+        When the user opens a question
+        Then the question details are displayed
+```
+
 ### 4.6 Parsing rules
 
 #### 4.6.1 File-level tags
 
 Tags on lines immediately before `Feature:` — these are **file-level tags**:
-- `@US_ID:US-{id}` → `us_id` for all scenarios in this file
+- `@US_ID:US-{id}` → `us_id` for all scenarios in this file; `func_id` is `null`
+- `@FUNC_ID:FUNC-{id}` → `func_id` for all scenarios in this file; `us_id` is `null`
 - Any other `@tag` → ignored at file level (not propagated to scenarios)
 
-A file without `@US_ID:` is processed but each scenario's `us_id` is `null`.
+A file without either tag is processed but each scenario's `us_id` and `func_id` are both `null`.
 
 #### 4.6.2 Scenario block extraction
 
@@ -346,6 +368,7 @@ scenario.
 - `@AC:US-26-01` → extracted into `ac_ids[]` (the `AC:` prefix is stripped: value is `US-26-01`)
 - `@Regression`, `@Smoke`, or any other `@tag` → extracted into `tags[]`
 - `@US_ID:` on a scenario-level tag block is invalid — log a warning and ignore it
+- `@FUNC_ID:` on a scenario-level tag block is invalid — log a warning and ignore it
 
 A scenario may have **zero or more** `@AC:` tags → `ac_ids` is always an array.
 
@@ -393,6 +416,7 @@ absa-group/aul-ui/playwright/features/liv_doc_us/domain_create.feature/user-can-
     {
       "id":            "absa-group/aul-ui/playwright/features/liv_doc_us/domain_create.feature/user-can-complete-the-create-domain-wizard-and-create-a-new-domain",
       "us_id":         "US-26",
+      "func_id":       null,
       "ac_ids":        ["US-26-01"],
       "scenario_name": "User can complete the Create Domain wizard and create a new domain",
       "scenario_type": "Scenario",
@@ -425,7 +449,7 @@ absa-group/aul-ui/playwright/features/liv_doc_us/domain_create.feature/user-can-
 |---|---|
 | Path in `paths` does not exist | Log warning, skip path, continue |
 | No files match glob | Log warning, skip pattern, continue |
-| File has no `@US_ID:` tag | Log warning, set `us_id: null` for all its scenarios |
+| File has no `@US_ID:` or `@FUNC_ID:` tag | Log warning, set `us_id: null` and `func_id: null` for all its scenarios |
 | Scenario has no `@AC:` tag | `ac_ids: []` — valid, no warning |
 | Step keyword unrecognised | Skip line silently |
 | Scenario slug collision | Append `-2`, `-3`, log debug |

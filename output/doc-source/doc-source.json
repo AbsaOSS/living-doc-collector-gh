@@ -6,7 +6,7 @@
             "title": "View Dashboard",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/dashboard_view.feature",
             "timestamps": null,
             "description": "As a user, I want to view a dashboard that gives me an overview of all domains in the system so that I can navigate to the domains relevant to me.",
             "business_value": [
@@ -72,7 +72,7 @@
             "title": "Edit Data Feeds",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/data_feed_edit.feature",
             "timestamps": null,
             "description": "As a user, I want to edit data feeds so that I can keep data feed configuration up to date.",
             "business_value": [
@@ -103,7 +103,7 @@
             "title": "View Data Feed",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/data_feed_view.feature",
             "timestamps": null,
             "description": "As a user, I want to view data feeds so that I can understand their configuration and status.",
             "business_value": [
@@ -140,7 +140,7 @@
             "title": "Add Data Feeds",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/data_feeds_add.feature",
             "timestamps": null,
             "description": "As a user, I want to add data feeds so that I can make data sources available within a domain.",
             "business_value": [
@@ -172,7 +172,7 @@
             "title": "Delete Data Feeds",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/data_feeds_delete.feature",
             "timestamps": null,
             "description": "As a user, I want to delete data feeds so that I can remove data feeds that are no longer required.",
             "business_value": [
@@ -211,7 +211,7 @@
             "title": "Search Data Feeds",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/data_feeds_search.feature",
             "timestamps": null,
             "description": "As a user, I want to search among all data feeds so that I can quickly find the data feed I need.",
             "business_value": [
@@ -243,7 +243,7 @@
             "title": "Domain Access - Direct Granting Access",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_access_direct_granting.feature",
             "timestamps": null,
             "description": "As a user, I want to view and direct access management from the domain page so that I can efficiently manage who has access to my domain.",
             "business_value": [
@@ -280,7 +280,7 @@
             "title": "Request Access to Domain",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_access_request.feature",
             "timestamps": null,
             "description": "As a data consumer, I want to request access to a domain I do not own so that I can be granted the permissions needed to use its data.",
             "business_value": [
@@ -324,7 +324,7 @@
             "title": "Domain Access - Requests Approval",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_access_requests_approval.feature",
             "timestamps": null,
             "description": "As a user, I want to view bulk access request management from the Access Requests overview screen so that I can control who has access to my domain.",
             "business_value": [
@@ -361,7 +361,7 @@
             "title": "View My Domain Access Rights",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_access_rights_view.feature",
             "timestamps": null,
             "description": "As a data consumer, I want to see all domain access requests I have submitted so that I can track the status of each request and act on any that need attention.",
             "business_value": [
@@ -410,7 +410,7 @@
             "title": "Domain Access - Overview of Users with Access",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_access_users_overview.feature",
             "timestamps": null,
             "description": "As a domain owner, I want to see all users who have access to my domain, so that I can manage domain access effectively.",
             "business_value": [
@@ -448,7 +448,7 @@
             "title": "Create Domain",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_create.feature",
             "timestamps": null,
             "description": "As a user, I want to create domain so that I can make it available for data consumers.",
             "business_value": [
@@ -508,7 +508,7 @@
             "title": "View Domain Data Flow",
             "state": "planned",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_data_flow.feature",
             "timestamps": null,
             "description": "As a user, I want to view the data flow of a domain so that I can understand how data enters and exits the domain.",
             "business_value": [
@@ -545,7 +545,7 @@
             "title": "Delete Domain",
             "state": null,
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_delete.feature",
             "timestamps": null,
             "description": "As a user, I want to delete a domain so that I can remove domains I no longer need.",
             "business_value": [],
@@ -558,7 +558,7 @@
             "title": "Edit Domain",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_edit.feature",
             "timestamps": null,
             "description": "As a user, I want to edit domain details so that I can keep domain information accurate and up to date.",
             "business_value": [
@@ -613,7 +613,7 @@
             "title": "View Domain Hygiene (Survivorship)",
             "state": "planned",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_hygiene.feature",
             "timestamps": null,
             "description": "As a domain owner or steward, I want to view hygiene and survivorship metrics for a domain so that I can assess data quality, coverage, and consumer adoption at a glance.",
             "business_value": [
@@ -656,7 +656,7 @@
             "title": "Import Domain",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_import.feature",
             "timestamps": null,
             "description": "As a user, I want to import a domain from a JSON export file so that I can restore or replicate a domain without re-creating it manually.",
             "business_value": [
@@ -706,7 +706,7 @@
             "title": "Search Domain",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_search.feature",
             "timestamps": null,
             "description": "As a user, I want to search among all domains so that I can quickly find the domain I need.",
             "business_value": [
@@ -750,7 +750,7 @@
             "title": "Manage Domain Versions",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_version_management.feature",
             "timestamps": null,
             "description": "As a domain owner, I want to manage the lifecycle versions of my domain so that I can evolve domain schema and configuration without disrupting active consumers.",
             "business_value": [
@@ -805,7 +805,7 @@
             "title": "View Domain",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/domain_view.feature",
             "timestamps": null,
             "description": "As a user, I want to view the details of a selected domain so that I can understand its details and manage it effectively.",
             "business_value": [
@@ -854,7 +854,7 @@
             "title": "On-screen Notifications",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/notifications_on_screen.feature",
             "timestamps": null,
             "description": "As a user, I want to receive on-screen notifications so that I can stay informed about changes in real time.",
             "business_value": [
@@ -958,7 +958,7 @@
             "title": "Close Question",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_close.feature",
             "timestamps": null,
             "description": "As a question owner, I want to close one or more questions so that I can mark them as resolved and prevent further replies.",
             "business_value": [
@@ -997,7 +997,7 @@
             "title": "Create Question",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_create.feature",
             "timestamps": null,
             "description": "As a user, I want to ask a question so that I can get help or information from other users.",
             "business_value": [
@@ -1039,7 +1039,7 @@
             "title": "Delete Question",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_delete.feature",
             "timestamps": null,
             "description": "As a user, I want to delete a question so that I can remove questions that are no longer relevant.",
             "business_value": [
@@ -1076,7 +1076,7 @@
             "title": "Mark Question Helpful",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_mark_helpful.feature",
             "timestamps": null,
             "description": "As a user, I want to mark replies to questions as helpful so that the community can identify the best answer.",
             "business_value": [
@@ -1107,7 +1107,7 @@
             "title": "Reply Question",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_reply.feature",
             "timestamps": null,
             "description": "As a user, I want to reply to a question so that I can contribute answers to other users' questions.",
             "business_value": [
@@ -1138,7 +1138,7 @@
             "title": "Search Question",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_search.feature",
             "timestamps": null,
             "description": "As a user, I want to search among all questions so that I can quickly find questions relevant to me.",
             "business_value": [
@@ -1170,7 +1170,7 @@
             "title": "Unmark Helpful Question Reply",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_unmark_helpful_reply.feature",
             "timestamps": null,
             "description": "As a user, I want to unmark replies on questions that were marked as helpful so that I can correct my helpful marking when needed.",
             "business_value": [
@@ -1207,7 +1207,7 @@
             "title": "View Question",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/question_view.feature",
             "timestamps": null,
             "description": "As a user, I want to view question details so that I can read its full context and responses.",
             "business_value": [
@@ -1238,7 +1238,7 @@
             "title": "User Login",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/user_login.feature",
             "timestamps": null,
             "description": "As a user with valid credentials, I want to log into the Unify application so that I can securely access the application.",
             "business_value": [
@@ -1299,7 +1299,7 @@
             "title": "User Logout",
             "state": "active",
             "tags": [],
-            "url": null,
+            "url": "https://github.com/absa-group/aul/blob/main/aul-ui/playwright/features/liv_doc_us/user_logout.feature",
             "timestamps": null,
             "description": "As a user, I want to log out of the application so that I can end my session securely.",
             "business_value": [
@@ -2430,7 +2430,7 @@
             "enterprise": null
         },
         "original_metadata": {
-            "generated_at": "2026-07-01T10:38:58.309856+00:00",
+            "generated_at": "2026-07-01T11:25:54.221715+00:00",
             "schema_version": "1.0.0",
             "inputs": {}
         }

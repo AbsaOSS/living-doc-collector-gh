@@ -44,13 +44,14 @@ def test_single_scenario():
     assert len(result) == 1
     scenario = result[0]
     assert scenario["us_id"] == "US-26"
+    assert scenario["func_id"] is None
     assert scenario["ac_ids"] == ["US-26-01"]
     assert scenario["scenario_type"] == "Scenario"
     assert scenario["tags"] == ["Regression"]
     assert scenario["scenario_name"] == (
         "User can complete the Create Domain wizard and create a new domain"
     )
-    assert scenario["source"] == {"org": ORG, "repo": REPO, "file": REL}
+    assert scenario["source"] == {"org": ORG, "repo": REPO, "file": REL, "line": 10}
     assert scenario["id"] == (
         f"{ORG}/{REPO}/{REL}/user-can-complete-the-create-domain-wizard-and-create-a-new-domain"
     )
@@ -109,6 +110,52 @@ def test_no_us_id():
 
     # Assert
     assert result[0]["us_id"] is None
+    assert result[0]["func_id"] is None
+
+
+def test_func_id_feature_file():
+    # Arrange
+    lines = [
+        "@FUNC_ID:FUNC-024",
+        "Feature: Domain Questions \u2014 Open Question Detail",
+        "    @AC:FUNC-024-01",
+        "    @Regression",
+        "    Scenario: Selecting a question in the list routes to its detail page",
+        "        Given an open question exists",
+        "        When the user opens a question",
+        "        Then the question details are displayed",
+    ]
+
+    # Act
+    result = parse_scenarios(lines, ORG, REPO, REL)
+
+    # Assert
+    assert len(result) == 1
+    scenario = result[0]
+    assert scenario["us_id"] is None
+    assert scenario["func_id"] == "FUNC-024"
+    assert scenario["ac_ids"] == ["FUNC-024-01"]
+    assert scenario["tags"] == ["Regression"]
+    assert scenario["scenario_name"] == "Selecting a question in the list routes to its detail page"
+
+
+def test_func_id_on_scenario_tag_is_ignored(caplog):
+    # Arrange
+    lines = [
+        "@FUNC_ID:FUNC-001",
+        "Feature: F",
+        "    @FUNC_ID:FUNC-099",
+        "    Scenario: With invalid func tag",
+        "        Given a",
+    ]
+
+    # Act
+    result = parse_scenarios(lines, ORG, REPO, REL)
+
+    # Assert
+    assert result[0]["func_id"] == "FUNC-001"
+    assert result[0]["tags"] == []
+    assert any("scenario-level tag block is invalid" in message for message in caplog.messages)
 
 
 def test_no_ac_tags():
@@ -203,3 +250,22 @@ def test_rule_closes_scenario():
 
     # Assert
     assert [s["scenario_name"] for s in result] == ["First", "Second"]
+
+
+def test_source_line_number():
+    # Arrange
+    lines = [
+        "@US_ID:US-1",
+        "Feature: F",
+        "    Scenario: First",
+        "        Given a",
+        "    Scenario: Second",
+        "        Given b",
+    ]
+
+    # Act
+    result = parse_scenarios(lines, ORG, REPO, REL)
+
+    # Assert
+    assert result[0]["source"]["line"] == 3
+    assert result[1]["source"]["line"] == 5
