@@ -166,9 +166,9 @@ jobs:
           print("\n--- File Metadata ---")
           print(json.dumps(data['metadata'], indent=2))
           
-          # Print first item (if exists)
-          if data['items']:
-              first_item = data['items'][0]
-              print(f"\n--- Sample Item ({first_item.get('id', 'unknown')}) ---")
-              print(json.dumps(first_item, indent=2))
+          # Print first user story (if exists)
+          if data['user_stories']:
+              first_story = data['user_stories'][0]
+              print(f"\n--- Sample User Story ({first_story.get('id', 'unknown')}) ---")
+              print(json.dumps(first_story, indent=2))
           EOF
