@@ -9,5 +9,6 @@ black==26.5.1
 pytest==9.1.1
 pytest-cov==7.1.0
 pytest-mock==3.15.1
+types-jsonschema==1.0.0.20250110
 types-requests==2.33.0.20260518
 living-doc-utilities==0.3.1
