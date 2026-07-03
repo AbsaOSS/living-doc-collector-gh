@@ -23,6 +23,7 @@ import logging
 import os
 import shutil
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable
 
 from github import Auth, Github
@@ -39,6 +40,7 @@ from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 from action_inputs import ActionInputs
 from doc_issues.body_parser import parse_body
+from utils.utils import validate_against_schema
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
@@ -394,6 +396,9 @@ class GHDocIssuesCollector:
         # Write to file
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(output_data, f, indent=4, ensure_ascii=False)
+
+        _SCHEMA_PATH = Path(__file__).parent / "schema" / "doc-issues-v1.0.0-schema.json"
+        validate_against_schema(output_data, _SCHEMA_PATH)
 
     def _get_file_metadata(self) -> dict:
         """
