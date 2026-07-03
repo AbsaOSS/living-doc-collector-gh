@@ -21,6 +21,7 @@ for the GH Action.
 
 import logging
 import sys
+from typing import Any, Callable
 
 from living_doc_utilities.constants import OUTPUT_PATH
 from living_doc_utilities.github.utils import set_action_output
@@ -28,6 +29,8 @@ from living_doc_utilities.logging_config import setup_logging
 
 from action_inputs import ActionInputs
 from doc_issues.collector import GHDocIssuesCollector
+from doc_source.collector import GHDocSourceCollector
+from ui_tests.collector import GHUITestsCollector
 from utils.github_project_queries import validate_query_formats
 from utils.utils import make_absolute_path
 
@@ -54,17 +57,50 @@ def run() -> None:
     output_path: str = make_absolute_path(OUTPUT_PATH)
     all_modes_success: bool = True
 
-    if ActionInputs.is_doc_issues_mode_enabled():
-        logger.info("Liv-Doc collector for GitHub - Starting the `doc-issues` mode.")
+    modes: list[tuple[Callable[[], bool], Callable[[str], Any], dict[str, str]]] = [
+        (
+            ActionInputs.is_doc_issues_mode_enabled,
+            GHDocIssuesCollector,
+            {
+                "start": "Liv-Doc collector for GitHub - Starting the `doc-issues` mode.",
+                "success": "Liv-Doc collector for GitHub - `doc-issues` mode completed successfully.",
+                "failed": "Liv-Doc collector for GitHub - `doc-issues` mode failed.",
+                "disabled": "Liv-Doc collector for GitHub - `doc-issues` mode disabled.",
+            },
+        ),
+        (
+            ActionInputs.is_doc_source_mode_enabled,
+            GHDocSourceCollector,
+            {
+                "start": "Liv-Doc collector for GitHub - Starting the `doc-source` mode.",
+                "success": "Liv-Doc collector for GitHub - `doc-source` mode completed successfully.",
+                "failed": "Liv-Doc collector for GitHub - `doc-source` mode failed.",
+                "disabled": "Liv-Doc collector for GitHub - `doc-source` mode disabled.",
+            },
+        ),
+        (
+            ActionInputs.is_ui_tests_mode_enabled,
+            GHUITestsCollector,
+            {
+                "start": "Liv-Doc collector for GitHub - Starting the `ui-tests` mode.",
+                "success": "Liv-Doc collector for GitHub - `ui-tests` mode completed successfully.",
+                "failed": "Liv-Doc collector for GitHub - `ui-tests` mode failed.",
+                "disabled": "Liv-Doc collector for GitHub - `ui-tests` mode disabled.",
+            },
+        ),
+    ]
 
-        # Generate the Living documentation
-        if GHDocIssuesCollector(output_path).collect():
-            logger.info("Liv-Doc collector for GitHub - `doc-issues` mode completed successfully.")
+    for is_enabled, collector_class, messages in modes:
+        if not is_enabled():
+            logger.info(messages["disabled"])
+            continue
+
+        logger.info(messages["start"])
+        if collector_class(output_path).collect():
+            logger.info(messages["success"])
         else:
-            logger.info("Liv-Doc collector for GitHub - `doc-issues` mode failed.")
+            logger.info(messages["failed"])
             all_modes_success = False
-    else:
-        logger.info("Liv-Doc collector for GitHub - `doc-issues` mode disabled.")
 
     # Set the output for the GitHub Action
     set_action_output("output-path", output_path)

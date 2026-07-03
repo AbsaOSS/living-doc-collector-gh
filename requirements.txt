@@ -1,3 +1,4 @@
+jsonschema==4.26.0
 mypy==2.1.0
 mypy-extensions==1.1.0
 requests==2.34.2
@@ -8,5 +9,6 @@ black==26.5.1
 pytest==9.1.1
 pytest-cov==7.1.0
 pytest-mock==3.15.1
+types-jsonschema==4.26.0.20260408
 types-requests==2.33.0.20260518
 living-doc-utilities==0.3.1

@@ -88,7 +88,7 @@ jobs:
 
           # Check top-level structure
           assert 'metadata' in data, "Missing 'metadata' section"
-          assert 'items' in data, "Missing 'items' section"
+          assert 'user_stories' in data, "Missing 'user_stories' section"
           print("✓ Top-level structure is correct")
 
           # Validate metadata
@@ -126,22 +126,22 @@ jobs:
           assert 'run_id' in metadata['run'], "Missing run_id in run metadata"
           print("✓ Run metadata is present")
 
-          # Validate items
-          items = data['items']
-          print(f"Found {len(items)} item(s)")
+          # Validate user_stories
+          user_stories = data['user_stories']
+          print(f"Found {len(user_stories)} user story/stories")
 
-          if items:
-              first_item = items[0]
+          if user_stories:
+              first_story = user_stories[0]
 
               # Check required base fields
               required_fields = ['id', 'title', 'state', 'url']
               for field in required_fields:
-                  assert field in first_item, f"Missing required field: {field}"
-              print("✓ Item base fields are present")
+                  assert field in first_story, f"Missing required field: {field}"
+              print("✓ User story base fields are present")
 
           print("\n✅ All validation checks passed!")
           print(f"Generated file: {original_metadata['generated_at']}")
-          print(f"Total items: {len(items)}")
+          print(f"Total user stories: {len(user_stories)}")
           EOF
 
       - name: Upload output artifact
@@ -166,9 +166,9 @@ jobs:
           print("\n--- File Metadata ---")
           print(json.dumps(data['metadata'], indent=2))
           
-          # Print first item (if exists)
-          if data['items']:
-              first_item = data['items'][0]
-              print(f"\n--- Sample Item ({first_item.get('id', 'unknown')}) ---")
-              print(json.dumps(first_item, indent=2))
+          # Print first user story (if exists)
+          if data['user_stories']:
+              first_story = data['user_stories'][0]
+              print(f"\n--- Sample User Story ({first_story.get('id', 'unknown')}) ---")
+              print(json.dumps(first_story, indent=2))
           EOF

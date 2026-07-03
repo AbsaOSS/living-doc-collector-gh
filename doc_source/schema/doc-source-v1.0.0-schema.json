@@ -11,14 +11,6 @@
       },
       "required": ["id", "state", "version", "description"]
     },
-    "AdapterItemTimestamps": {
-      "type": "object",
-      "properties": {
-        "created": { "type": "string" },
-        "updated": { "type": "string" }
-      },
-      "required": ["created", "updated"]
-    },
     "AdapterMetadataProducer": {
       "type": "object",
       "properties": {
@@ -69,30 +61,64 @@
       },
       "required": ["code", "message"]
     },
-    "AdapterItem": {
+    "UserStoryItem": {
       "type": "object",
       "properties": {
         "id":                  { "type": "string" },
+        "repository_name":     { "type": "string" },
         "title":               { "type": "string" },
-        "state":               { "type": "string" },
+        "state":               { "type": ["string", "null"] },
         "tags":                { "type": "array", "items": { "type": "string" } },
-        "url":                 { "type": "string" },
-        "timestamps":          { "$ref": "#/$defs/AdapterItemTimestamps" },
+        "url":                 { "type": ["string", "null"] },
+        "timestamps":          { "type": "null" },
         "description":         { "type": ["string", "null"], "default": null },
         "business_value":      { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
         "preconditions":       { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
         "acceptance_criteria": { "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/AcceptanceCriterion" } }, { "type": "null" }], "default": null }
       },
-      "required": ["id", "title", "state", "tags", "url", "timestamps"]
+      "required": ["id", "repository_name", "title", "state", "tags", "url", "timestamps"]
+    },
+    "FunctionalityItem": {
+      "type": "object",
+      "properties": {
+        "id":                  { "type": "string" },
+        "repository_name":     { "type": "string" },
+        "title":               { "type": "string" },
+        "state":               { "type": ["string", "null"] },
+        "parent":              { "type": ["string", "null"] },
+        "func_type":           { "type": ["string", "null"] },
+        "acceptance_criteria": { "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/AcceptanceCriterion" } }, { "type": "null" }], "default": null }
+      },
+      "required": ["id", "repository_name", "title"]
+    },
+    "FeatureItem": {
+      "type": "object",
+      "properties": {
+        "id":                   { "type": "string" },
+        "repository_name":      { "type": "string" },
+        "title":                { "type": "string" },
+        "state":                { "type": ["string", "null"] },
+        "surface_type":         { "type": ["string", "null"] },
+        "route":                { "type": ["string", "null"] },
+        "owners":               { "type": ["string", "null"] },
+        "purpose":              { "type": ["string", "null"] },
+        "user_stories":         { "type": "array", "items": { "type": "string" } },
+        "functionalities":      { "type": "array", "items": { "type": "string" } },
+        "external_dependencies":{ "type": ["string", "null"] },
+        "page_object":          { "type": ["string", "null"] }
+      },
+      "required": ["id", "repository_name", "title"]
     }
   },
-  "title": "AdapterResult",
-  "description": "Complete result from adapter parsing.",
+  "title": "DocSourceResult",
+  "description": "Complete result from doc-source collector parsing.",
   "type": "object",
   "properties": {
-    "user_stories": { "type": "array", "items": { "$ref": "#/$defs/AdapterItem" } },
-    "metadata":     { "$ref": "#/$defs/AdapterMetadata" },
-    "warnings":     { "type": "array", "items": { "$ref": "#/$defs/CompatibilityWarning" } }
+    "user_stories":    { "type": "array", "items": { "$ref": "#/$defs/UserStoryItem" } },
+    "functionalities": { "type": "array", "items": { "$ref": "#/$defs/FunctionalityItem" } },
+    "features":        { "type": "array", "items": { "$ref": "#/$defs/FeatureItem" } },
+    "metadata":        { "$ref": "#/$defs/AdapterMetadata" },
+    "warnings":        { "type": "array", "items": { "$ref": "#/$defs/CompatibilityWarning" } }
   },
-  "required": ["user_stories", "metadata", "warnings"]
+  "required": ["user_stories", "functionalities", "features", "metadata", "warnings"]
 }

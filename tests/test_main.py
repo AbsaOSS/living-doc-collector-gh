@@ -43,6 +43,8 @@ def test_run_correct_behaviour_with_all_regimes_enabled(mocker):
             mocker.call("Liv-Doc collector for GitHub - starting."),
             mocker.call("Liv-Doc collector for GitHub - Starting the `doc-issues` mode."),
             mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode completed successfully."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", expected_output_path),
             mocker.call("Liv-Doc collector for GitHub - ending."),
         ],
@@ -68,6 +70,8 @@ def test_run_with_zero_modes_enabled(mocker):
         [
             mocker.call("Liv-Doc collector for GitHub - starting."),
             mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", expected_output_path),
             mocker.call("Liv-Doc collector for GitHub - ending."),
         ],
@@ -99,6 +103,8 @@ def test_run_doc_issues_mode_failed(mocker):
             mocker.call("Liv-Doc collector for GitHub - starting."),
             mocker.call("Liv-Doc collector for GitHub - Starting the `doc-issues` mode."),
             mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode failed."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", expected_output_path),
             mocker.call("Liv-Doc collector for GitHub - ending."),
         ],
@@ -124,6 +130,8 @@ def test_validate_user_configuration_failed(mocker):
             mocker.call("Liv-Doc collector for GitHub - starting."),
             mocker.call("Liv-Doc collector for GitHub - user configuration validation failed."),
             mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", "/unit/test/output/path"),
             mocker.call("Liv-Doc collector for GitHub - ending."),
 
@@ -153,6 +161,8 @@ def test_validate_query_formats_failed(mocker):
             mocker.call("Liv-Doc collector for GitHub - starting."),
             mocker.call("Liv-Doc collector for GitHub - query format validation failed."),
             mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", "/unit/test/output/path"),
             mocker.call("Liv-Doc collector for GitHub - ending."),
 
@@ -161,3 +171,58 @@ def test_validate_query_formats_failed(mocker):
     )
 
     mock_exit.assert_called_once_with(1)
+
+
+def test_run_doc_source_and_ui_tests_modes_success(mocker):
+    # Arrange
+    mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
+    mocker.patch("main.validate_query_formats", return_value=True)
+    mocker.patch("main.ActionInputs.is_doc_issues_mode_enabled", return_value=False)
+    mocker.patch("main.ActionInputs.is_doc_source_mode_enabled", return_value=True)
+    mocker.patch("main.ActionInputs.is_ui_tests_mode_enabled", return_value=True)
+    mocker.patch("main.GHDocSourceCollector.collect", return_value=True)
+    mocker.patch("main.GHUITestsCollector.collect", return_value=True)
+    mock_log_info = mocker.patch("logging.getLogger").return_value.info
+
+    # Act
+    run()
+
+    # Assert
+    mock_log_info.assert_has_calls(
+        [
+            mocker.call("Liv-Doc collector for GitHub - Starting the `doc-source` mode."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode completed successfully."),
+            mocker.call("Liv-Doc collector for GitHub - Starting the `ui-tests` mode."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode completed successfully."),
+        ],
+        any_order=False,
+    )
+
+
+def test_run_doc_source_and_ui_tests_modes_failed(mocker):
+    # Arrange
+    mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
+    mocker.patch("main.validate_query_formats", return_value=True)
+    mocker.patch("main.ActionInputs.is_doc_issues_mode_enabled", return_value=False)
+    mocker.patch("main.ActionInputs.is_doc_source_mode_enabled", return_value=True)
+    mocker.patch("main.ActionInputs.is_ui_tests_mode_enabled", return_value=True)
+    mocker.patch("main.GHDocSourceCollector.collect", return_value=False)
+    mocker.patch("main.GHUITestsCollector.collect", return_value=False)
+    mock_log_info = mocker.patch("logging.getLogger").return_value.info
+    mock_exit = mocker.patch("sys.exit")
+
+    # Act
+    run()
+
+    # Assert
+    mock_log_info.assert_has_calls(
+        [
+            mocker.call("Liv-Doc collector for GitHub - Starting the `doc-source` mode."),
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode failed."),
+            mocker.call("Liv-Doc collector for GitHub - Starting the `ui-tests` mode."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode failed."),
+        ],
+        any_order=False,
+    )
+    mock_exit.assert_called_once_with(1)
+
