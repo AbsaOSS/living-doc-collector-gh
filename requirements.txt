@@ -1,5 +1,5 @@
 jsonschema==4.26.0
-mypy==2.2.0
+mypy==2.3.0
 mypy-extensions==1.1.0
 requests==2.34.2
 typing_extensions==4.16.0
