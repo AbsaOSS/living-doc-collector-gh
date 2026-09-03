@@ -36,7 +36,7 @@ make install          # or: pip install -r requirements.txt
 ## Quality Gate (Makefile)
 
 The `Makefile` is the single source of truth for quality checks — the
-`static_analysis_and_tests.yml` workflow calls the same targets, so local runs and
+`test.yml` workflow calls the same targets, so local runs and
 CI never drift. Run the full gate before opening a pull request:
 
 ```shell

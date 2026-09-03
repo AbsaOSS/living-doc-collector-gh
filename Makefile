@@ -1,7 +1,7 @@
 # Quality-gate command vocabulary for living-doc-collector-gh.
 #
 # These targets are the single source of truth for local and CI checks -
-# .github/workflows/static_analysis_and_tests.yml calls the same targets so the
+# .github/workflows/test.yml calls the same targets so the
 # two never drift. Run `make qa` before opening a pull request.
 
 PYTHON      ?= python3
