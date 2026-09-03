@@ -20,9 +20,54 @@ on:
   push:
     branches: [ "master" ]
   pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
+  detect:
+    name: Detect Python Changes
+    runs-on: ubuntu-latest
+    outputs:
+      python_changed: ${{ steps.changes.outputs.python_changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check whether Python-related files changed
+        id: changes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            changed_files=$(gh api \
+              "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
+              --paginate --jq '.[].filename')
+          else
+            changed_files=$(git diff --name-only "${{ github.sha }}~1" "${{ github.sha }}")
+          fi
+
+          if echo "$changed_files" | grep -E '(\.py$|(^|/)requirements\.txt$|(^|/)pyproject\.toml$)' > /dev/null; then
+            echo "python_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "python_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   static-analysis-and-tests:
+    needs: detect
+    if: needs.detect.outputs.python_changed == 'true'
     runs-on: ubuntu-latest
     name: ${{ matrix.task.name }} (Python ${{ matrix.python-version }})
     # The 3.10 leg is advisory until `living-doc-utilities` publishes a release with
@@ -34,7 +79,7 @@ jobs:
       matrix:
         # Python 3.10 is the supported floor (see `requires-python` in pyproject.toml);
         # 3.14 is the version used by the published action image.
-        python-version: [ "3.10", "3.14" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         task:
           - name: Black Format Check
             target: format-check
@@ -62,3 +107,11 @@ jobs:
 
       - name: Run ${{ matrix.task.name }}
         run: make ${{ matrix.task.target }}
+
+  noop:
+    needs: detect
+    if: needs.detect.outputs.python_changed != 'true'
+    runs-on: ubuntu-latest
+    name: No Python Changes
+    steps:
+      - run: echo "No Python-related changes detected — static analysis & tests skipped."
