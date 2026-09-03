@@ -5,6 +5,18 @@ Draft — 2026-06-30
 
 ---
 
+## 0. Document lifecycle
+
+This document describes behavior that does **not** exist yet. When a section here is
+implemented, that PR **moves** the section's content out of `SPEC.md` and into the live,
+"what actually exists" docs — `README.md` and the mode docs (`doc_issues/README.md`-style:
+`doc_source/README.md`, `ui_tests/README.md`), or `DEVELOPER.md` for dev workflow. It is a
+move, not a copy: the content is deleted from `SPEC.md` in the same PR, so the spec shrinks
+toward empty instead of drifting out of sync with what shipped. See
+`.claude/rules/docs-lifecycle.md` for the full rule.
+
+---
+
 ## 1. Overview
 
 Two new collector modes are added alongside the existing `doc-issues` mode.
