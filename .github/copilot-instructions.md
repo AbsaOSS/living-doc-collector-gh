@@ -105,11 +105,12 @@ Tooling
 
 Quality gates
 - Must run after changes; fix issues if below threshold:
-  - Tests: `pytest tests/`
-  - Format: `black $(git ls-files '*.py')`
-  - Lint: `pylint $(git ls-files '*.py' ':!:tests/**')`
-  - Types: `mypy .`
-- If the repo defines special lint scopes (e.g., exclude `tests/`), must use the repo's canonical commands from “Repo additions”.
+  - Full gate: `make qa`
+  - Tests: `make test`
+  - Format: `make format` (check-only: `make format-check`)
+  - Lint: `make lint`
+  - Types: `make types`
+- The `Makefile` targets are the canonical commands and are what CI runs.
 
 Common pitfalls to avoid
 - Dependencies:
@@ -131,7 +132,7 @@ Learned rules
 Repo additions
 - Project name: living-doc-collector-gh
 - Purpose: Python GitHub Action that collects “living documentation” data from GitHub (e.g., Projects/Issues) and writes machine-readable JSON for downstream documentation generation.
-- Runtime: Python 3.14+
+- Runtime: Python 3.10+ (supported floor; the published action image uses 3.14)
 - Logging rule:
   - Must use lazy `%` formatting (e.g., `logger.info("msg %s", value)`).
   - Must not use f-strings for logging interpolation.
@@ -144,12 +145,13 @@ Repo additions
 - Outputs:
   - Must write under the repository's configured output folder (see code that uses `OUTPUT_PATH`).
   - Contract-sensitive output: action output `output-path`.
-- Tooling commands (canonical):
-  - Tests: `pytest tests/`
-  - Format: `black $(git ls-files '*.py')`
-  - Lint (exclude tests): `pylint $(git ls-files '*.py' ':!:tests/**')`
-  - Types: `mypy .` (or `mypy <changed_files>`)
-  - Coverage: `pytest --ignore=tests/integration --cov=. tests/ --cov-fail-under=80 --cov-report=html`
+- Tooling commands (canonical): use the `Makefile` targets - CI calls the same ones.
+  - Full gate: `make qa`
+  - Tests: `make test`
+  - Format: `make format` (check-only: `make format-check`)
+  - Lint: `make lint`
+  - Types: `make types`
+  - Coverage: `make coverage`
 - Thresholds:
   - Pylint score: >= 9.5/10
   - Coverage: >= 80%

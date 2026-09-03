@@ -2,10 +2,11 @@
 name = "living-doc-collector-gh"
 version = "0.1.1"
 description = "Collect living documentation data from GitHub repositories."
+requires-python = ">=3.10"
 
 [tool.black]
 line-length = 120
-target-version = ['py314']
+target-version = ['py310']
 force-exclude = '''test'''
 
 [tool.coverage.run]
@@ -13,5 +14,5 @@ omit = ["tests/*"]
 
 [tool.mypy]
 check_untyped_defs = true
-python_version = "3.14"
+python_version = "3.10"
 exclude = "tests"

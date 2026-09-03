@@ -19,8 +19,13 @@ This module contains all constants and enums used across the project.
 """
 
 import os
-import tomllib
+import sys
 from enum import Enum
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:  # Python 3.10 backport
+    import tomli as tomllib
 
 
 def get_package_version() -> str:
