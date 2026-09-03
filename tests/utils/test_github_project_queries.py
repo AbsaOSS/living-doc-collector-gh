@@ -17,18 +17,18 @@
 import re
 
 from utils.constants import (
-    PROJECTS_FROM_REPO_QUERY,
     ISSUES_FROM_PROJECT_QUERY,
-    PROJECT_FIELD_OPTIONS_QUERY,
     ISSUES_PER_PAGE_LIMIT,
+    PROJECT_FIELD_OPTIONS_QUERY,
+    PROJECTS_FROM_REPO_QUERY,
 )
 from utils.exceptions import InvalidQueryFormatError
 from utils.github_project_queries import (
-    get_projects_from_repo_query,
     get_issues_from_project_query,
-    get_project_field_options_query, validate_query_formats,
+    get_project_field_options_query,
+    get_projects_from_repo_query,
+    validate_query_formats,
 )
-
 
 # get_projects_from_repo_query
 

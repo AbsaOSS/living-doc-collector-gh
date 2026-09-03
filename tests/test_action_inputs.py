@@ -22,7 +22,6 @@ from action_inputs import ActionInputs
 from doc_issues.model.config_repository import ConfigRepository
 from utils.exceptions import FetchRepositoriesException
 
-
 # Check Action Inputs default values
 
 

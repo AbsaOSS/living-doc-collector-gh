@@ -19,14 +19,13 @@ This module contains a data container for Consolidated Issue, which holds all th
 """
 
 import logging
-from typing import Optional, Any
+from typing import Any, Optional
 
+from github.GithubException import GithubException
+from github.Issue import Issue as GitHubIssue
 from living_doc_utilities.factory.issue_factory import IssueFactory
 from living_doc_utilities.model.issue import Issue
 from living_doc_utilities.model.project_status import ProjectStatus
-
-from github.Issue import Issue as GitHubIssue
-from github.GithubException import GithubException
 
 logger = logging.getLogger(__name__)
 

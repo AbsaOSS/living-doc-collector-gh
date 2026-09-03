@@ -16,7 +16,6 @@
 
 """Tests for doc_issues.body_parser module."""
 
-import pytest
 
 from doc_issues.body_parser import (
     _extract_section,

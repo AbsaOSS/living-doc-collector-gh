@@ -1,34 +1,32 @@
 # Living Documentation Collector for GitHub
 
-- [Motivation](#motivation)
-- [Data-Mining Modes](#data-mining-modes)
-- [Usage](#usage)
-    - [Prerequisites](#prerequisites)
-    - [Adding the Action to Your Workflow](#adding-the-action-to-your-workflow)
-- [Action Configuration](#action-configuration)
-    - [Environment Variables](#environment-variables)
-    - [Inputs](#inputs)
-      - [Base Inputs](#base-inputs)
-      - [Mode Inputs](#mode-inputs)
-- [Action Outputs](#action-outputs)
-- [How-to](#how-to)
-  - [How to Create a Token with Required Scope](#how-to-create-a-token-with-required-scope)
-  - [How to Store Token as a Secret](#how-to-store-token-as-a-secret)
-- [Contribution Guidelines](#contribution-guidelines)
-  - [License Information](#license-information)
-  - [Contact or Support Information](#contact-or-support-information)
+[![Build and Test](https://github.com/AbsaOSS/living-doc-collector-gh/actions/workflows/test.yml/badge.svg)](https://github.com/AbsaOSS/living-doc-collector-gh/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Motivation
+A GitHub Action that extracts living-documentation content from GitHub Projects, Issues, and locally checked-out repositories and emits machine-readable JSON for the downstream `living-doc-*` documentation generators.
 
-Addresses the need for continuously updated documentation accessible to all team members and stakeholders. Achieves this by extracting information directly from GitHub and providing it in a json format, which can be easily transformed into various documentation formats. This approach ensures that the documentation is always up-to-date and relevant, reducing the burden of manual updates and improving overall project transparency.
+## Overview
 
----
-## Data-Mining Modes
+> **Expected usage: GitHub Actions first.** The supported way to run this action is as a step in a GitHub Actions workflow, chained with the other `living-doc-*` actions. Running it locally — the `run_script.sh` / `python3 main.py` pattern documented in `DEVELOPER.md` — is a development and debugging affordance only, not a second supported deployment target.
 
-This Collector supports multiple mining modes, each with its own unique functionality. Read more about the modes at their respective links:
-- [Documentation Issues](doc_issues/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
-- [Documentation Source](doc_source/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
-- [UI Tests](ui_tests/README.md) ![Status](https://img.shields.io/badge/status-in%20development-orange)
+> **The Living Documentation pipeline runs AI-free.** Every step — collect → normalize → generate — is deterministic tooling (Python, JSON Schema validation, Jinja2/Markdown templates) with no LLM call anywhere in that path. [`AbsaOSS/agentic-toolkit`](https://github.com/AbsaOSS/agentic-toolkit) can accelerate the upstream *authoring* of GitHub Issues and `.feature` files, but it is never a runtime dependency of this pipeline: a human writing the same input by hand is a fully supported, identical path.
+
+Addresses the need for continuously updated documentation accessible to all team members and stakeholders. Achieves this by extracting information directly from GitHub and providing it in a JSON format, which can be easily transformed into various documentation formats. This approach ensures that the documentation is always up-to-date and relevant, reducing the burden of manual updates and improving overall project transparency.
+
+The Collector supports multiple mining modes, each with its own functionality. Activate only the modes you need; read more about each at its linked mode documentation.
+
+| Mode | Purpose | Typical output |
+|------|---------|----------------|
+| **[Documentation Issues](doc_issues/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Data-mines GitHub repositories and Projects for documentation tickets that carry project documentation. | Issue / project living-documentation JSON |
+| **[Documentation Source](doc_source/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Mines **User Story**, **Functionality**, and **Feature** blocks from locally checked-out repositories. | `doc-source` structured JSON |
+| **[UI Tests](ui_tests/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Mines UI test scenarios from `.feature` scenario blocks in locally checked-out repositories. | UI test catalog JSON |
+
+**Key features**
+- 🔎 Multi-source: GitHub Projects and Issues plus locally checked-out repositories
+- 🧩 Modular: activate only the mining modes you need (`doc-issues`, `doc-source`, `ui-tests`)
+- 📄 Structured output: schema-versioned JSON ready for the downstream generators
+- ⚡ Deterministic: the same inputs always produce the same JSON
+- 🔁 Pipeline-ready: chains with the other `living-doc-*` actions
 
 ---
 ## Usage
@@ -58,7 +56,7 @@ See the default action step definition:
 
 See the default action step definitions for each mode:
 
-- [Documentation Issues mode default step definition](doc_issues/README.md#adding-doc-issues-mode-to-the-workflow)
+- [Documentation Issues mode default step definition](doc_issues/README.md#usage)
 - [Documentation Source mode default step definition](doc_source/README.md#usage)
 - [UI Tests mode default step definition](ui_tests/README.md#usage)
 
@@ -170,7 +168,7 @@ This output can be utilized in various ways within your CI/CD pipeline to ensure
 
 ## Developer Guide
 
-See this [Developer Guide](DEVELOPER.md) for more technical, development-related information.
+For local setup, the Makefile quality gate, testing, coverage, running the action locally, versioning, and releasing, see [DEVELOPER.md](DEVELOPER.md).
 
 ---
 ## How-to
@@ -217,21 +215,18 @@ This section aims to help the user walk through different processes, such as:
 ---
 ## Contribution Guidelines
 
-We welcome contributions to the Living Documentation Collector! Whether you're fixing bugs, improving documentation, or proposing new features, your help is appreciated.
-
-#### How to Contribute
-
-Before contributing, please review our [contribution guidelines](https://github.com/AbsaOSS/living-doc-collector-gh/blob/master/CONTRIBUTING.md) for more detailed information.
+We welcome contributions to the Living Documentation Collector — bug fixes, documentation improvements, and new features. See [CONTRIBUTING.md](CONTRIBUTING.md) for the bug-report, feature-request, branch-naming, and PR conventions.
 
 ### License Information
 
 This project is licensed under the Apache License 2.0. It is a liberal license that allows you great freedom in using, modifying, and distributing this software, while also providing an express grant of patent rights from contributors to users.
 
-For more details, see the [LICENSE](https://github.com/AbsaOSS/living-doc-collector-gh/blob/master/LICENSE) file in the repository.
+For more details, see the [LICENSE](LICENSE) file in the repository.
 
 ### Contact or Support Information
 
 If you need help with using or contributing to the Living Documentation Collector Action, or if you have any questions or feedback, don't hesitate to reach out:
 
-- **Issue Tracker**: For technical issues or feature requests, use the [GitHub Issues page](https://github.com/AbsaOSS/living-doc-collector-gh/issues).
-- **Discussion Forum**: For general questions and discussions, join our [GitHub Discussions forum](https://github.com/AbsaOSS/living-doc-collector-gh/discussions).
+- **Issue Tracker**: For technical issues, questions, or feature requests, use the [GitHub Issues page](https://github.com/AbsaOSS/living-doc-collector-gh/issues).
+
+Maintained by [ABSA Group Limited](https://github.com/AbsaOSS).

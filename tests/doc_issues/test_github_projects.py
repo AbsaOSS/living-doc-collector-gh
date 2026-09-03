@@ -36,7 +36,7 @@ def test___initialize_request_session_sets_session_and_headers(mocker):
     assert github_projects._GitHubProjects__session is mock_session
     mock_session.headers.update.assert_called_once_with(
         {
-            "Authorization": f"Bearer test_token",
+            "Authorization": "Bearer test_token",
             "User-Agent": "IssueFetcher/1.0",
         }
     )

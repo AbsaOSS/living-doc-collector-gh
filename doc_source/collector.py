@@ -33,8 +33,8 @@ from doc_source.header_parser import parse_func_header, parse_header
 from doc_source.model.config_repository import ConfigRepository
 from doc_source.page_object_parser import parse_page_object_header
 from utils.constants import DOC_SOURCE_OUTPUT_PATH, get_package_version
-from utils.utils import validate_against_schema
 from utils.feature_file_discovery import discover_feature_files, discover_ts_files
+from utils.utils import validate_against_schema
 
 logger = logging.getLogger(__name__)
 

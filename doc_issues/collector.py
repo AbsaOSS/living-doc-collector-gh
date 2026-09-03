@@ -28,9 +28,6 @@ from typing import Callable
 
 from github import Auth, Github
 from github.Issue import Issue
-
-from utils.constants import get_package_version
-
 from living_doc_utilities.decorators import safe_call_decorator
 from living_doc_utilities.github.rate_limiter import GithubRateLimiter
 from living_doc_utilities.model.feature_issue import FeatureIssue
@@ -40,19 +37,20 @@ from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 from action_inputs import ActionInputs
 from doc_issues.body_parser import parse_body
-from utils.utils import validate_against_schema
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
 from utils.constants import (
-    ISSUES_PER_PAGE_LIMIT,
-    ISSUE_STATE_ALL,
-    SUPPORTED_ISSUE_LABELS,
-    DOC_USER_STORY_LABEL,
     DOC_FEATURE_LABEL,
     DOC_FUNCTIONALITY_LABEL,
+    DOC_USER_STORY_LABEL,
+    ISSUE_STATE_ALL,
+    ISSUES_PER_PAGE_LIMIT,
+    SUPPORTED_ISSUE_LABELS,
+    get_package_version,
 )
+from utils.utils import validate_against_schema
 
 logger = logging.getLogger(__name__)
 

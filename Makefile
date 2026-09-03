@@ -22,13 +22,15 @@ install: ## Install runtime and development dependencies.
 
 qa: format-check lint types coverage ## Run the full quality gate (format, lint, types, tests + coverage).
 
-format: ## Reformat all tracked Python files with Black.
+format: ## Reformat all tracked Python files (ruff autofix + Black).
+	ruff check --fix $(PY_FILES)
 	black $(PY_FILES)
 
 format-check: ## Check Black formatting without modifying files.
 	black --check $(PY_FILES)
 
-lint: ## Run Pylint and enforce the minimum score.
+lint: ## Run ruff and Pylint (enforce the minimum score).
+	ruff check $(PY_FILES)
 	pylint --fail-under=$(PYLINT_MIN) $(PY_FILES)
 
 types: ## Run the mypy static type checker.
