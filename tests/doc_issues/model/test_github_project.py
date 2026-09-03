@@ -17,7 +17,6 @@ from github.Repository import Repository
 
 from doc_issues.model.github_project import GitHubProject
 
-
 # loads
 
 

@@ -6,6 +6,7 @@ requests==2.34.2
 typing_extensions==4.16.0
 PyGithub==2.10.0
 pylint==4.0.7
+ruff==0.16.6
 black==26.5.1
 pytest==9.1.1
 pytest-cov==7.1.0

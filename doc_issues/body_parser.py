@@ -19,8 +19,8 @@ This module contains functions for parsing raw markdown issue body strings
 into structured JSON-ready data.
 """
 
-import re
 import logging
+import re
 from typing import Optional
 
 logger = logging.getLogger(__name__)

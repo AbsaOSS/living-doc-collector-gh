@@ -16,7 +16,6 @@
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
 
-
 # loads
 
 

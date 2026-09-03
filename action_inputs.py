@@ -22,19 +22,19 @@ which are essential for running the GH action.
 import json
 import logging
 import os
+
 import requests
 from living_doc_utilities.github.utils import get_action_input
-
 from living_doc_utilities.inputs.action_inputs import BaseActionInputs
 
 from doc_issues.model.config_repository import ConfigRepository
 from utils.constants import (
-    Mode,
     DOC_ISSUES_PROJECT_STATE_MINING,
     DOC_ISSUES_REPOSITORIES,
     DOC_SOURCE_REPOSITORIES,
     UI_TESTS_REPOSITORIES,
     VERBOSE_LOGGING,
+    Mode,
 )
 from utils.exceptions import FetchRepositoriesException
 

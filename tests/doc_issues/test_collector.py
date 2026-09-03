@@ -21,8 +21,7 @@ from living_doc_utilities.model.issues import Issues
 from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
-
-from utils.constants import DOC_USER_STORY_LABEL, DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL
+from utils.constants import DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL, DOC_USER_STORY_LABEL
 
 
 @dataclass
@@ -69,7 +68,7 @@ def test_collect_correct_behaviour(mocker, doc_issues_collector):
         return_value={"test_org/test_repo#1": consolidated_issue_mock},
     )
 
-    mock_store_consolidated_issues = mocker.patch.object(
+    mocker.patch.object(
         doc_issues_collector,
         "_store_consolidated_issues",
         return_value=True,
@@ -145,7 +144,7 @@ def test_fetch_github_issues_success(mocker, config_repository, repository_setup
         "doc_issues.collector.ActionInputs.get_repositories",
         return_value=[config_repository],
     )
-    mock_get_repo = mocker.patch.object(
+    mocker.patch.object(
         doc_issues_collector._GHDocIssuesCollector__github_instance,
         "get_repo",
         return_value=repository_setup,
@@ -490,7 +489,6 @@ def test_store_consolidated_issues_not_valid(mocker, doc_issues_collector):
 
 def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
     # Arrange
-    from living_doc_utilities.model.feature_issue import FeatureIssue
     from living_doc_utilities.model.issues import Issues
 
     # Create a mock consolidated issue with audit data

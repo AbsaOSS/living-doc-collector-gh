@@ -19,7 +19,6 @@ This module contains a data container for Project Issue, which holds all the ess
 """
 
 import logging
-
 from typing import Optional
 
 from living_doc_utilities.model.project_status import ProjectStatus

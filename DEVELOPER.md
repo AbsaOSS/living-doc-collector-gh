@@ -2,7 +2,7 @@
 
 - [Project Setup](#project-setup)
 - [Quality Gate (Makefile)](#quality-gate-makefile)
-- [Run Scripts Locally](#run-scripts-locally)
+- [SSL / TLS Certificate Verification](#ssl--tls-certificate-verification)
 - [Run Pylint Check Locally](#run-pylint-check-locally)
 - [Run Black Tool Locally](#run-black-tool-locally)
 - [Run mypy Tool Locally](#run-mypy-tool-locally)

@@ -18,14 +18,14 @@
 This module contains methods for formatting the GitHub GraphQL queries.
 """
 
+from utils.constants import (
+    ISSUES_FROM_PROJECT_QUERY,
+    ISSUES_PER_PAGE_LIMIT,
+    PROJECT_FIELD_OPTIONS_QUERY,
+    PROJECTS_FROM_REPO_QUERY,
+)
 from utils.exceptions import InvalidQueryFormatError
 from utils.utils import validate_query_format
-from utils.constants import (
-    PROJECTS_FROM_REPO_QUERY,
-    ISSUES_FROM_PROJECT_QUERY,
-    PROJECT_FIELD_OPTIONS_QUERY,
-    ISSUES_PER_PAGE_LIMIT,
-)
 
 
 def validate_query_formats() -> bool:

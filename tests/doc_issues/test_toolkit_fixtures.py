@@ -18,11 +18,9 @@ Tests for toolkit adapter fixture files to ensure they remain valid as the codeb
 """
 
 import json
-import os
 from pathlib import Path
 
 import pytest
-
 
 # Get the fixtures directory path
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures" / "toolkit_adapter"

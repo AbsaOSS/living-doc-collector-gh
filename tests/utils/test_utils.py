@@ -18,11 +18,11 @@ import pytest
 
 from utils.exceptions import InvalidQueryFormatError
 from utils.utils import (
+    load_template,
+    make_absolute_path,
     sanitize_filename,
     validate_query_format,
-    load_template, make_absolute_path,
 )
-
 
 # sanitize_filename
 
@@ -127,7 +127,7 @@ def test_load_template_error(mocker):
 
 def test_make_absolute_path(mocker):
     # Arrange
-    mock_getcwd = mocker.patch("os.getcwd", return_value="/current/working/directory")
+    mocker.patch("os.getcwd", return_value="/current/working/directory")
     relative_path = "relative/path/to/file.txt"
 
     # Act
@@ -139,7 +139,7 @@ def test_make_absolute_path(mocker):
 
 def test_make_absolute_path_already_absolute(mocker):
     # Arrange
-    mock_getcwd = mocker.patch("os.getcwd", return_value="/current/working/directory")
+    mocker.patch("os.getcwd", return_value="/current/working/directory")
     absolute_path = "/absolute/path/to/file.txt"
 
     # Act
