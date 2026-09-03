@@ -87,7 +87,7 @@ Non-goals
 Repo additions (required per repo; keep short)
 - Runtime/toolchain targets
 
-  - Python 3.14+
+  - Python 3.10+ (supported floor; published action image uses 3.14)
 - Logging conventions
 
   - Must use lazy `%` formatting for logging; must not use f-strings in logging.

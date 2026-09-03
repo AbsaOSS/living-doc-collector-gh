@@ -37,7 +37,7 @@ This Collector supports multiple mining modes, each with its own unique function
 
 Before we begin, ensure you have fulfilled the following prerequisites:
 - GitHub Token with permission to fetch repository data such as Issues and Pull Requests.
-- Python version 3.14 or higher.
+- Python version 3.10 or higher.
 
 ### Adding the Action to Your Workflow
 

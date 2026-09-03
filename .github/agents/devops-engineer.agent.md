@@ -83,14 +83,15 @@ Non-goals
 Repo additions (required per repo; keep short)
 - Runtime/toolchain targets
 
-  - Python 3.14+
-- Quality gates and thresholds
+  - Python 3.10+ (supported floor; published action image uses 3.14)
+- Quality gates and thresholds (use the `Makefile` targets — CI runs the same)
 
-  - Tests: `pytest tests/`
-  - Format: `black $(git ls-files '*.py')`
-  - Lint (exclude tests): `pylint $(git ls-files '*.py' ':!:tests/**')` (target score >= 9.5/10)
-  - Types: `mypy .`
-  - Coverage: `pytest --ignore=tests/integration --cov=. tests/ --cov-fail-under=80 --cov-report=html` (>= 80%)
+  - Full gate: `make qa`
+  - Tests: `make test`
+  - Format: `make format` (check-only: `make format-check`)
+  - Lint: `make lint` (target score >= 9.5/10)
+  - Types: `make types`
+  - Coverage: `make coverage` (>= 80%)
 - Dependency constraints
 
   - Must assume runner installs dependencies from `requirements.txt`.
