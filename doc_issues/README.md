@@ -187,6 +187,12 @@ The collector provides a formal JSON Schema file (`doc_issues/schema/doc-issues-
 
 The schema is versioned as **v1.0.0** (reflected in both the filename and the `$schema_version` field in the schema itself). The schema defines all required and optional fields, data types, and validation rules for metadata, items (issues), and warnings.
 
+### Schema Sync Obligation
+
+`collector-gh` owns [`doc_issues/schema/doc-issues-v1.0.0-schema.json`](schema/doc-issues-v1.0.0-schema.json) — it is the schema producer. `living-doc-toolkit` vendors a copy of this contract in its `collector_gh` adapter and consumes it independently (no direct code dependency).
+
+**If you change `doc-issues-v1.0.0-schema.json` here, you must open a matching synchronization pull request in `living-doc-toolkit`.** The consumer-side procedure — updating the vendored schema, the adapter's Pydantic models, and `CONFIRMED_MIN`/`CONFIRMED_MAX` compatibility bounds — is documented in `living-doc-toolkit`'s [`packages/adapters/collector_gh/SCHEMA_SYNC.md`](https://github.com/AbsaOSS/living-doc-toolkit/blob/master/packages/adapters/collector_gh/SCHEMA_SYNC.md). Follow it whenever this schema changes.
+
 ### Issue-Level Structure
 
 Each issue in the `issues` dictionary contains base fields plus audit enrichment:
