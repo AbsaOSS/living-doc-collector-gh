@@ -124,9 +124,10 @@ The mode produces the file `output/doc-issues/doc-issues.json` with the followin
 
 ### JSON Structure
 
-The output JSON contains two top-level sections:
-1. **metadata**: File-level provenance and audit information
-2. **issues**: Dictionary of enriched issue objects
+The output JSON contains three top-level sections:
+1. **user_stories**: Array of enriched issue items — despite the name, every collected `FeatureIssue` / `FunctionalityIssue` / `UserStoryIssue` / plain `Issue` ends up here (see [Issue-Level Structure](#issue-level-structure))
+2. **metadata**: File-level provenance information
+3. **warnings**: Compatibility warnings for downstream consumers (currently always empty; reserved for schema/version compatibility signalling)
 
 ### File-Level Metadata
 
@@ -134,49 +135,60 @@ The `metadata` section provides traceability and provenance information:
 
 ```json
 {
+  "user_stories": [ ... ],
   "metadata": {
-    "generated_at": "2025-01-21T14:30:00.000Z",
-    "schema_version": "1.0",
-    "generator": {
+    "producer": {
       "name": "AbsaOSS/living-doc-collector-gh",
-      "version": "v1.0.0"
-    },
-    "source": {
-      "repositories": ["owner/repo"]
+      "version": "0.1.1",
+      "build": "12345"
     },
     "run": {
-      "workflow": "Documentation Collector",
       "run_id": "12345",
       "run_attempt": "1",
       "actor": "github-user",
+      "workflow": "Documentation Collector",
       "ref": "refs/heads/main",
       "sha": "abc123"
     },
-    "inputs": {
-      "project_state_mining_enabled": true
+    "source": {
+      "systems": ["GitHub"],
+      "repositories": ["owner/repo"],
+      "organization": "owner",
+      "enterprise": null
+    },
+    "original_metadata": {
+      "generated_at": "2025-01-21T14:30:00.000000+00:00",
+      "schema_version": "1.0.0",
+      "inputs": {
+        "project_state_mining_enabled": true
+      }
     }
   },
-  "issues": { ... }
+  "warnings": []
 }
 ```
 
 **Metadata Fields:**
-- `generated_at`: UTC timestamp when the file was generated (ISO-8601 format)
-- `schema_version`: Schema version (e.g., "1.0") for compatibility checking by downstream consumers
-- `generator`: Information about the action that generated the file
+- `producer`: Information about the action that generated the file
   - `name`: Action repository identifier
-  - `version`: Action version, git reference, or commit SHA
-- `source`: Source repository information
-  - `repositories`: List of repositories included in the collection
-- `run`: GitHub Actions workflow run information (when available)
-  - `workflow`: Workflow name
-  - `run_id`: Unique run identifier
-  - `run_attempt`: Run attempt number
+  - `version`: Package version of the running action
+  - `build`: CI/CD build identifier (`GITHUB_RUN_ID`), `null` outside a GitHub Actions run
+- `run`: GitHub Actions workflow run information (all fields `null` outside a GitHub Actions run)
+  - `run_id` / `run_attempt`: Workflow run identifier / attempt number
   - `actor`: User who triggered the workflow
+  - `workflow`: Workflow name
   - `ref`: Git reference (branch/tag)
   - `sha`: Commit SHA
-- `inputs`: Non-sensitive action inputs that affect output
-  - `project_state_mining_enabled`: Whether project state mining was enabled
+- `source`: Source repository information
+  - `systems`: Source systems mined (currently always `["GitHub"]`)
+  - `repositories`: List of repositories included in the collection
+  - `organization`: Organization of the first configured repository, `null` if none configured
+  - `enterprise`: Not currently captured, always `null`
+- `original_metadata`: Collector-specific metadata not part of the shared adapter contract
+  - `generated_at`: UTC timestamp when the file was generated (ISO-8601 format)
+  - `schema_version`: Schema version (`"1.0.0"`) for compatibility checking by downstream consumers
+  - `inputs`: Non-sensitive action inputs that affect output
+    - `project_state_mining_enabled`: Whether project state mining was enabled
 
 ### Output Schema Validation
 
@@ -195,118 +207,61 @@ The schema is versioned as **v1.0.0** (reflected in both the filename and the `$
 
 ### Issue-Level Structure
 
-Each issue in the `issues` dictionary contains base fields plus audit enrichment:
+Each entry in the `user_stories` array is an enriched issue item. The array carries the
+issue key on each item itself (`id`) — there is no dictionary keying by `owner/repo#number`
+at the top level:
 
 ```json
 {
-  "owner/repo#123": {
-    "type": "FeatureIssue",
-    "repository_id": "owner/repo",
-    "title": "Feature Title",
-    "issue_number": 123,
-    "state": "open",
-    "created_at": "2025-01-15T10:00:00",
-    "updated_at": "2025-01-20T15:30:00",
-    "closed_at": null,
-    "html_url": "https://github.com/owner/repo/issues/123",
-    "body": "Issue description...",
-    "labels": ["DocumentedFeature", "enhancement"],
-    "linked_to_project": true,
-    "project_status": [
-      {
-        "project_title": "Project Name",
-        "status": "In Progress",
-        "priority": "High",
-        "size": "Medium",
-        "moscow": "Must Have"
-      }
-    ],
-    "created_by": "user1",
-    "closed_by": null,
-    "comments_count": 5,
-    "last_commented_at": "2025-01-20T12:00:00",
-    "last_commented_by": "user2",
-    "audit_events": [
-      {
-        "action": "labeled",
-        "timestamp": "2025-01-15T10:05:00",
-        "actor": "user1",
-        "label": "enhancement"
-      },
-      {
-        "action": "assigned",
-        "timestamp": "2025-01-15T10:10:00",
-        "actor": "user1",
-        "assignee": "developer1"
-      },
-      {
-        "action": "milestoned",
-        "timestamp": "2025-01-16T09:00:00",
-        "actor": "user1",
-        "milestone": "v1.0"
-      }
-    ]
-  }
+  "id": "owner/repo#123",
+  "title": "Feature Title",
+  "state": "open",
+  "tags": ["DocumentedFeature", "enhancement"],
+  "url": "https://github.com/owner/repo/issues/123",
+  "timestamps": {
+    "created": "2025-01-15T10:00:00",
+    "updated": "2025-01-20T15:30:00"
+  },
+  "description": "Narrative text from the issue's `## Description` section, or null.",
+  "business_value": ["Bullet list from `### Business Value`, or null."],
+  "preconditions": ["Bullet list from `## Preconditions`, or null."],
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "state": "Confirmed",
+      "version": "1.0",
+      "description": "Row from the `## Acceptance Criteria` table, or null."
+    }
+  ]
 }
 ```
 
-### Base Issue Fields
+### Item Fields
 
-These fields are always present (if available in GitHub):
-- `type`: Issue type (FeatureIssue, UserStoryIssue, FunctionalityIssue, or Issue)
-- `repository_id`: Repository identifier (owner/repo)
+- `id`: Issue key in `owner/repo#number` format
 - `title`: Issue title
-- `issue_number`: Issue number
-- `state`: Issue state (open, closed)
-- `created_at`: Timestamp when issue was created
-- `updated_at`: Timestamp when issue was last updated
-- `closed_at`: Timestamp when issue was closed (null if open)
-- `html_url`: GitHub web URL for the issue
-- `body`: Issue description/body
-- `labels`: Array of label names
-- `linked_to_project`: Whether issue is linked to a GitHub Project
-- `project_status`: Array of project status information (when linked to projects)
+- `state`: Issue state (`open`, `closed`)
+- `tags`: Array of label names
+- `url`: GitHub web URL for the issue
+- `timestamps.created` / `timestamps.updated`: Timestamps when the issue was created / last updated
+- `description`: Narrative parsed from the issue body's `## Description` section (`null` if absent)
+- `business_value`: Bullet list parsed from `### Business Value` (`null` if absent)
+- `preconditions`: Bullet list parsed from `## Preconditions` (`null` if absent)
+- `acceptance_criteria`: Table rows parsed from `## Acceptance Criteria` — each row has `id`, `state`, `version`, `description` (`null` if the section is absent)
 
-### Audit Enrichment Fields
+The parsing rules for these four fields are implemented in `doc_issues/body_parser.py`; see
+[Documentation Ticket Introduction](#documentation-ticket-introduction) for how to structure
+an issue body so they can be extracted.
 
-These fields provide audit trail and traceability metadata:
-
-#### Always Available (from GitHub Issue API):
-- `created_by`: GitHub login of the user who created the issue
-- `closed_by`: GitHub login of the user who closed the issue (null if not closed or unavailable)
-- `comments_count`: Total number of comments on the issue
-
-#### Available When Comments Exist:
-- `last_commented_at`: Timestamp of the most recent comment
-- `last_commented_by`: GitHub login of the user who posted the most recent comment
-
-#### Timeline Events (requires timeline API access):
-- `audit_events`: Array of audit-relevant timeline events
-
-**Supported Event Types:**
-- `labeled` / `unlabeled`: Label additions/removals
-  - Includes: `action`, `timestamp`, `actor`, `label`
-- `assigned` / `unassigned`: Assignee changes
-  - Includes: `action`, `timestamp`, `actor`, `assignee`
-- `milestoned` / `demilestoned`: Milestone changes
-  - Includes: `action`, `timestamp`, `actor`, `milestone`
-- `reopened` / `closed`: State transitions
-  - Includes: `action`, `timestamp`, `actor`
-
-### Graceful Degradation
-
-The collector handles API limitations gracefully:
-- If timeline events are unavailable (e.g., due to permissions), the `audit_events` field will be omitted or empty
-- If comment details cannot be fetched, `last_commented_at` and `last_commented_by` will be omitted
-- The collector logs debug/warning messages when data cannot be retrieved, but continues processing
-- Base issue fields are always preserved even if audit enrichment fails
+> **Note:** the collector also fetches per-issue audit data (creator, closer, comment count,
+> timeline events) via `ConsolidatedIssue`, but this data is not currently included in the
+> emitted `user_stories` item — only the fields listed above are written to
+> `doc-issues.json`.
 
 ### Access Requirements
 
-- **Base fields**: Available with standard repository read access
-- **Comments summary**: Requires issue read access (standard)
-- **Timeline events**: May require additional permissions depending on repository settings
-  - If timeline access is denied, the collector continues without these events
+- Fetching issues requires standard repository read access.
+- Fetching project status requires GitHub Projects read access, and only applies when `doc-issues-project-state-mining` is enabled.
 
 The `output` folder is the root output directory for the action.
 
