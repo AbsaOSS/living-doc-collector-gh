@@ -13,4 +13,4 @@ pytest-cov==7.1.0
 pytest-mock==3.15.1
 types-jsonschema==4.26.0.20260518
 types-requests==2.33.0.20260712
-living-doc-utilities==0.3.1
+living-doc-utilities==0.4.0
