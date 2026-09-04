@@ -117,7 +117,7 @@ Contract-sensitive outputs:
 - Must mock `INPUT_*` environment variables and the GitHub API in unit tests.
 - Must not call external services or the real GitHub API in unit tests.
 - Prefer shared fixtures in `tests/conftest.py`.
-- Must add a golden fixture directory under `tests/fixtures/toolkit_adapter/v<X.Y.Z>/` for a new toolkit-adapter schema version — `tests/doc_issues/test_toolkit_fixtures.py` discovers it automatically; Must not hard-code the version list.
+- Must keep `doc_issues/schema/doc-issues-v1.0.0-schema.json` generated, never hand-edited — change `doc_issues/models.py`, then run `python -m doc_issues.schema_export`, and Must keep the parity check in `tests/doc_issues/test_save_issues_with_audit_data` (`AdapterResult.model_validate(data)`) passing as the toolkit-adapter contract guarantee.
 
 ## Tooling and quality gates
 

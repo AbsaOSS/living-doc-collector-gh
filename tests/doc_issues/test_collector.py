@@ -21,6 +21,7 @@ from living_doc_utilities.model.issues import Issues
 from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
+from doc_issues.models import AdapterResult
 from utils.constants import DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL, DOC_USER_STORY_LABEL
 
 
@@ -564,6 +565,10 @@ def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
     assert "tags" in item
     assert "url" in item
     assert "timestamps" in item
+
+    # Parity check (P1-CGH1): the collector's dict-built output must validate against
+    # doc_issues/models.py — the same models doc-issues-v1.0.0-schema.json is generated from.
+    AdapterResult.model_validate(data)
 
 
 def test_get_file_metadata(doc_issues_collector, monkeypatch):
