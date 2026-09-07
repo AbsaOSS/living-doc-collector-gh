@@ -351,7 +351,10 @@ class GHDocIssuesCollector:
         @param consolidated_issues: Consolidated issues with audit data.
         @return: None
         """
-        # Build user_stories array with audit enrichment
+        # Build the user_stories array with audit enrichment. Despite the contract's field
+        # name, this array holds every collected issue (feature, functionality, user story,
+        # or plain issue) — there is no per-type grouping. The type is not written as its own
+        # field; consumers read it from the Documented* label in the item's `tags`.
         user_stories_list = []
         warnings_list: list[str] = []
 

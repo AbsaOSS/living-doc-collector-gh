@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 """
-Tests for the doc-issues.json Pydantic contract models (P1-CGH1).
+Tests for the doc-issues.json Pydantic contract models.
 """
 
 import pytest

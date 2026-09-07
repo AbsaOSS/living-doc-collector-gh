@@ -21,13 +21,17 @@ regenerate the committed schema file after changing a model.
 """
 
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any
 
+from living_doc_utilities.logging_config import setup_logging
 from pydantic.json_schema import GenerateJsonSchema
 
 from doc_issues.models import AdapterResult
+
+logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = "1.0.0"
 
@@ -93,6 +97,7 @@ def write_schema(output_path: Path = _DEFAULT_SCHEMA_PATH) -> Path:
 
 
 if __name__ == "__main__":
+    setup_logging()
     target = Path(sys.argv[1]) if len(sys.argv) > 1 else _DEFAULT_SCHEMA_PATH
     written_path = write_schema(target)
-    print(f"Wrote schema to {written_path}")
+    logger.info("Wrote schema to %s", written_path)

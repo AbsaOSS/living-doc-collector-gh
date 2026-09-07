@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 """
-Tests for the doc-issues schema-export utility (P1-CGH1): the generated schema must stay
+Tests for the doc-issues schema-export utility: the generated schema must stay
 in lockstep with the committed `doc-issues-v1.0.0-schema.json` file.
 """
 

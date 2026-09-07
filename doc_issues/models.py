@@ -24,6 +24,9 @@ from them by `doc_issues/schema_export.py`, not hand-authored. `living-doc-toolk
 vendors a pinned copy of the generated schema for its `collector_gh` adapter.
 """
 
+# Pydantic model classes are declarative data containers with no public methods by design.
+# pylint: disable=too-few-public-methods
+
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -112,6 +115,11 @@ class AdapterItem(BaseModel):
 class AdapterResult(BaseModel):
     """Complete result from adapter parsing."""
 
+    # `user_stories` is the field name fixed by the shared toolkit-adapter contract. It holds
+    # every collected issue regardless of documentation type — there is no per-type grouping
+    # and no `type` field on the item; the type is carried by the `DocumentedUserStory` /
+    # `DocumentedFeature` / `DocumentedFunctionality` label in `AdapterItem.tags`. Read it as
+    # "collected issues".
     user_stories: list[AdapterItem]
     metadata: AdapterMetadata
     warnings: list[CompatibilityWarning]

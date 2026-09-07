@@ -566,7 +566,7 @@ def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
     assert "url" in item
     assert "timestamps" in item
 
-    # Parity check (P1-CGH1): the collector's dict-built output must validate against
+    # Parity check: the collector's dict-built output must validate against
     # doc_issues/models.py — the same models doc-issues-v1.0.0-schema.json is generated from.
     AdapterResult.model_validate(data)
 

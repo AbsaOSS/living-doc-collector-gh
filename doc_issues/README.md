@@ -125,9 +125,24 @@ The mode produces the file `output/doc-issues/doc-issues.json` with the followin
 ### JSON Structure
 
 The output JSON contains three top-level sections:
-1. **user_stories**: Array of enriched issue items — despite the name, every collected `FeatureIssue` / `FunctionalityIssue` / `UserStoryIssue` / plain `Issue` ends up here (see [Issue-Level Structure](#issue-level-structure))
+1. **user_stories**: Array of enriched issue items (see [Issue-Level Structure](#issue-level-structure))
 2. **metadata**: File-level provenance information
 3. **warnings**: Compatibility warnings for downstream consumers (currently always empty; reserved for schema/version compatibility signalling)
+
+> **Naming note — `user_stories` holds *every* collected issue.**
+> The key `user_stories` is fixed by the shared toolkit-adapter contract, but it is **not**
+> limited to user stories. Every issue the collector consolidates is emitted as one entry in
+> this array, regardless of its documentation type — user story, feature, functionality, or a
+> plain issue. There is no per-type grouping and no separate `features` / `functionalities`
+> section. Read `user_stories` as "collected issues".
+>
+> **Item type is not a field** — the array items have no `type` key. To classify an item, read
+> its `tags`: `DocumentedUserStory`, `DocumentedFeature`, or `DocumentedFunctionality` (an item
+> carrying none of these is a plain issue). One item carries at most one of these labels.
+>
+> The key name itself is not changed here: this repo is the **data-source** side of an
+> in-progress cross-repo contract migration, and renaming a contract field is a
+> consumer-side (`living-doc-toolkit`) change for the next phase.
 
 ### File-Level Metadata
 
@@ -203,13 +218,18 @@ The schema is versioned as **v1.0.0** (reflected in both the filename and the `$
 
 `collector-gh` is both the **schema producer** and the **data producer** for this contract. [`doc_issues/schema/doc-issues-v1.0.0-schema.json`](schema/doc-issues-v1.0.0-schema.json) is generated from the Pydantic models in [`doc_issues/models.py`](models.py) — via [`doc_issues/schema_export.py`](schema_export.py) (`python -m doc_issues.schema_export`) — not hand-authored; those models are this repo's source of truth for the contract. `living-doc-toolkit` is the **schema consumer** and **data consumer**: it vendors a pinned copy of this schema in its `collector_gh` adapter and consumes it independently (no direct code dependency).
 
-**If you change `doc_issues/models.py`, regenerate the schema in the same change (`python -m doc_issues.schema_export`) and open a matching synchronization pull request in `living-doc-toolkit`.** The consumer-side procedure — updating the vendored schema, the adapter's own (consumer-side) Pydantic models, and `CONFIRMED_MIN`/`CONFIRMED_MAX` compatibility bounds — is documented in `living-doc-toolkit`'s [`packages/adapters/collector_gh/SCHEMA_SYNC.md`](https://github.com/AbsaOSS/living-doc-toolkit/blob/master/packages/adapters/collector_gh/SCHEMA_SYNC.md). Follow it whenever this schema changes.
+> **Migration in progress.** Moving contract ownership into `collector-gh` (models + generated
+> schema) is the **data-source phase** — this repo. Aligning the consumer side
+> (`living-doc-toolkit`: vendored schema, adapter models, compatibility bounds) is a
+> **follow-up phase** tracked separately.
+
+**If you change `doc_issues/models.py`, regenerate the schema in the same change (`python -m doc_issues.schema_export`).** Once the consumer side is migrated, the same change must also open a matching synchronization pull request in `living-doc-toolkit`. The consumer-side procedure — updating the vendored schema, the adapter's own (consumer-side) Pydantic models, and `CONFIRMED_MIN`/`CONFIRMED_MAX` compatibility bounds — is documented in `living-doc-toolkit`'s [`packages/adapters/collector_gh/SCHEMA_SYNC.md`](https://github.com/AbsaOSS/living-doc-toolkit/blob/master/packages/adapters/collector_gh/SCHEMA_SYNC.md).
 
 ### Issue-Level Structure
 
-Each entry in the `user_stories` array is an enriched issue item. The array carries the
-issue key on each item itself (`id`) — there is no dictionary keying by `owner/repo#number`
-at the top level:
+Each entry in the `user_stories` array is an enriched issue item — of any documentation type
+(see the [naming note](#json-structure) above). The array carries the issue key on each item
+itself (`id`) — there is no dictionary keying by `owner/repo#number` at the top level:
 
 ```json
 {
@@ -241,7 +261,9 @@ at the top level:
 - `id`: Issue key in `owner/repo#number` format
 - `title`: Issue title
 - `state`: Issue state (`open`, `closed`)
-- `tags`: Array of label names
+- `tags`: Array of GitHub label names, verbatim. This is also where the item's documentation
+  type lives — `DocumentedUserStory` / `DocumentedFeature` / `DocumentedFunctionality` (at most
+  one; none means a plain issue). There is no separate `type` field.
 - `url`: GitHub web URL for the issue
 - `timestamps.created` / `timestamps.updated`: Timestamps when the issue was created / last updated
 - `description`: Narrative parsed from the issue body's `## Description` section (`null` if absent)
