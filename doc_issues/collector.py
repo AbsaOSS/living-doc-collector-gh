@@ -37,11 +37,11 @@ from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 from action_inputs import ActionInputs
 from doc_issues.body_parser import parse_body
-from doc_issues.models import CompatibilityWarning
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
+from doc_issues.models import CompatibilityWarning
 from utils.constants import (
     DOC_FEATURE_LABEL,
     DOC_FUNCTIONALITY_LABEL,
