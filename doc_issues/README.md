@@ -124,9 +124,23 @@ The mode produces the file `output/doc-issues/doc-issues.json` with the followin
 
 ### JSON Structure
 
-The output JSON contains two top-level sections:
-1. **metadata**: File-level provenance and audit information
-2. **issues**: Dictionary of enriched issue objects
+The output JSON contains three top-level sections:
+1. **items**: Array of enriched issue items (see [Issue-Level Structure](#issue-level-structure))
+2. **metadata**: File-level provenance information
+3. **warnings**: Compatibility warnings for downstream consumers (currently always empty; reserved for schema/version compatibility signalling)
+
+> **Naming note — `items` holds *every* collected record.**
+> The key is deliberately source- and type-neutral: it works the same whether a record
+> originates from a GitHub issue or an Azure DevOps work item. Every issue the collector
+> consolidates is emitted as one entry in the `items` array regardless of its documentation
+> type — user story, feature, or functionality. There is no per-type grouping and no
+> separate `features` / `functionalities` section.
+>
+> **Item type is not a field** — the array items have no `type` key. To classify an item, read
+> its `tags`: `DocumentedUserStory`, `DocumentedFeature`, or `DocumentedFunctionality`. The
+> collector only mines issues that carry one of these three labels (`SUPPORTED_ISSUE_LABELS`
+> in `utils/constants.py`), so every emitted item has exactly one. An issue tagged with more
+> than one is reported as a `multiple_labels` error and fails the run.
 
 ### File-Level Metadata
 
@@ -134,49 +148,60 @@ The `metadata` section provides traceability and provenance information:
 
 ```json
 {
+  "items": [ ... ],
   "metadata": {
-    "generated_at": "2025-01-21T14:30:00.000Z",
-    "schema_version": "1.0",
-    "generator": {
+    "producer": {
       "name": "AbsaOSS/living-doc-collector-gh",
-      "version": "v1.0.0"
-    },
-    "source": {
-      "repositories": ["owner/repo"]
+      "version": "0.1.1",
+      "build": "12345"
     },
     "run": {
-      "workflow": "Documentation Collector",
       "run_id": "12345",
       "run_attempt": "1",
       "actor": "github-user",
+      "workflow": "Documentation Collector",
       "ref": "refs/heads/main",
       "sha": "abc123"
     },
-    "inputs": {
-      "project_state_mining_enabled": true
+    "source": {
+      "systems": ["GitHub"],
+      "repositories": ["owner/repo"],
+      "organization": "owner",
+      "enterprise": null
+    },
+    "original_metadata": {
+      "generated_at": "2025-01-21T14:30:00.000000+00:00",
+      "schema_version": "1.0.0",
+      "inputs": {
+        "project_state_mining_enabled": true
+      }
     }
   },
-  "issues": { ... }
+  "warnings": []
 }
 ```
 
 **Metadata Fields:**
-- `generated_at`: UTC timestamp when the file was generated (ISO-8601 format)
-- `schema_version`: Schema version (e.g., "1.0") for compatibility checking by downstream consumers
-- `generator`: Information about the action that generated the file
+- `producer`: Information about the action that generated the file
   - `name`: Action repository identifier
-  - `version`: Action version, git reference, or commit SHA
-- `source`: Source repository information
-  - `repositories`: List of repositories included in the collection
-- `run`: GitHub Actions workflow run information (when available)
-  - `workflow`: Workflow name
-  - `run_id`: Unique run identifier
-  - `run_attempt`: Run attempt number
+  - `version`: Package version of the running action
+  - `build`: CI/CD build identifier (`GITHUB_RUN_ID`), `null` outside a GitHub Actions run
+- `run`: GitHub Actions workflow run information (all fields `null` outside a GitHub Actions run)
+  - `run_id` / `run_attempt`: Workflow run identifier / attempt number
   - `actor`: User who triggered the workflow
+  - `workflow`: Workflow name
   - `ref`: Git reference (branch/tag)
   - `sha`: Commit SHA
-- `inputs`: Non-sensitive action inputs that affect output
-  - `project_state_mining_enabled`: Whether project state mining was enabled
+- `source`: Source repository information
+  - `systems`: Source systems mined (currently always `["GitHub"]`)
+  - `repositories`: List of repositories included in the collection
+  - `organization`: Organization of the first configured repository, `null` if none configured
+  - `enterprise`: Not currently captured, always `null`
+- `original_metadata`: Collector-specific metadata not part of the shared adapter contract
+  - `generated_at`: UTC timestamp when the file was generated (ISO-8601 format)
+  - `schema_version`: Schema version (`"1.0.0"`) for compatibility checking by downstream consumers
+  - `inputs`: Non-sensitive action inputs that affect output
+    - `project_state_mining_enabled`: Whether project state mining was enabled
 
 ### Output Schema Validation
 
@@ -187,120 +212,77 @@ The collector provides a formal JSON Schema file (`doc_issues/schema/doc-issues-
 
 The schema is versioned as **v1.0.0** (reflected in both the filename and the `$schema_version` field in the schema itself). The schema defines all required and optional fields, data types, and validation rules for metadata, items (issues), and warnings.
 
+### Schema Sync Obligation
+
+`collector-gh` is both the **schema producer** and the **data producer** for this contract. [`doc_issues/schema/doc-issues-v1.0.0-schema.json`](schema/doc-issues-v1.0.0-schema.json) is generated from the Pydantic models in [`doc_issues/models.py`](models.py) — via [`doc_issues/schema_export.py`](schema_export.py) (`python -m doc_issues.schema_export`) — not hand-authored; those models are this repo's source of truth for the contract. `living-doc-toolkit` is the **schema consumer** and **data consumer**: it vendors a pinned copy of this schema in its `collector_gh` adapter and consumes it independently (no direct code dependency).
+
+> **Migration in progress.** Moving contract ownership into `collector-gh` (models + generated
+> schema) is the **data-source phase** — this repo. Aligning the consumer side
+> (`living-doc-toolkit`: vendored schema, adapter models, compatibility bounds) is a
+> **follow-up phase** tracked separately.
+
+**If you change `doc_issues/models.py`, regenerate the schema in the same change (`python -m doc_issues.schema_export`).** Once the consumer side is migrated, the same change must also open a matching synchronization pull request in `living-doc-toolkit`. The consumer-side procedure — updating the vendored schema, the adapter's own (consumer-side) Pydantic models, and `CONFIRMED_MIN`/`CONFIRMED_MAX` compatibility bounds — is documented in `living-doc-toolkit`'s [`packages/adapters/collector_gh/SCHEMA_SYNC.md`](https://github.com/AbsaOSS/living-doc-toolkit/blob/master/packages/adapters/collector_gh/SCHEMA_SYNC.md).
+
 ### Issue-Level Structure
 
-Each issue in the `issues` dictionary contains base fields plus audit enrichment:
+Each entry in the `items` array is an enriched issue item — of any documentation type
+(see the [naming note](#json-structure) above). The array carries the issue key on each item
+itself (`id`) — there is no dictionary keying by `owner/repo#number` at the top level:
 
 ```json
 {
-  "owner/repo#123": {
-    "type": "FeatureIssue",
-    "repository_id": "owner/repo",
-    "title": "Feature Title",
-    "issue_number": 123,
-    "state": "open",
-    "created_at": "2025-01-15T10:00:00",
-    "updated_at": "2025-01-20T15:30:00",
-    "closed_at": null,
-    "html_url": "https://github.com/owner/repo/issues/123",
-    "body": "Issue description...",
-    "labels": ["DocumentedFeature", "enhancement"],
-    "linked_to_project": true,
-    "project_status": [
-      {
-        "project_title": "Project Name",
-        "status": "In Progress",
-        "priority": "High",
-        "size": "Medium",
-        "moscow": "Must Have"
-      }
-    ],
-    "created_by": "user1",
-    "closed_by": null,
-    "comments_count": 5,
-    "last_commented_at": "2025-01-20T12:00:00",
-    "last_commented_by": "user2",
-    "audit_events": [
-      {
-        "action": "labeled",
-        "timestamp": "2025-01-15T10:05:00",
-        "actor": "user1",
-        "label": "enhancement"
-      },
-      {
-        "action": "assigned",
-        "timestamp": "2025-01-15T10:10:00",
-        "actor": "user1",
-        "assignee": "developer1"
-      },
-      {
-        "action": "milestoned",
-        "timestamp": "2025-01-16T09:00:00",
-        "actor": "user1",
-        "milestone": "v1.0"
-      }
-    ]
-  }
+  "id": "owner/repo#123",
+  "title": "Feature Title",
+  "state": "open",
+  "tags": ["DocumentedFeature", "enhancement"],
+  "url": "https://github.com/owner/repo/issues/123",
+  "timestamps": {
+    "created": "2025-01-15T10:00:00",
+    "updated": "2025-01-20T15:30:00"
+  },
+  "description": "Narrative text from the issue's `## Description` section, or null.",
+  "business_value": ["Bullet list from `### Business Value`, or null."],
+  "preconditions": ["Bullet list from `## Preconditions`, or null."],
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "state": "Confirmed",
+      "version": "1.0",
+      "description": "Row from the `## Acceptance Criteria` table, or null."
+    }
+  ]
 }
 ```
 
-### Base Issue Fields
+### Item Fields
 
-These fields are always present (if available in GitHub):
-- `type`: Issue type (FeatureIssue, UserStoryIssue, FunctionalityIssue, or Issue)
-- `repository_id`: Repository identifier (owner/repo)
+- `id`: Issue key in `owner/repo#number` format
 - `title`: Issue title
-- `issue_number`: Issue number
-- `state`: Issue state (open, closed)
-- `created_at`: Timestamp when issue was created
-- `updated_at`: Timestamp when issue was last updated
-- `closed_at`: Timestamp when issue was closed (null if open)
-- `html_url`: GitHub web URL for the issue
-- `body`: Issue description/body
-- `labels`: Array of label names
-- `linked_to_project`: Whether issue is linked to a GitHub Project
-- `project_status`: Array of project status information (when linked to projects)
+- `state`: Issue state (`open`, `closed`)
+- `tags`: Array of GitHub label names, verbatim. This is also where the item's documentation
+  type lives — exactly one of `DocumentedUserStory` / `DocumentedFeature` /
+  `DocumentedFunctionality` (issues without one of these labels are never mined; an issue with
+  more than one fails the run). There is no separate `type` field.
+- `url`: GitHub web URL for the issue
+- `timestamps.created` / `timestamps.updated`: Timestamps when the issue was created / last updated
+- `description`: Narrative parsed from the issue body's `## Description` section (`null` if absent)
+- `business_value`: Bullet list parsed from `### Business Value` (`null` if absent)
+- `preconditions`: Bullet list parsed from `## Preconditions` (`null` if absent)
+- `acceptance_criteria`: Table rows parsed from `## Acceptance Criteria` — each row has `id`, `state`, `version`, `description` (`null` if the section is absent)
 
-### Audit Enrichment Fields
+The parsing rules for these four fields are implemented in `doc_issues/body_parser.py`; see
+[Documentation Ticket Introduction](#documentation-ticket-introduction) for how to structure
+an issue body so they can be extracted.
 
-These fields provide audit trail and traceability metadata:
-
-#### Always Available (from GitHub Issue API):
-- `created_by`: GitHub login of the user who created the issue
-- `closed_by`: GitHub login of the user who closed the issue (null if not closed or unavailable)
-- `comments_count`: Total number of comments on the issue
-
-#### Available When Comments Exist:
-- `last_commented_at`: Timestamp of the most recent comment
-- `last_commented_by`: GitHub login of the user who posted the most recent comment
-
-#### Timeline Events (requires timeline API access):
-- `audit_events`: Array of audit-relevant timeline events
-
-**Supported Event Types:**
-- `labeled` / `unlabeled`: Label additions/removals
-  - Includes: `action`, `timestamp`, `actor`, `label`
-- `assigned` / `unassigned`: Assignee changes
-  - Includes: `action`, `timestamp`, `actor`, `assignee`
-- `milestoned` / `demilestoned`: Milestone changes
-  - Includes: `action`, `timestamp`, `actor`, `milestone`
-- `reopened` / `closed`: State transitions
-  - Includes: `action`, `timestamp`, `actor`
-
-### Graceful Degradation
-
-The collector handles API limitations gracefully:
-- If timeline events are unavailable (e.g., due to permissions), the `audit_events` field will be omitted or empty
-- If comment details cannot be fetched, `last_commented_at` and `last_commented_by` will be omitted
-- The collector logs debug/warning messages when data cannot be retrieved, but continues processing
-- Base issue fields are always preserved even if audit enrichment fails
+> **Note:** the collector also fetches per-issue audit data (creator, closer, comment count,
+> timeline events) via `ConsolidatedIssue`, but this data is not currently included in the
+> emitted `items` entry — only the fields listed above are written to
+> `doc-issues.json`.
 
 ### Access Requirements
 
-- **Base fields**: Available with standard repository read access
-- **Comments summary**: Requires issue read access (standard)
-- **Timeline events**: May require additional permissions depending on repository settings
-  - If timeline access is denied, the collector continues without these events
+- Fetching issues requires standard repository read access.
+- Fetching project status requires GitHub Projects read access, and only applies when `doc-issues-project-state-mining` is enabled.
 
 The `output` folder is the root output directory for the action.
 
@@ -324,13 +306,15 @@ To enhance clarity, the following label groups define and categorize each Docume
     - Encompasses multiple features, capturing the broader goal from a user perspective.
   - **DocumentedFeature:** Details a specific feature, providing a breakdown of its components and intended outcomes.
     - Built from various requirements and can relate to multiple User Stories, offering an in-depth look at functionality.
-  - **DocumentedRequirement:** Outlines individual requirements or enhancements tied to the feature or user story.
+  - **DocumentedFunctionality:** Details a specific functionality that implements one aspect of a feature.
 - **Issue States**:
   - **Upcoming:** The feature, story, or requirement is planned but not yet implemented.
   - **Implemented:** The feature or requirement has been completed and is in active use.
   - **Deprecated:** The feature or requirement has been phased out or replaced and is no longer supported.
 
-**DocumentedUserStory** and **DocumentedFeature** serve as **Epics**, whereas **DocumentedRequirement** represents specific items similar to feature enhancements or individual requirements.
+**DocumentedUserStory** and **DocumentedFeature** serve as **Epics**, whereas **DocumentedFunctionality** represents specific items that implement one aspect of a feature.
+
+These three labels (`DocumentedUserStory`, `DocumentedFeature`, `DocumentedFunctionality`) are the only ones the collector mines — see `SUPPORTED_ISSUE_LABELS` in `utils/constants.py`.
 
 ### Hosting Documentation Tickets in a Solo Repository
 

@@ -106,8 +106,9 @@ Repo specifics
   | Raw HTTP (`requests` in `action_inputs.py` / `github_projects.py`) | `responses` library — register expected requests + canned JSON; add `responses` to `requirements.txt` first | keep one HTTP-mocking convention |
   | Logging assertions | `mocker.patch("<module>.logger")` and assert on `.info` / `.warning` / `.error` | `tests/doc_issues/test_collector.py` |
   | `main.run()` exit code + logs | `mocker.patch("sys.exit")`, assert `assert_called_once_with(1)` and `mock_log_info.assert_has_calls([...])` | `tests/test_main.py` |
-  | toolkit adapter version-compatibility | golden fixtures under `tests/fixtures/toolkit_adapter/v*` — one directory per supported schema version, discovered (not hard-coded) | `tests/doc_issues/test_toolkit_fixtures.py` |
+  | toolkit adapter contract (`doc-issues.json`) | validate real collector output against `doc_issues/models.py` — `AdapterResult.model_validate(data)` — not a static fixture | `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` |
+  | Schema-export utility (`doc-issues-v1.0.0-schema.json`) | `export_schema()` must equal the committed file | `tests/doc_issues/test_schema_export.py` |
   | `.feature` / PageObject parsing input | pass raw line lists to the pure parsers (`header_parser`, `page_object_parser`, `scenario_parser`, `body_parser`) — no mocks needed | `doc_source/`, `ui_tests/`, `doc_issues/` parser modules |
 
-- Adding a toolkit-adapter compatibility case
-  - Must drop a `doc-issues.json` (or the new mode's JSON) under `tests/fixtures/toolkit_adapter/v<X.Y.Z>/`; the parametrized tests in `test_toolkit_fixtures.py` pick it up automatically.
+- Changing the `doc-issues.json` contract
+  - Must edit `doc_issues/models.py`, regenerate the schema (`python -m doc_issues.schema_export`), and rely on the parity check in `test_save_issues_with_audit_data` to catch drift — there is no separate fixture directory to update.

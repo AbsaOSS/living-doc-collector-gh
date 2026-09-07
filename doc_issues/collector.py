@@ -41,6 +41,7 @@ from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
 from doc_issues.model.project_issue import ProjectIssue
+from doc_issues.models import CompatibilityWarning
 from utils.constants import (
     DOC_FEATURE_LABEL,
     DOC_FUNCTIONALITY_LABEL,
@@ -351,9 +352,12 @@ class GHDocIssuesCollector:
         @param consolidated_issues: Consolidated issues with audit data.
         @return: None
         """
-        # Build user_stories array with audit enrichment
-        user_stories_list = []
-        warnings_list: list[str] = []
+        # Build the `items` array with audit enrichment. This array holds every collected
+        # issue (feature, functionality, or user story) — there is no per-type grouping. The
+        # type is not written as its own field; consumers read it from the Documented* label
+        # in the item's `tags`.
+        items_list = []
+        warnings_list: list[CompatibilityWarning] = []
 
         for key, issue in issues.issues.items():
             issue_dict = issue.to_dict()
@@ -379,13 +383,13 @@ class GHDocIssuesCollector:
                 "preconditions": parsed_body["preconditions"],
                 "acceptance_criteria": parsed_body["acceptance_criteria"],
             }
-            user_stories_list.append(adapter_item)
+            items_list.append(adapter_item)
 
         # Wrap with file-level metadata matching AdapterMetadata structure
         output_data = {
-            "user_stories": user_stories_list,
+            "items": items_list,
             "metadata": self._get_file_metadata(),
-            "warnings": warnings_list,
+            "warnings": [warning.model_dump() for warning in warnings_list],
         }
 
         # Ensure directory exists

@@ -117,7 +117,9 @@ Contract-sensitive outputs:
 - Must mock `INPUT_*` environment variables and the GitHub API in unit tests.
 - Must not call external services or the real GitHub API in unit tests.
 - Prefer shared fixtures in `tests/conftest.py`.
-- Must add a golden fixture directory under `tests/fixtures/toolkit_adapter/v<X.Y.Z>/` for a new toolkit-adapter schema version — `tests/doc_issues/test_toolkit_fixtures.py` discovers it automatically; Must not hard-code the version list.
+- Must keep `doc_issues/schema/doc-issues-v1.0.0-schema.json` generated, never hand-edited — change `doc_issues/models.py`, then run `python -m doc_issues.schema_export`.
+- Must keep the producer parity check `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` (`AdapterResult.model_validate(data)`) passing — it validates the collector's real output against this repo's local Pydantic models.
+- Must treat consumer compatibility as a separate obligation, not covered by this repo's tests — `living-doc-toolkit` vendors its own pinned schema copy, adapter models, and `CONFIRMED_MIN` / `CONFIRMED_MAX` bounds, synchronized per its `packages/adapters/collector_gh/SCHEMA_SYNC.md`.
 
 ## Tooling and quality gates
 

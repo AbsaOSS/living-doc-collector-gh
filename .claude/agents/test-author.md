@@ -33,12 +33,14 @@ surface** — so you mock the right target on the first try instead of guessing.
 | Collector internals (`_fetch_*`, `_store_*`, `_clean_output_directory`) | `mocker.patch.object(collector, "_method", return_value=...)` to isolate the method under test | `tests/doc_issues/test_collector.py` |
 | Filesystem (`os.path.exists`, `shutil.rmtree`, `os.makedirs`) | `mocker.patch("os.path.exists", return_value=True)` etc. | `tests/doc_issues/test_collector.py` |
 | Logging assertions | `mocker.patch("<module>.logger.info")` / `.debug`, assert `call` args | `tests/doc_issues/test_collector.py` |
-| toolkit adapter version-compatibility | golden JSON fixtures, one directory per version, parametrized over the discovered set | `tests/fixtures/toolkit_adapter/v1.0.0/`, `v1.2.0/`; `tests/doc_issues/test_toolkit_fixtures.py` |
+| toolkit adapter contract (`doc-issues.json`) | validate the real collector output against `doc_issues/models.py` (`AdapterResult.model_validate(data)`) — not a static fixture | `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` |
+| Schema-export utility (`doc-issues-v1.0.0-schema.json`) | `export_schema()` must equal the committed file; `write_schema()` writes it | `tests/doc_issues/test_schema_export.py` |
 | `.feature` file parsing input | pass raw line lists to the pure parser functions (`header_parser`, `scenario_parser`, `page_object_parser`) — no mocks needed | `doc_source/`, `ui_tests/` parser modules |
 
-**Adding a new toolkit-adapter compatibility case:** drop a `doc-issues.json` (or the new
-mode's JSON) under `tests/fixtures/toolkit_adapter/v<X.Y.Z>/`. The parametrized tests in
-`test_toolkit_fixtures.py` discover it automatically — do not hard-code the version list.
+**Changing the `doc-issues.json` contract:** edit `doc_issues/models.py`, regenerate the
+schema (`python -m doc_issues.schema_export`), and let the parity check in
+`test_save_issues_with_audit_data` fail loudly if the collector's real output no longer
+matches the models — there is no separate fixture directory to update.
 
 **Direct HTTP stubbing:** the GitHub surface is reached through PyGithub and is mocked at
 the `Github` object today. If a change introduces raw `requests` calls, stub them with the

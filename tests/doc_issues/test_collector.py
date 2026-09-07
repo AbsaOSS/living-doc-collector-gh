@@ -21,6 +21,7 @@ from living_doc_utilities.model.issues import Issues
 from doc_issues.collector import GHDocIssuesCollector
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.project_issue import ProjectIssue
+from doc_issues.models import AdapterResult
 from utils.constants import DOC_FEATURE_LABEL, DOC_FUNCTIONALITY_LABEL, DOC_USER_STORY_LABEL
 
 
@@ -550,20 +551,24 @@ def test_save_issues_with_audit_data(mocker, doc_issues_collector, tmp_path):
     assert "original_metadata" in metadata
     assert "generated_at" in metadata["original_metadata"]
 
-    # Check user_stories array (not issues dict)
-    assert "user_stories" in data
+    # Check items array (not issues dict)
+    assert "items" in data
     assert "warnings" in data
-    assert isinstance(data["user_stories"], list)
-    assert len(data["user_stories"]) > 0
-    
+    assert isinstance(data["items"], list)
+    assert len(data["items"]) > 0
+
     # Check item structure
-    item = data["user_stories"][0]
+    item = data["items"][0]
     assert item["id"] == "test_org/test_repo#1"
     assert "title" in item
     assert "state" in item
     assert "tags" in item
     assert "url" in item
     assert "timestamps" in item
+
+    # Parity check: the collector's dict-built output must validate against
+    # doc_issues/models.py — the same models doc-issues-v1.0.0-schema.json is generated from.
+    AdapterResult.model_validate(data)
 
 
 def test_get_file_metadata(doc_issues_collector, monkeypatch):
