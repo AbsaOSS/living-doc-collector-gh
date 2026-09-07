@@ -32,7 +32,7 @@ _VALID_ITEM = {
 }
 
 _VALID_RESULT = {
-    "user_stories": [_VALID_ITEM],
+    "items": [_VALID_ITEM],
     "metadata": {
         "producer": {"name": "n", "version": "v", "build": None},
         "run": {"run_id": None, "run_attempt": None, "actor": None, "workflow": None, "ref": None, "sha": None},
@@ -46,7 +46,7 @@ _VALID_RESULT = {
 def test_adapter_result_accepts_valid_payload():
     result = AdapterResult.model_validate(_VALID_RESULT)
 
-    assert result.user_stories[0].id == "org/repo#1"
+    assert result.items[0].id == "org/repo#1"
     assert result.metadata.producer.name == "n"
 
 

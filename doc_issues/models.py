@@ -115,11 +115,11 @@ class AdapterItem(BaseModel):
 class AdapterResult(BaseModel):
     """Complete result from adapter parsing."""
 
-    # `user_stories` is the field name fixed by the shared toolkit-adapter contract. It holds
-    # every collected issue regardless of documentation type — there is no per-type grouping
-    # and no `type` field on the item; the type is carried by the `DocumentedUserStory` /
-    # `DocumentedFeature` / `DocumentedFunctionality` label in `AdapterItem.tags`. Read it as
-    # "collected issues".
-    user_stories: list[AdapterItem]
+    # `items` holds every collected documentation record regardless of source system
+    # (GitHub issue, Azure DevOps work item, `.feature` header) or documentation type — there
+    # is no per-type grouping and no `type` field on the item; the type is carried by the
+    # `DocumentedUserStory` / `DocumentedFeature` / `DocumentedFunctionality` label in
+    # `AdapterItem.tags`.
+    items: list[AdapterItem]
     metadata: AdapterMetadata
     warnings: list[CompatibilityWarning]

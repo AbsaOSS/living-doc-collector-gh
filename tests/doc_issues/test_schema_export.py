@@ -37,8 +37,8 @@ def test_export_schema_top_level_shape():
     assert schema["$schema_version"] == "1.0.0"
     assert schema["title"] == "AdapterResult"
     assert schema["type"] == "object"
-    assert set(schema["properties"].keys()) == {"user_stories", "metadata", "warnings"}
-    assert schema["required"] == ["user_stories", "metadata", "warnings"]
+    assert set(schema["properties"].keys()) == {"items", "metadata", "warnings"}
+    assert schema["required"] == ["items", "metadata", "warnings"]
     assert set(schema["$defs"].keys()) == {
         "AcceptanceCriterion",
         "AdapterItemTimestamps",

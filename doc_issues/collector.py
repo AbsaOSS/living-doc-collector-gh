@@ -351,11 +351,11 @@ class GHDocIssuesCollector:
         @param consolidated_issues: Consolidated issues with audit data.
         @return: None
         """
-        # Build the user_stories array with audit enrichment. Despite the contract's field
-        # name, this array holds every collected issue (feature, functionality, user story,
-        # or plain issue) — there is no per-type grouping. The type is not written as its own
-        # field; consumers read it from the Documented* label in the item's `tags`.
-        user_stories_list = []
+        # Build the `items` array with audit enrichment. This array holds every collected
+        # issue (feature, functionality, user story, or plain issue) — there is no per-type
+        # grouping. The type is not written as its own field; consumers read it from the
+        # Documented* label in the item's `tags`.
+        items_list = []
         warnings_list: list[str] = []
 
         for key, issue in issues.issues.items():
@@ -382,11 +382,11 @@ class GHDocIssuesCollector:
                 "preconditions": parsed_body["preconditions"],
                 "acceptance_criteria": parsed_body["acceptance_criteria"],
             }
-            user_stories_list.append(adapter_item)
+            items_list.append(adapter_item)
 
         # Wrap with file-level metadata matching AdapterMetadata structure
         output_data = {
-            "user_stories": user_stories_list,
+            "items": items_list,
             "metadata": self._get_file_metadata(),
             "warnings": warnings_list,
         }

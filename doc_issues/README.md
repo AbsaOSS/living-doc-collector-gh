@@ -125,24 +125,20 @@ The mode produces the file `output/doc-issues/doc-issues.json` with the followin
 ### JSON Structure
 
 The output JSON contains three top-level sections:
-1. **user_stories**: Array of enriched issue items (see [Issue-Level Structure](#issue-level-structure))
+1. **items**: Array of enriched issue items (see [Issue-Level Structure](#issue-level-structure))
 2. **metadata**: File-level provenance information
 3. **warnings**: Compatibility warnings for downstream consumers (currently always empty; reserved for schema/version compatibility signalling)
 
-> **Naming note — `user_stories` holds *every* collected issue.**
-> The key `user_stories` is fixed by the shared toolkit-adapter contract, but it is **not**
-> limited to user stories. Every issue the collector consolidates is emitted as one entry in
-> this array, regardless of its documentation type — user story, feature, functionality, or a
-> plain issue. There is no per-type grouping and no separate `features` / `functionalities`
-> section. Read `user_stories` as "collected issues".
+> **Naming note — `items` holds *every* collected record.**
+> The key is deliberately source- and type-neutral: it works the same whether a record
+> originates from a GitHub issue or an Azure DevOps work item. Every issue the collector
+> consolidates is emitted as one entry in the `items` array regardless of its documentation
+> type — user story, feature, functionality, or a plain issue. There is no per-type grouping
+> and no separate `features` / `functionalities` section.
 >
 > **Item type is not a field** — the array items have no `type` key. To classify an item, read
 > its `tags`: `DocumentedUserStory`, `DocumentedFeature`, or `DocumentedFunctionality` (an item
 > carrying none of these is a plain issue). One item carries at most one of these labels.
->
-> The key name itself is not changed here: this repo is the **data-source** side of an
-> in-progress cross-repo contract migration, and renaming a contract field is a
-> consumer-side (`living-doc-toolkit`) change for the next phase.
 
 ### File-Level Metadata
 
@@ -150,7 +146,7 @@ The `metadata` section provides traceability and provenance information:
 
 ```json
 {
-  "user_stories": [ ... ],
+  "items": [ ... ],
   "metadata": {
     "producer": {
       "name": "AbsaOSS/living-doc-collector-gh",
@@ -227,7 +223,7 @@ The schema is versioned as **v1.0.0** (reflected in both the filename and the `$
 
 ### Issue-Level Structure
 
-Each entry in the `user_stories` array is an enriched issue item — of any documentation type
+Each entry in the `items` array is an enriched issue item — of any documentation type
 (see the [naming note](#json-structure) above). The array carries the issue key on each item
 itself (`id`) — there is no dictionary keying by `owner/repo#number` at the top level:
 
@@ -277,7 +273,7 @@ an issue body so they can be extracted.
 
 > **Note:** the collector also fetches per-issue audit data (creator, closer, comment count,
 > timeline events) via `ConsolidatedIssue`, but this data is not currently included in the
-> emitted `user_stories` item — only the fields listed above are written to
+> emitted `items` entry — only the fields listed above are written to
 > `doc-issues.json`.
 
 ### Access Requirements

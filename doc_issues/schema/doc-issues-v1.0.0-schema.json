@@ -339,7 +339,7 @@
   "description": "Complete result from adapter parsing.",
   "type": "object",
   "properties": {
-    "user_stories": {
+    "items": {
       "items": {
         "$ref": "#/$defs/AdapterItem"
       },
@@ -356,7 +356,7 @@
     }
   },
   "required": [
-    "user_stories",
+    "items",
     "metadata",
     "warnings"
   ]
