@@ -303,13 +303,15 @@ To enhance clarity, the following label groups define and categorize each Docume
     - Encompasses multiple features, capturing the broader goal from a user perspective.
   - **DocumentedFeature:** Details a specific feature, providing a breakdown of its components and intended outcomes.
     - Built from various requirements and can relate to multiple User Stories, offering an in-depth look at functionality.
-  - **DocumentedRequirement:** Outlines individual requirements or enhancements tied to the feature or user story.
+  - **DocumentedFunctionality:** Details a specific functionality that implements one aspect of a feature.
 - **Issue States**:
   - **Upcoming:** The feature, story, or requirement is planned but not yet implemented.
   - **Implemented:** The feature or requirement has been completed and is in active use.
   - **Deprecated:** The feature or requirement has been phased out or replaced and is no longer supported.
 
-**DocumentedUserStory** and **DocumentedFeature** serve as **Epics**, whereas **DocumentedRequirement** represents specific items similar to feature enhancements or individual requirements.
+**DocumentedUserStory** and **DocumentedFeature** serve as **Epics**, whereas **DocumentedFunctionality** represents specific items that implement one aspect of a feature.
+
+These three labels (`DocumentedUserStory`, `DocumentedFeature`, `DocumentedFunctionality`) are the only ones the collector mines — see `SUPPORTED_ISSUE_LABELS` in `utils/constants.py`.
 
 ### Hosting Documentation Tickets in a Solo Repository
 
