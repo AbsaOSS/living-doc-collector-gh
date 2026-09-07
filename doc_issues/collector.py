@@ -37,6 +37,7 @@ from living_doc_utilities.model.user_story_issue import UserStoryIssue
 
 from action_inputs import ActionInputs
 from doc_issues.body_parser import parse_body
+from doc_issues.models import CompatibilityWarning
 from doc_issues.github_projects import GitHubProjects
 from doc_issues.model.consolidated_issue import ConsolidatedIssue
 from doc_issues.model.github_project import GitHubProject
@@ -356,7 +357,7 @@ class GHDocIssuesCollector:
         # grouping. The type is not written as its own field; consumers read it from the
         # Documented* label in the item's `tags`.
         items_list = []
-        warnings_list: list[str] = []
+        warnings_list: list[CompatibilityWarning] = []
 
         for key, issue in issues.issues.items():
             issue_dict = issue.to_dict()
@@ -388,7 +389,7 @@ class GHDocIssuesCollector:
         output_data = {
             "items": items_list,
             "metadata": self._get_file_metadata(),
-            "warnings": warnings_list,
+            "warnings": [warning.model_dump() for warning in warnings_list],
         }
 
         # Ensure directory exists
