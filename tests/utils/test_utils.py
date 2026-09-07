@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import os
+
 import pytest
 
 from utils.exceptions import InvalidQueryFormatError
@@ -125,22 +127,23 @@ def test_load_template_error(mocker):
 # make_absolute_path
 
 
-def test_make_absolute_path(mocker):
-    # Arrange
-    mocker.patch("os.getcwd", return_value="/current/working/directory")
-    relative_path = "relative/path/to/file.txt"
+def test_make_absolute_path(tmp_path, monkeypatch):
+    # Arrange - use a real OS-native cwd so the assertion holds on POSIX and Windows alike
+    monkeypatch.chdir(tmp_path)
+    relative_path = os.path.join("relative", "path", "to", "file.txt")
 
     # Act
     absolute_path = make_absolute_path(relative_path)
 
     # Assert
-    assert absolute_path == "/current/working/directory/relative/path/to/file.txt"
+    assert os.path.isabs(absolute_path)
+    assert absolute_path == str(tmp_path / "relative" / "path" / "to" / "file.txt")
 
 
-def test_make_absolute_path_already_absolute(mocker):
-    # Arrange
-    mocker.patch("os.getcwd", return_value="/current/working/directory")
-    absolute_path = "/absolute/path/to/file.txt"
+def test_make_absolute_path_already_absolute(tmp_path):
+    # Arrange - tmp_path is absolute on every platform (drive-qualified on Windows)
+    absolute_path = str(tmp_path / "absolute" / "path" / "to" / "file.txt")
+    assert os.path.isabs(absolute_path)
 
     # Act
     result = make_absolute_path(absolute_path)
