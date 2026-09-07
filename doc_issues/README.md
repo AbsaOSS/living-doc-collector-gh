@@ -133,12 +133,14 @@ The output JSON contains three top-level sections:
 > The key is deliberately source- and type-neutral: it works the same whether a record
 > originates from a GitHub issue or an Azure DevOps work item. Every issue the collector
 > consolidates is emitted as one entry in the `items` array regardless of its documentation
-> type — user story, feature, functionality, or a plain issue. There is no per-type grouping
-> and no separate `features` / `functionalities` section.
+> type — user story, feature, or functionality. There is no per-type grouping and no
+> separate `features` / `functionalities` section.
 >
 > **Item type is not a field** — the array items have no `type` key. To classify an item, read
-> its `tags`: `DocumentedUserStory`, `DocumentedFeature`, or `DocumentedFunctionality` (an item
-> carrying none of these is a plain issue). One item carries at most one of these labels.
+> its `tags`: `DocumentedUserStory`, `DocumentedFeature`, or `DocumentedFunctionality`. The
+> collector only mines issues that carry one of these three labels (`SUPPORTED_ISSUE_LABELS`
+> in `utils/constants.py`), so every emitted item has exactly one. An issue tagged with more
+> than one is reported as a `multiple_labels` error and fails the run.
 
 ### File-Level Metadata
 
@@ -258,8 +260,9 @@ itself (`id`) — there is no dictionary keying by `owner/repo#number` at the to
 - `title`: Issue title
 - `state`: Issue state (`open`, `closed`)
 - `tags`: Array of GitHub label names, verbatim. This is also where the item's documentation
-  type lives — `DocumentedUserStory` / `DocumentedFeature` / `DocumentedFunctionality` (at most
-  one; none means a plain issue). There is no separate `type` field.
+  type lives — exactly one of `DocumentedUserStory` / `DocumentedFeature` /
+  `DocumentedFunctionality` (issues without one of these labels are never mined; an issue with
+  more than one fails the run). There is no separate `type` field.
 - `url`: GitHub web URL for the issue
 - `timestamps.created` / `timestamps.updated`: Timestamps when the issue was created / last updated
 - `description`: Narrative parsed from the issue body's `## Description` section (`null` if absent)

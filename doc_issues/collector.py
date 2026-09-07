@@ -353,9 +353,9 @@ class GHDocIssuesCollector:
         @return: None
         """
         # Build the `items` array with audit enrichment. This array holds every collected
-        # issue (feature, functionality, user story, or plain issue) — there is no per-type
-        # grouping. The type is not written as its own field; consumers read it from the
-        # Documented* label in the item's `tags`.
+        # issue (feature, functionality, or user story) — there is no per-type grouping. The
+        # type is not written as its own field; consumers read it from the Documented* label
+        # in the item's `tags`.
         items_list = []
         warnings_list: list[CompatibilityWarning] = []
 
