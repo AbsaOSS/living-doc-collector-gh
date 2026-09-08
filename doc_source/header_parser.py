@@ -216,6 +216,20 @@ def _extract_feature_description(lines: list[str], title: str) -> str:
     return " ".join(narrative).strip()
 
 
+def _merge_lists_dedup(base: list[str], additions: list[str]) -> list[str]:
+    """
+    Merge additions into base, preserving order and removing duplicates.
+    Base items appear first, then additions (minus any already in base).
+    """
+    seen = set(base)
+    result = list(base)
+    for item in additions:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
 def parse_header(lines: list[str]) -> Optional[dict]:
     """
     Parse a `.feature` file header block into a structured dict.
@@ -284,6 +298,18 @@ def parse_header(lines: list[str]) -> Optional[dict]:
     if tag_id is not None and tag_id != title_id:
         logger.warning("`@US_ID` tag `%s` mismatches header ID `%s` - using header ID.", tag_id, title_id)
 
+    # Parse entity-level lists
+    entity_preconditions = _parse_bullet_section(sections.get("preconditions", []))
+    entity_not_in_scope = _parse_bullet_section(sections.get("not_in_scope", []))
+
+    # Parse acceptance criteria
+    acceptance_criteria = _parse_acceptance_criteria(sections.get("acceptance_criteria", []))
+
+    # Merge entity-level lists into each AC
+    for ac in acceptance_criteria:
+        ac["preconditions"] = _merge_lists_dedup(entity_preconditions, ac["preconditions"])
+        ac["not_in_scope"] = _merge_lists_dedup(entity_not_in_scope, ac["not_in_scope"])
+
     return {
         "us_id": title_id,
         "title": title,
@@ -291,11 +317,11 @@ def parse_header(lines: list[str]) -> Optional[dict]:
         "url": url,
         "description": _extract_feature_description(lines, title),
         "business_value": _parse_bullet_section(sections.get("business_value", [])),
-        "preconditions": _parse_bullet_section(sections.get("preconditions", [])),
-        "not_in_scope": _parse_bullet_section(sections.get("not_in_scope", [])),
+        "preconditions": entity_preconditions,
+        "not_in_scope": entity_not_in_scope,
         "deprecated_at": deprecated_at,
         "deprecation_reason": deprecation_reason,
-        "acceptance_criteria": _parse_acceptance_criteria(sections.get("acceptance_criteria", [])),
+        "acceptance_criteria": acceptance_criteria,
     }
 
 
@@ -388,14 +414,24 @@ def parse_func_header(lines: list[str]) -> Optional[dict]:
     if tag_id is not None and tag_id != title_id:
         logger.warning("`@FUNC_ID` tag `%s` mismatches header ID `%s` - using header ID.", tag_id, title_id)
 
+    # Parse entity-level not_in_scope
+    entity_not_in_scope = _parse_bullet_section(sections.get("not_in_scope", []))
+
+    # Parse acceptance criteria
+    acceptance_criteria = _parse_acceptance_criteria(sections.get("acceptance_criteria", []))
+
+    # Merge entity-level not_in_scope into each AC
+    for ac in acceptance_criteria:
+        ac["not_in_scope"] = _merge_lists_dedup(entity_not_in_scope, ac["not_in_scope"])
+
     return {
         "func_id": title_id,
         "title": title,
         "state": state,
         "parent": parent,
         "func_type": func_type,
-        "not_in_scope": _parse_bullet_section(sections.get("not_in_scope", [])),
+        "not_in_scope": entity_not_in_scope,
         "deprecated_at": deprecated_at,
         "deprecation_reason": deprecation_reason,
-        "acceptance_criteria": _parse_acceptance_criteria(sections.get("acceptance_criteria", [])),
+        "acceptance_criteria": acceptance_criteria,
     }

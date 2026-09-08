@@ -88,12 +88,20 @@ def test_full_header():
             version="v1.9.0",
             description='A user who is not the domain owner can open the Access tab '
             'and see a "Request access" button.',
+            preconditions=[
+                "The user has logged in.",
+                "At least one domain exists that the user does not own.",
+            ],
         ),
         _ac(
             id="US-27-02",
             state="Active",
             version="v1.9.0",
             description="After submitting an access request, the user receives confirmation.",
+            preconditions=[
+                "The user has logged in.",
+                "At least one domain exists that the user does not own.",
+            ],
         ),
     ]
 
@@ -393,8 +401,14 @@ def test_ac_full_grammar_parsed():
     criteria = {ac["id"]: ac for ac in result["acceptance_criteria"]}
 
     assert criteria["US-40-01"]["aspect"] == ["username input", "password input"]
-    assert criteria["US-40-01"]["preconditions"] == ["The feature flag is enabled."]
-    assert criteria["US-40-01"]["not_in_scope"] == ["Mobile browsers."]
+    assert criteria["US-40-01"]["preconditions"] == [
+        "The user has logged in.",
+        "The feature flag is enabled.",
+    ]
+    assert criteria["US-40-01"]["not_in_scope"] == [
+        "Bulk access requests.",
+        "Mobile browsers.",
+    ]
 
     assert criteria["US-40-02"]["state"] == "deprecated"
     assert criteria["US-40-02"]["removal_planned"] == "v3.0.0"
