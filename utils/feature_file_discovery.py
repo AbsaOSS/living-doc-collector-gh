@@ -56,13 +56,18 @@ def discover_feature_files(paths: list[str], exclude_tutorials: bool = True) -> 
             logger.warning("Path `%s` does not exist - skipping.", path)
             continue
         found = [p for p in root.rglob("*.feature") if p.is_file()]
+        excluded_count = 0
         if exclude_tutorials:
             kept = [p for p in found if not _is_under_tutorial_dir(p, root)]
-            if len(kept) != len(found):
-                logger.debug("Excluded %d tutorial `.feature` file(s) under `%s`.", len(found) - len(kept), path)
+            excluded_count = len(found) - len(kept)
+            if excluded_count > 0:
+                logger.debug("Excluded %d tutorial `.feature` file(s) under `%s`.", excluded_count, path)
             found = kept
         if not found:
-            logger.warning("No .feature files found under `%s`.", path)
+            if excluded_count > 0:
+                logger.debug("All .feature files under `%s` are tutorials (excluded %d).", path, excluded_count)
+            else:
+                logger.warning("No .feature files found under `%s`.", path)
             continue
         matched.update(found)
 
