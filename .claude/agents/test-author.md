@@ -12,30 +12,29 @@ surface** — so you mock the right target on the first try instead of guessing.
 
 - Must use `pytest` + `pytest-mock` (`mocker`). Tests live under `tests/`, mirroring the
   package layout (`tests/doc_issues/`, `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`).
-- Must not make real network calls. Must not call the GitHub API in unit tests.
-- Must mock `INPUT_*` environment variables (via `monkeypatch.setenv` / `mocker.patch`),
-  never rely on the ambient environment.
-- Must cover the success path and the failure/edge paths for the changed logic.
-- Must assert on behavior — return values, raised exceptions, log messages, exit codes —
-  and keep contract-sensitive strings and exit codes stable.
+- Must mock `INPUT_*` environment variables (via `monkeypatch.setenv` / `mocker.patch`).
+- Must mock GitHub API interactions; never make real network calls.
+- Must keep contract-sensitive strings and exit codes stable.
 - Prefer adding to shared fixtures in `tests/conftest.py` over duplicating setup.
-- Must keep the suite green under `make test` / `make coverage` (≥ 80%).
+- Must keep coverage ≥ 80% under `make test` / `make coverage`.
 
 ## Mock / fixture cheat-table (sourced from what already exists in `tests/`)
 
 | What you need to fake | Pattern used in this repo | Where to copy it from |
 |---|---|---|
-| GitHub client (`github.Github`) | `mocker.patch("<module>.Github")`, then stub `.get_repo()` / `.get_rate_limit()` on the return value | `tests/conftest.py::doc_issues_collector`; `tests/doc_issues/test_collector.py` |
-| A `Repository` / `Rate` / `RateLimit` / project object | `mocker.Mock(spec=Repository)` (spec-bound mock), set only the attributes under test | `tests/conftest.py::repository_setup`, `mock_rate_limiter`, `github_project_setup` |
+| GitHub client (`github.Github`) | `mocker.patch("<module>.Github")`, then stub `.get_repo()` / `.get_rate_limit()` on the return value | `tests/conftest.py::doc_issues_collector`, `tests/doc_issues/test_collector.py` |
+| `Repository` / `Rate` / `RateLimit` / project objects | `mocker.Mock(spec=<class>)`, set only the attributes under test | `tests/conftest.py::repository_setup`, `mock_rate_limiter`, `github_project_setup` |
 | Rate limiter | `rate_limiter` / `mock_rate_limiter` fixtures (`GithubRateLimiter` wrapping a `spec=Github` mock) | `tests/conftest.py` |
-| `INPUT_*` action inputs | `monkeypatch.setenv("INPUT_...", ...)`, or `mocker.patch("<module>.ActionInputs.get_*", return_value=...)` | `tests/conftest.py::_set_github_output_env`; `tests/test_action_inputs.py` |
+| `INPUT_*` action inputs | `monkeypatch.setenv("INPUT_...", ...)` or `mocker.patch("<module>.ActionInputs.get_*", return_value=...)` | `tests/test_action_inputs.py` |
 | `GITHUB_OUTPUT` file | autouse `_set_github_output_env` fixture points it at `tmp_path` | `tests/conftest.py` |
 | Collector internals (`_fetch_*`, `_store_*`, `_clean_output_directory`) | `mocker.patch.object(collector, "_method", return_value=...)` to isolate the method under test | `tests/doc_issues/test_collector.py` |
 | Filesystem (`os.path.exists`, `shutil.rmtree`, `os.makedirs`) | `mocker.patch("os.path.exists", return_value=True)` etc. | `tests/doc_issues/test_collector.py` |
-| Logging assertions | `mocker.patch("<module>.logger.info")` / `.debug`, assert `call` args | `tests/doc_issues/test_collector.py` |
-| toolkit adapter contract (`doc-issues.json`) | validate the real collector output against `doc_issues/models.py` (`AdapterResult.model_validate(data)`) — not a static fixture | `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` |
-| Schema-export utility (`doc-issues-v1.0.0-schema.json`) | `export_schema()` must equal the committed file; `write_schema()` writes it | `tests/doc_issues/test_schema_export.py` |
-| `.feature` file parsing input | pass raw line lists to the pure parser functions (`header_parser`, `scenario_parser`, `page_object_parser`) — no mocks needed | `doc_source/`, `ui_tests/` parser modules |
+| Raw HTTP (`requests` in `action_inputs.py` / `github_projects.py`) | `responses` library — register expected requests + canned JSON; add `responses` to `requirements.txt` first | keep one HTTP-mocking convention |
+| Logging assertions | `mocker.patch("<module>.logger")` and assert on `.info` / `.warning` / `.error` | `tests/doc_issues/test_collector.py` |
+| `main.run()` exit code + logs | `mocker.patch("sys.exit")`, assert `assert_called_once_with(1)` and `mock_log_info.assert_has_calls([...])` | `tests/test_main.py` |
+| toolkit adapter contract (`doc-issues.json`) | validate real collector output against `doc_issues/models.py` — `AdapterResult.model_validate(data)` — not a static fixture | `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` |
+| Schema-export utility (`doc-issues-v1.0.0-schema.json`) | `export_schema()` must equal the committed file | `tests/doc_issues/test_schema_export.py` |
+| `.feature` / PageObject parsing input | pass raw line lists to the pure parsers (`header_parser`, `page_object_parser`, `scenario_parser`, `body_parser`) — no mocks needed | `doc_source/`, `ui_tests/`, `doc_issues/` parser modules |
 
 **Changing the `doc-issues.json` contract:** edit `doc_issues/models.py`, regenerate the
 schema (`python -m doc_issues.schema_export`), and let the parity check in
