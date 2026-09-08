@@ -281,8 +281,9 @@ valid-metaclass-classmethod-first-arg=mcs
 [DESIGN]
 
 # List of regular expressions of class ancestor names to ignore when counting
-# public methods (see R0903)
-exclude-too-few-public-methods=
+# public methods (see R0903). Pydantic model classes are declarative data
+# containers with no public methods by design.
+exclude-too-few-public-methods=.*BaseModel.*
 
 # List of qualified class names to ignore when counting class parents (see
 # R0901)

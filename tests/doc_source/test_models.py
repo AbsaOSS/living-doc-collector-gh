@@ -122,6 +122,18 @@ def test_collector_output_round_trips_through_models(tmp_path, mocker):
         "doc_source.collector.ActionInputs.get_doc_source_repositories",
         return_value=[{"organization-name": "org", "repository-name": "repo", "us-paths": [str(repo_dir)]}],
     )
+    mocker.patch.dict(
+        os.environ,
+        {
+            "GITHUB_RUN_ID": "12345",
+            "GITHUB_RUN_ATTEMPT": "1",
+            "GITHUB_ACTOR": "test_actor",
+            "GITHUB_WORKFLOW": "Test Workflow",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_SHA": "abc123def456",
+        },
+        clear=False,
+    )
 
     assert GHDocSourceCollector(str(output_dir)).collect() is True
 

@@ -103,6 +103,7 @@ The mode produces the file `output/ui-tests/ui-tests.json` using the
 {
   "id":            "absa-group/aul-ui/playwright/features/.../domain_create.feature/user-can-...",
   "us_id":         "US-26",
+  "func_id":       null,
   "ac_ids":        ["US-26-01"],
   "ac_links":      [{ "id": "US-26-01", "aspect": null }],
   "scenario_name": "User can complete the Create Domain wizard and create a new domain",
@@ -115,13 +116,15 @@ The mode produces the file `output/ui-tests/ui-tests.json` using the
   "source": {
     "org":  "absa-group",
     "repo": "aul-ui",
-    "file": "playwright/features/liv_doc_us/domain_create.feature"
+    "file": "playwright/features/liv_doc_us/domain_create.feature",
+    "line": 74
   }
 }
 ```
 
 - **`id` format**: `{organization-name}/{repository-name}/{relative-file-path}/{scenario-name-slug}`
 - **`us_id`**: `null` when the file has no `@US_ID:` tag.
+- **`func_id`**: always present; `null` when the file has no `@FUNC_ID:` tag.
 - **`ac_ids`**: always an array; empty when the scenario has no `@AC:` tags.
 
 ---

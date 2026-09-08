@@ -20,6 +20,9 @@ Tests for the shared metadata / warning contract models in `common/models.py`.
 import pytest
 from pydantic import ValidationError
 
+import doc_issues.models as di
+import doc_source.models as ds
+import ui_tests.models as ut
 from common.models import AdapterMetadata, CompatibilityWarning
 
 _VALID_METADATA = {
@@ -52,9 +55,5 @@ def test_compatibility_warning_context_defaults_to_none():
 
 
 def test_shared_models_are_the_same_objects_across_modes():
-    import doc_issues.models as di
-    import doc_source.models as ds
-    import ui_tests.models as ut
-
     assert di.AdapterMetadata is ds.AdapterMetadata is ut.AdapterMetadata is AdapterMetadata
     assert di.CompatibilityWarning is ds.CompatibilityWarning is ut.CompatibilityWarning is CompatibilityWarning

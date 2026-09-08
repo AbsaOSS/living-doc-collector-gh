@@ -24,12 +24,17 @@ they live here once and are imported by each mode's `models.py`. Each mode's
 `schema_export.py`, not hand-authored.
 """
 
-# Pydantic model classes are declarative data containers with no public methods by design.
-# pylint: disable=too-few-public-methods
-
 from typing import Any, Optional
 
 from pydantic import BaseModel
+
+__all__ = [
+    "AdapterMetadataProducer",
+    "AdapterMetadataRun",
+    "AdapterMetadataSource",
+    "AdapterMetadata",
+    "CompatibilityWarning",
+]
 
 
 class AdapterMetadataProducer(BaseModel):

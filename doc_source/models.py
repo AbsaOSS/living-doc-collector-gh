@@ -24,15 +24,22 @@ These models are the source of truth for the contract:
 hand-authored. A downstream consumer vendors a pinned copy of the generated schema.
 """
 
-# Pydantic model classes are declarative data containers with no public methods by design.
-# pylint: disable=too-few-public-methods
-
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 # Shared metadata / warning block — one definition for every collector output contract.
-from common.models import AdapterMetadata, CompatibilityWarning  # noqa: F401  (re-export)
+from common.models import AdapterMetadata, CompatibilityWarning
+
+__all__ = [
+    "AdapterMetadata",
+    "CompatibilityWarning",
+    "AcceptanceCriterion",
+    "UserStoryItem",
+    "FunctionalityItem",
+    "FeatureItem",
+    "DocSourceResult",
+]
 
 
 class AcceptanceCriterion(BaseModel):

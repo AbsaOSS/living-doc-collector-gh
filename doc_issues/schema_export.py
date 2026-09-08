@@ -21,7 +21,6 @@ regenerate the committed schema file after changing a model.
 """
 
 import logging
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -61,7 +60,9 @@ def write_schema(output_path: Path = _DEFAULT_SCHEMA_PATH) -> Path:
     """
     Generate the schema and write it to `output_path`.
 
-    @param output_path: Destination file path (defaults to the committed schema location).
+    @param output_path: Destination file path. Defaults to — and in normal use is
+        only ever — the committed schema location; the parameter exists so tests
+        can redirect the write to a temporary path.
     @return: The path the schema was written to.
     """
     return write_schema_file(export_schema(), output_path)
@@ -69,6 +70,5 @@ def write_schema(output_path: Path = _DEFAULT_SCHEMA_PATH) -> Path:
 
 if __name__ == "__main__":
     setup_logging()
-    target = Path(sys.argv[1]) if len(sys.argv) > 1 else _DEFAULT_SCHEMA_PATH
-    written_path = write_schema(target)
+    written_path = write_schema()
     logger.info("Wrote schema to %s", written_path)

@@ -24,9 +24,6 @@ from them by `doc_issues/schema_export.py`, not hand-authored. `living-doc-toolk
 vendors a pinned copy of the generated schema for its `collector_gh` adapter.
 """
 
-# Pydantic model classes are declarative data containers with no public methods by design.
-# pylint: disable=too-few-public-methods
-
 from typing import Optional
 
 from pydantic import BaseModel
@@ -34,13 +31,25 @@ from pydantic import BaseModel
 # The metadata / warning block is identical across every collector output contract and
 # is defined once in `common/models.py`. Re-exported here so existing
 # `from doc_issues.models import ...` imports keep working.
-from common.models import (  # noqa: F401  (re-export)
+from common.models import (
     AdapterMetadata,
     AdapterMetadataProducer,
     AdapterMetadataRun,
     AdapterMetadataSource,
     CompatibilityWarning,
 )
+
+__all__ = [
+    "AdapterMetadata",
+    "AdapterMetadataProducer",
+    "AdapterMetadataRun",
+    "AdapterMetadataSource",
+    "CompatibilityWarning",
+    "AcceptanceCriterion",
+    "AdapterItemTimestamps",
+    "AdapterItem",
+    "AdapterResult",
+]
 
 
 class AcceptanceCriterion(BaseModel):

@@ -43,14 +43,14 @@ def test_export_schema_matches_committed_file(exporter):
 
 
 @pytest.mark.parametrize("exporter", _EXPORTERS)
-def test_write_schema_reproduces_export(exporter, tmp_path):
+def test_write_schema_reproduces_committed_file_byte_for_byte(exporter, tmp_path):
     output_path = tmp_path / "schema.json"
 
     result_path = exporter.write_schema(output_path)
 
     assert result_path == output_path
-    with open(output_path, "r", encoding="utf-8") as f:
-        assert json.load(f) == exporter.export_schema()
+    # Byte-for-byte, so key order, indentation, and the trailing newline are all pinned.
+    assert output_path.read_bytes() == exporter._DEFAULT_SCHEMA_PATH.read_bytes()
 
 
 @pytest.mark.parametrize("exporter", _EXPORTERS)
