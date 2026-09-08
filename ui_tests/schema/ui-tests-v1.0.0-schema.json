@@ -1,14 +1,13 @@
 {
+  "$schema_version": "1.0.0",
   "$defs": {
     "Step": {
       "description": "A single Gherkin step within a scenario.",
       "properties": {
         "keyword": {
-          "title": "Keyword",
           "type": "string"
         },
         "text": {
-          "title": "Text",
           "type": "string"
         }
       },
@@ -23,7 +22,6 @@
       "description": "A scenario-to-AC link, carrying the optional aspect the scenario covers.",
       "properties": {
         "id": {
-          "title": "Id",
           "type": "string"
         },
         "aspect": {
@@ -34,8 +32,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Aspect"
+          ]
         }
       },
       "required": [
@@ -49,19 +46,15 @@
       "description": "Source identity of a scenario.",
       "properties": {
         "org": {
-          "title": "Org",
           "type": "string"
         },
         "repo": {
-          "title": "Repo",
           "type": "string"
         },
         "file": {
-          "title": "File",
           "type": "string"
         },
         "line": {
-          "title": "Line",
           "type": "integer"
         }
       },
@@ -78,7 +71,6 @@
       "description": "Represents a single UI test scenario from the collector output.",
       "properties": {
         "id": {
-          "title": "Id",
           "type": "string"
         },
         "us_id": {
@@ -89,8 +81,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Us Id"
+          ]
         },
         "func_id": {
           "anyOf": [
@@ -100,44 +91,36 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Func Id"
+          ]
         },
         "ac_ids": {
           "items": {
             "type": "string"
           },
-          "title": "Ac Ids",
           "type": "array"
         },
         "ac_links": {
           "items": {
             "$ref": "#/$defs/AcLink"
           },
-          "title": "Ac Links",
-          "type": "array",
-          "default": []
+          "type": "array"
         },
         "scenario_name": {
-          "title": "Scenario Name",
           "type": "string"
         },
         "scenario_type": {
-          "title": "Scenario Type",
           "type": "string"
         },
         "tags": {
           "items": {
             "type": "string"
           },
-          "title": "Tags",
           "type": "array"
         },
         "steps": {
           "items": {
             "$ref": "#/$defs/Step"
           },
-          "title": "Steps",
           "type": "array"
         },
         "source": {
@@ -159,14 +142,12 @@
       "type": "object"
     },
     "AdapterMetadataProducer": {
-      "description": "Producer information for adapter metadata.",
+      "description": "Identifies the tool that produced the output file.",
       "properties": {
         "name": {
-          "title": "Name",
           "type": "string"
         },
         "version": {
-          "title": "Version",
           "type": "string"
         },
         "build": {
@@ -177,8 +158,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Build"
+          ]
         }
       },
       "required": [
@@ -190,7 +170,7 @@
       "type": "object"
     },
     "AdapterMetadataRun": {
-      "description": "Run information for adapter metadata.",
+      "description": "GitHub Actions workflow run information, when available.",
       "properties": {
         "run_id": {
           "anyOf": [
@@ -200,8 +180,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Run Id"
+          ]
         },
         "run_attempt": {
           "anyOf": [
@@ -211,8 +190,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Run Attempt"
+          ]
         },
         "actor": {
           "anyOf": [
@@ -222,8 +200,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Actor"
+          ]
         },
         "workflow": {
           "anyOf": [
@@ -233,8 +210,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Workflow"
+          ]
         },
         "ref": {
           "anyOf": [
@@ -244,8 +220,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Ref"
+          ]
         },
         "sha": {
           "anyOf": [
@@ -255,8 +230,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Sha"
+          ]
         }
       },
       "required": [
@@ -271,20 +245,18 @@
       "type": "object"
     },
     "AdapterMetadataSource": {
-      "description": "Source information for adapter metadata.",
+      "description": "Source system and repository information.",
       "properties": {
         "systems": {
           "items": {
             "type": "string"
           },
-          "title": "Systems",
           "type": "array"
         },
         "repositories": {
           "items": {
             "type": "string"
           },
-          "title": "Repositories",
           "type": "array"
         },
         "organization": {
@@ -295,8 +267,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Organization"
+          ]
         },
         "enterprise": {
           "anyOf": [
@@ -306,8 +277,7 @@
             {
               "type": "null"
             }
-          ],
-          "title": "Enterprise"
+          ]
         }
       },
       "required": [
@@ -320,7 +290,7 @@
       "type": "object"
     },
     "AdapterMetadata": {
-      "description": "Metadata information from the adapter.",
+      "description": "File-level provenance and audit metadata.",
       "properties": {
         "producer": {
           "$ref": "#/$defs/AdapterMetadataProducer"
@@ -333,7 +303,6 @@
         },
         "original_metadata": {
           "additionalProperties": true,
-          "title": "Original Metadata",
           "type": "object"
         }
       },
@@ -347,14 +316,12 @@
       "type": "object"
     },
     "CompatibilityWarning": {
-      "description": "Represents a compatibility warning during adapter processing.",
+      "description": "A non-fatal compatibility warning surfaced to downstream consumers.",
       "properties": {
         "code": {
-          "title": "Code",
           "type": "string"
         },
         "message": {
-          "title": "Message",
           "type": "string"
         },
         "context": {
@@ -366,8 +333,7 @@
               "type": "null"
             }
           ],
-          "default": null,
-          "title": "Context"
+          "default": null
         }
       },
       "required": [
@@ -378,13 +344,14 @@
       "type": "object"
     }
   },
+  "title": "UITestsResult",
   "description": "Complete UI test catalog result from the ui-tests collector.",
+  "type": "object",
   "properties": {
     "items": {
       "items": {
         "$ref": "#/$defs/UITestItem"
       },
-      "title": "Items",
       "type": "array"
     },
     "metadata": {
@@ -394,7 +361,6 @@
       "items": {
         "$ref": "#/$defs/CompatibilityWarning"
       },
-      "title": "Warnings",
       "type": "array"
     }
   },
@@ -402,8 +368,5 @@
     "items",
     "metadata",
     "warnings"
-  ],
-  "title": "UITestsResult",
-  "type": "object",
-  "$schema_version": "1.0.0"
+  ]
 }
