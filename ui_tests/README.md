@@ -123,3 +123,22 @@ The mode produces the file `output/ui-tests/ui-tests.json` using the
 - **`id` format**: `{organization-name}/{repository-name}/{relative-file-path}/{scenario-name-slug}`
 - **`us_id`**: `null` when the file has no `@US_ID:` tag.
 - **`ac_ids`**: always an array; empty when the scenario has no `@AC:` tags.
+
+---
+## Schema
+
+[`ui_tests/schema/ui-tests-v1.0.0-schema.json`](schema/ui-tests-v1.0.0-schema.json) is
+**generated** from the Pydantic models in [`ui_tests/models.py`](models.py) — via
+[`ui_tests/schema_export.py`](schema_export.py) (`python -m ui_tests.schema_export`) — not
+hand-authored. Those models are this repo's source of truth for the `ui-tests.json` contract;
+the file-level `metadata` / `warnings` block is the shared definition in
+[`common/models.py`](../common/models.py), the same one `doc-issues` and `doc-source` use.
+
+**If you change `ui_tests/models.py`, regenerate the schema in the same change
+(`python -m ui_tests.schema_export`).** A test (`tests/common/test_schema_export.py`) fails if
+the committed file drifts from the models.
+
+A downstream consumer is the **schema consumer**: it vendors a pinned copy of this generated
+schema for its own validation and consumes it independently (no direct code dependency),
+mirroring the [Schema Sync Obligation](../doc_issues/README.md#schema-sync-obligation) documented
+for `doc-issues`.

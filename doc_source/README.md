@@ -239,3 +239,22 @@ The mode produces `output/doc-source/doc-source.json` with three top-level array
 - **`timestamps`**: always `null` for user stories — no GitHub Issue timestamp equivalent.
 - **`tags`**: always `[]` for user stories — `.feature` tags do not map to issue labels.
 
+---
+## Schema
+
+[`doc_source/schema/doc-source-v1.0.0-schema.json`](schema/doc-source-v1.0.0-schema.json) is
+**generated** from the Pydantic models in [`doc_source/models.py`](models.py) — via
+[`doc_source/schema_export.py`](schema_export.py) (`python -m doc_source.schema_export`) — not
+hand-authored. Those models are this repo's source of truth for the `doc-source.json` contract;
+the file-level `metadata` / `warnings` block is the shared definition in
+[`common/models.py`](../common/models.py), the same one `doc-issues` and `ui-tests` use.
+
+**If you change `doc_source/models.py`, regenerate the schema in the same change
+(`python -m doc_source.schema_export`).** A test (`tests/common/test_schema_export.py`) fails if
+the committed file drifts from the models.
+
+A downstream consumer is the **schema consumer**: it vendors a pinned copy of this generated
+schema for its own validation and consumes it independently (no direct code dependency),
+mirroring the [Schema Sync Obligation](../doc_issues/README.md#schema-sync-obligation) documented
+for `doc-issues`.
+

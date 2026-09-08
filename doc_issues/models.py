@@ -27,9 +27,20 @@ vendors a pinned copy of the generated schema for its `collector_gh` adapter.
 # Pydantic model classes are declarative data containers with no public methods by design.
 # pylint: disable=too-few-public-methods
 
-from typing import Any, Optional
+from typing import Optional
 
 from pydantic import BaseModel
+
+# The metadata / warning block is identical across every collector output contract and
+# is defined once in `common/models.py`. Re-exported here so existing
+# `from doc_issues.models import ...` imports keep working.
+from common.models import (  # noqa: F401  (re-export)
+    AdapterMetadata,
+    AdapterMetadataProducer,
+    AdapterMetadataRun,
+    AdapterMetadataSource,
+    CompatibilityWarning,
+)
 
 
 class AcceptanceCriterion(BaseModel):
@@ -56,55 +67,6 @@ class AdapterItemTimestamps(BaseModel):
 
     created: str
     updated: str
-
-
-class AdapterMetadataProducer(BaseModel):
-    """Identifies the tool that produced the output file."""
-
-    name: str
-    version: str
-    # Required key, nullable value — always present, `null` when there is no CI build id.
-    build: Optional[str]
-
-
-class AdapterMetadataRun(BaseModel):
-    """GitHub Actions workflow run information, when available."""
-
-    run_id: Optional[str]
-    run_attempt: Optional[str]
-    actor: Optional[str]
-    workflow: Optional[str]
-    ref: Optional[str]
-    sha: Optional[str]
-    # All six keys are required (always present) but nullable — outside a GitHub Actions
-    # run, every value is `null` rather than the key being omitted.
-
-
-class AdapterMetadataSource(BaseModel):
-    """Source system and repository information."""
-
-    systems: list[str]
-    repositories: list[str]
-    organization: Optional[str]
-    # Required key, nullable value — `enterprise` is not currently captured.
-    enterprise: Optional[str]
-
-
-class AdapterMetadata(BaseModel):
-    """File-level provenance and audit metadata."""
-
-    producer: AdapterMetadataProducer
-    run: AdapterMetadataRun
-    source: AdapterMetadataSource
-    original_metadata: dict[str, Any]
-
-
-class CompatibilityWarning(BaseModel):
-    """A non-fatal compatibility warning surfaced to downstream consumers."""
-
-    code: str
-    message: str
-    context: Optional[str] = None
 
 
 class AdapterItem(BaseModel):

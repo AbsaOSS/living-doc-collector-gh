@@ -15,8 +15,8 @@
 #
 
 """
-This module generates `doc-issues-v1.0.0-schema.json` from the Pydantic models in
-`doc_issues/models.py`. Run it directly (`python -m doc_issues.schema_export`) to
+This module generates `doc-source-v1.0.0-schema.json` from the Pydantic models in
+`doc_source/models.py`. Run it directly (`python -m doc_source.schema_export`) to
 regenerate the committed schema file after changing a model.
 """
 
@@ -29,32 +29,33 @@ from living_doc_utilities.logging_config import setup_logging
 
 from common.schema_export import build_schema
 from common.schema_export import write_schema as write_schema_file
-from doc_issues.models import AdapterResult
+from doc_source.models import DocSourceResult
 
 logger = logging.getLogger(__name__)
 
-# Key order in the generated document, matching the previously hand-authored file.
+# Key order in the generated document.
 _DEFS_ORDER = [
     "AcceptanceCriterion",
-    "AdapterItemTimestamps",
     "AdapterMetadataProducer",
     "AdapterMetadataRun",
     "AdapterMetadataSource",
     "AdapterMetadata",
     "CompatibilityWarning",
-    "AdapterItem",
+    "UserStoryItem",
+    "FunctionalityItem",
+    "FeatureItem",
 ]
 
-_DEFAULT_SCHEMA_PATH = Path(__file__).parent / "schema" / "doc-issues-v1.0.0-schema.json"
+_DEFAULT_SCHEMA_PATH = Path(__file__).parent / "schema" / "doc-source-v1.0.0-schema.json"
 
 
 def export_schema() -> dict[str, Any]:
     """
-    Build the `doc-issues.json` output-contract schema from `doc_issues/models.py`.
+    Build the `doc-source.json` output-contract schema from `doc_source/models.py`.
 
-    @return: The schema document, ready to serialize as `doc-issues-v1.0.0-schema.json`.
+    @return: The schema document, ready to serialize as `doc-source-v1.0.0-schema.json`.
     """
-    return build_schema(AdapterResult, _DEFS_ORDER)
+    return build_schema(DocSourceResult, _DEFS_ORDER)
 
 
 def write_schema(output_path: Path = _DEFAULT_SCHEMA_PATH) -> Path:

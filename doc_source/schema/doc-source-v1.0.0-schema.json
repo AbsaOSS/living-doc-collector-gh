@@ -2,139 +2,725 @@
   "$schema_version": "1.0.0",
   "$defs": {
     "AcceptanceCriterion": {
-      "type": "object",
+      "description": "A single acceptance-criterion row parsed from a `.feature` header block.",
       "properties": {
-        "id":          { "type": "string" },
-        "state":       { "type": "string" },
-        "version":     { "type": "string" },
-        "description": { "type": "string" },
-        "aspect":          { "type": "array", "items": { "type": "string" }, "default": [] },
-        "preconditions":   { "type": "array", "items": { "type": "string" }, "default": [] },
-        "not_in_scope":    { "type": "array", "items": { "type": "string" }, "default": [] },
-        "removal_planned": { "type": ["string", "null"], "default": null },
-        "descoped_at":     { "type": ["string", "null"], "default": null },
-        "descoped_reason": { "type": ["string", "null"], "default": null },
-        "future_release":  { "type": ["string", "null"], "default": null }
+        "id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "aspect": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "preconditions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "not_in_scope": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "removal_planned": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "descoped_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "descoped_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "future_release": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
       },
-      "required": ["id", "state", "version", "description"]
+      "required": [
+        "id",
+        "state",
+        "version",
+        "description"
+      ],
+      "title": "AcceptanceCriterion",
+      "type": "object"
     },
     "AdapterMetadataProducer": {
-      "type": "object",
+      "description": "Identifies the tool that produced the output file.",
       "properties": {
-        "name":    { "type": "string" },
-        "version": { "type": "string" },
-        "build":   { "type": ["string", "null"] }
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "build": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
       },
-      "required": ["name", "version", "build"]
+      "required": [
+        "name",
+        "version",
+        "build"
+      ],
+      "title": "AdapterMetadataProducer",
+      "type": "object"
     },
     "AdapterMetadataRun": {
-      "type": "object",
+      "description": "GitHub Actions workflow run information, when available.",
       "properties": {
-        "run_id":      { "type": ["string", "null"] },
-        "run_attempt": { "type": ["string", "null"] },
-        "actor":       { "type": ["string", "null"] },
-        "workflow":    { "type": ["string", "null"] },
-        "ref":         { "type": ["string", "null"] },
-        "sha":         { "type": ["string", "null"] }
+        "run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "run_attempt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "workflow": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
       },
-      "required": ["run_id", "run_attempt", "actor", "workflow", "ref", "sha"]
+      "required": [
+        "run_id",
+        "run_attempt",
+        "actor",
+        "workflow",
+        "ref",
+        "sha"
+      ],
+      "title": "AdapterMetadataRun",
+      "type": "object"
     },
     "AdapterMetadataSource": {
-      "type": "object",
+      "description": "Source system and repository information.",
       "properties": {
-        "systems":      { "type": "array", "items": { "type": "string" } },
-        "repositories": { "type": "array", "items": { "type": "string" } },
-        "organization": { "type": ["string", "null"] },
-        "enterprise":   { "type": ["string", "null"] }
+        "systems": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "repositories": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "enterprise": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
       },
-      "required": ["systems", "repositories", "organization", "enterprise"]
+      "required": [
+        "systems",
+        "repositories",
+        "organization",
+        "enterprise"
+      ],
+      "title": "AdapterMetadataSource",
+      "type": "object"
     },
     "AdapterMetadata": {
-      "type": "object",
+      "description": "File-level provenance and audit metadata.",
       "properties": {
-        "producer":          { "$ref": "#/$defs/AdapterMetadataProducer" },
-        "run":               { "$ref": "#/$defs/AdapterMetadataRun" },
-        "source":            { "$ref": "#/$defs/AdapterMetadataSource" },
-        "original_metadata": { "type": "object", "additionalProperties": true }
+        "producer": {
+          "$ref": "#/$defs/AdapterMetadataProducer"
+        },
+        "run": {
+          "$ref": "#/$defs/AdapterMetadataRun"
+        },
+        "source": {
+          "$ref": "#/$defs/AdapterMetadataSource"
+        },
+        "original_metadata": {
+          "additionalProperties": true,
+          "type": "object"
+        }
       },
-      "required": ["producer", "run", "source", "original_metadata"]
+      "required": [
+        "producer",
+        "run",
+        "source",
+        "original_metadata"
+      ],
+      "title": "AdapterMetadata",
+      "type": "object"
     },
     "CompatibilityWarning": {
-      "type": "object",
+      "description": "A non-fatal compatibility warning surfaced to downstream consumers.",
       "properties": {
-        "code":    { "type": "string" },
-        "message": { "type": "string" },
-        "context": { "type": ["string", "null"], "default": null }
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "context": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
       },
-      "required": ["code", "message"]
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "CompatibilityWarning",
+      "type": "object"
     },
     "UserStoryItem": {
-      "type": "object",
+      "description": "A User Story record mined from a `@US_ID:` `.feature` file header block.",
       "properties": {
-        "id":                  { "type": "string" },
-        "repository_name":     { "type": "string" },
-        "title":               { "type": "string" },
-        "state":               { "type": ["string", "null"] },
-        "tags":                { "type": "array", "items": { "type": "string" } },
-        "url":                 { "type": ["string", "null"] },
-        "timestamps":          { "type": "null" },
-        "description":         { "type": ["string", "null"], "default": null },
-        "business_value":      { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
-        "preconditions":       { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
-        "not_in_scope":        { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
-        "deprecated_at":       { "type": ["string", "null"], "default": null },
-        "deprecation_reason":  { "type": ["string", "null"], "default": null },
-        "acceptance_criteria": { "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/AcceptanceCriterion" } }, { "type": "null" }], "default": null }
+        "id": {
+          "type": "string"
+        },
+        "repository_name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "timestamps": {
+          "type": "null"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "business_value": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "preconditions": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "not_in_scope": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deprecated_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deprecation_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "acceptance_criteria": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AcceptanceCriterion"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
       },
-      "required": ["id", "repository_name", "title", "state", "tags", "url", "timestamps"]
+      "required": [
+        "id",
+        "repository_name",
+        "title",
+        "state",
+        "tags",
+        "url",
+        "timestamps"
+      ],
+      "title": "UserStoryItem",
+      "type": "object"
     },
     "FunctionalityItem": {
-      "type": "object",
+      "description": "A Functionality record mined from a `@FUNC_ID:` `.feature` file header block.",
       "properties": {
-        "id":                  { "type": "string" },
-        "repository_name":     { "type": "string" },
-        "title":               { "type": "string" },
-        "state":               { "type": ["string", "null"] },
-        "parent":              { "type": ["string", "null"] },
-        "func_type":           { "type": ["string", "null"] },
-        "not_in_scope":        { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
-        "deprecated_at":       { "type": ["string", "null"], "default": null },
-        "deprecation_reason":  { "type": ["string", "null"], "default": null },
-        "acceptance_criteria": { "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/AcceptanceCriterion" } }, { "type": "null" }], "default": null }
+        "id": {
+          "type": "string"
+        },
+        "repository_name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "func_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "not_in_scope": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deprecated_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deprecation_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "acceptance_criteria": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AcceptanceCriterion"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
       },
-      "required": ["id", "repository_name", "title"]
+      "required": [
+        "id",
+        "repository_name",
+        "title"
+      ],
+      "title": "FunctionalityItem",
+      "type": "object"
     },
     "FeatureItem": {
-      "type": "object",
+      "description": "A Feature record mined from a TypeScript page-object header block.",
       "properties": {
-        "id":                   { "type": "string" },
-        "repository_name":      { "type": "string" },
-        "title":                { "type": "string" },
-        "state":                { "type": ["string", "null"] },
-        "surface_type":         { "type": ["string", "null"] },
-        "route":                { "type": ["string", "null"] },
-        "owners":               { "type": ["string", "null"] },
-        "purpose":              { "type": ["string", "null"] },
-        "user_stories":         { "type": "array", "items": { "type": "string" } },
-        "functionalities":      { "type": "array", "items": { "type": "string" } },
-        "external_dependencies":{ "type": ["string", "null"] },
-        "page_object":          { "type": ["string", "null"] },
-        "not_in_scope":         { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
-        "deprecated_at":        { "type": ["string", "null"], "default": null },
-        "deprecation_reason":   { "type": ["string", "null"], "default": null }
+        "id": {
+          "type": "string"
+        },
+        "repository_name": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "surface_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "owners": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "purpose": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "user_stories": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "functionalities": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "external_dependencies": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page_object": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "not_in_scope": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deprecated_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deprecation_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
       },
-      "required": ["id", "repository_name", "title"]
+      "required": [
+        "id",
+        "repository_name",
+        "title"
+      ],
+      "title": "FeatureItem",
+      "type": "object"
     }
   },
   "title": "DocSourceResult",
   "description": "Complete result from doc-source collector parsing.",
   "type": "object",
   "properties": {
-    "user_stories":    { "type": "array", "items": { "$ref": "#/$defs/UserStoryItem" } },
-    "functionalities": { "type": "array", "items": { "$ref": "#/$defs/FunctionalityItem" } },
-    "features":        { "type": "array", "items": { "$ref": "#/$defs/FeatureItem" } },
-    "metadata":        { "$ref": "#/$defs/AdapterMetadata" },
-    "warnings":        { "type": "array", "items": { "$ref": "#/$defs/CompatibilityWarning" } }
+    "user_stories": {
+      "items": {
+        "$ref": "#/$defs/UserStoryItem"
+      },
+      "type": "array"
+    },
+    "functionalities": {
+      "items": {
+        "$ref": "#/$defs/FunctionalityItem"
+      },
+      "type": "array"
+    },
+    "features": {
+      "items": {
+        "$ref": "#/$defs/FeatureItem"
+      },
+      "type": "array"
+    },
+    "metadata": {
+      "$ref": "#/$defs/AdapterMetadata"
+    },
+    "warnings": {
+      "items": {
+        "$ref": "#/$defs/CompatibilityWarning"
+      },
+      "type": "array"
+    }
   },
-  "required": ["user_stories", "functionalities", "features", "metadata", "warnings"]
+  "required": [
+    "user_stories",
+    "functionalities",
+    "features",
+    "metadata",
+    "warnings"
+  ]
 }
