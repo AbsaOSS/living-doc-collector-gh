@@ -50,6 +50,38 @@ def test_missing_local_path(tmp_path):
     assert result == []
 
 
+def test_tutorial_directories_excluded(tmp_path):
+    # Arrange
+    living = tmp_path / "liv_doc_us"
+    living.mkdir()
+    kept = living / "us.feature"
+    kept.write_text("Feature: US", encoding="utf-8")
+    for tutorial_dir in ("tutorials", "tutorial_onboarding"):
+        directory = tmp_path / tutorial_dir
+        directory.mkdir()
+        (directory / "walkthrough.feature").write_text("Feature: T", encoding="utf-8")
+
+    # Act
+    result = discover_feature_files([str(tmp_path)])
+
+    # Assert
+    assert result == [kept]
+
+
+def test_tutorial_directories_kept_when_opted_in(tmp_path):
+    # Arrange
+    directory = tmp_path / "tutorials"
+    directory.mkdir()
+    walkthrough = directory / "walkthrough.feature"
+    walkthrough.write_text("Feature: T", encoding="utf-8")
+
+    # Act
+    result = discover_feature_files([str(tmp_path)], exclude_tutorials=False)
+
+    # Assert
+    assert result == [walkthrough]
+
+
 def test_directory_match_excluded(tmp_path):
     # Arrange
     nested = tmp_path / "features.feature"

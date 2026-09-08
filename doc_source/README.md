@@ -136,6 +136,43 @@ Feature: Authentication Screen — Credential-based Login
  * ============================================================================= */
 ```
 
+### Parsed fields (canonical authoring format)
+
+The parsers follow the canonical format defined in the Living Doc guide pages
+(`living-doc-header-types.md` §1–§3, `living-doc-glossary.md` "Acceptance Criterion").
+
+**Entity level** (User Story, Functionality, Feature):
+
+| Field | Source | Output |
+|---|---|---|
+| `not_in_scope` | `# not_in_scope:` bullet section (sibling of `preconditions`; PageObject: `not_in_scope:` `;`-separated list) | `not_in_scope[]` |
+| `deprecated_at` | `# deprecated_at:` header key (set when `status: deprecated`) | `deprecated_at` |
+| `deprecation_reason` | `# deprecation_reason:` header key | `deprecation_reason` |
+
+**Acceptance criterion level** (each `acceptance_criteria[]` record):
+
+| Field | Source | Output |
+|---|---|---|
+| `state` | token after ` - ` in `(…)` — kept **verbatim**, including `deprecated`; deprecated/descoped ACs are **not** dropped | `state` |
+| `aspect` | `- Aspect: <v1>, <v2>` line under the AC | `aspect[]` |
+| `preconditions` | indented `preconditions:` sub-section under the AC — **extends** the entity list | `preconditions[]` |
+| `not_in_scope` | indented `not_in_scope:` sub-section under the AC — **extends** the entity list | `not_in_scope[]` |
+| `removal_planned` | third `(…)` segment `removal planned v<x>` on a deprecated AC | `removal_planned` |
+| `descoped_at` / `descoped_reason` / `future_release` | `- descoped_at:` / `- descoped_reason:` / `- future_release:` bullets under the AC | same keys |
+
+### Intentionally not mined
+
+- **`tutorial*` / `tutorial_<group>` directories** — tutorial walkthroughs are not living
+  documentation; `.feature` files under them are skipped at discovery time.
+- **`# rationale:` (FUNC header) and `- Rationale:` (AC) lines** — free-text design context, not
+  a structured contract field.
+- **`superseded_by`, `owner_changed_at`, `owner_change_reason`** — entity-history metadata with no
+  downstream consumer yet.
+- **PageObject `wizard-steps`, `stub-reason`, cross-reference (`parent-feat`) headers** — surface
+  operational detail, not part of the mined Feature contract.
+- **Custom `{placeholder-name}:` AC keyword lines** (other than `Aspect:`) — kept inside the AC
+  `description` prose rather than split into a field.
+
 ---
 ## Expected Output
 
@@ -154,8 +191,15 @@ The mode produces `output/doc-source/doc-source.json` with three top-level array
       "description": "As a data consumer, I want to request access ...",
       "business_value": ["Enables data consumers to gain access to domains they need."],
       "preconditions":  ["The user has logged in."],
+      "not_in_scope":   [],
+      "deprecated_at":  null,
+      "deprecation_reason": null,
       "acceptance_criteria": [
-        { "id": "US-27-01", "state": "Active", "version": "v1.9.0", "description": "..." }
+        {
+          "id": "US-27-01", "state": "Active", "version": "v1.9.0", "description": "...",
+          "aspect": [], "preconditions": [], "not_in_scope": [],
+          "removal_planned": null, "descoped_at": null, "descoped_reason": null, "future_release": null
+        }
       ]
     }
   ],

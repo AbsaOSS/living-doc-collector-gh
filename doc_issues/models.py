@@ -39,6 +39,16 @@ class AcceptanceCriterion(BaseModel):
     state: str
     version: str
     description: str
+    # Additive fields from the canonical authoring format. GitHub issue bodies do
+    # not currently express these, so they stay at their defaults for `doc-issues`
+    # output; they exist on the shared contract for `.feature`-sourced records.
+    aspect: Optional[list[str]] = None
+    preconditions: Optional[list[str]] = None
+    not_in_scope: Optional[list[str]] = None
+    removal_planned: Optional[str] = None
+    descoped_at: Optional[str] = None
+    descoped_reason: Optional[str] = None
+    future_release: Optional[str] = None
 
 
 class AdapterItemTimestamps(BaseModel):
@@ -109,6 +119,9 @@ class AdapterItem(BaseModel):
     description: Optional[str] = None
     business_value: Optional[list[str]] = None
     preconditions: Optional[list[str]] = None
+    not_in_scope: Optional[list[str]] = None
+    deprecated_at: Optional[str] = None
+    deprecation_reason: Optional[str] = None
     acceptance_criteria: Optional[list[AcceptanceCriterion]] = None
 
 

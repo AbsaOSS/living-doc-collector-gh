@@ -81,6 +81,65 @@ def test_multiple_ac_tags():
     assert result[0]["ac_ids"] == ["US-1-01", "US-1-02"]
 
 
+def test_aspect_tag_recorded_on_ac_link():
+    # Arrange
+    lines = [
+        "@US_ID:US-1",
+        "Feature: F",
+        "    @AC:US-1-01/aspect:username-input",
+        "    @AC:US-1-02",
+        "    Scenario: Aspect scenario",
+        "        Given a",
+    ]
+
+    # Act
+    result = parse_scenarios(lines, ORG, REPO, REL)
+
+    # Assert
+    assert result[0]["ac_ids"] == ["US-1-01", "US-1-02"]
+    assert result[0]["ac_links"] == [
+        {"id": "US-1-01", "aspect": "username-input"},
+        {"id": "US-1-02", "aspect": None},
+    ]
+
+
+def test_tutorial_scenario_skipped(caplog):
+    # Arrange
+    lines = [
+        "@US_ID:US-1",
+        "Feature: F",
+        "    @AC:US-1-01",
+        "    Scenario: Real scenario",
+        "        Given a",
+        "    @tutorial",
+        "    Scenario: Walkthrough",
+        "        Given b",
+    ]
+
+    # Act
+    result = parse_scenarios(lines, ORG, REPO, REL)
+
+    # Assert
+    assert [s["scenario_name"] for s in result] == ["Real scenario"]
+
+
+def test_tutorial_feature_file_produces_no_records():
+    # Arrange
+    lines = [
+        "@tutorial",
+        "@US_ID:US-1",
+        "Feature: A walkthrough",
+        "    Scenario: Step one",
+        "        Given a",
+    ]
+
+    # Act
+    result = parse_scenarios(lines, ORG, REPO, REL)
+
+    # Assert
+    assert result == []
+
+
 def test_scenario_outline():
     # Arrange
     lines = [

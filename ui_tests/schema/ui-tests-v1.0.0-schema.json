@@ -19,6 +19,32 @@
       "title": "Step",
       "type": "object"
     },
+    "AcLink": {
+      "description": "A scenario-to-AC link, carrying the optional aspect the scenario covers.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "aspect": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Aspect"
+        }
+      },
+      "required": [
+        "id",
+        "aspect"
+      ],
+      "title": "AcLink",
+      "type": "object"
+    },
     "ScenarioSource": {
       "description": "Source identity of a scenario.",
       "properties": {
@@ -83,6 +109,14 @@
           },
           "title": "Ac Ids",
           "type": "array"
+        },
+        "ac_links": {
+          "items": {
+            "$ref": "#/$defs/AcLink"
+          },
+          "title": "Ac Links",
+          "type": "array",
+          "default": []
         },
         "scenario_name": {
           "title": "Scenario Name",

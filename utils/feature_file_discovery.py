@@ -25,12 +25,24 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def discover_feature_files(paths: list[str]) -> list[Path]:
+def _is_under_tutorial_dir(file_path: Path, root: Path) -> bool:
+    """Return True when any directory between `root` and the file is a `tutorial*` directory."""
+    try:
+        relative_parts = file_path.relative_to(root).parts
+    except ValueError:
+        relative_parts = file_path.parts
+    return any(part.lower().startswith("tutorial") for part in relative_parts[:-1])
+
+
+def discover_feature_files(paths: list[str], exclude_tutorials: bool = True) -> list[Path]:
     """
     Recursively scan each absolute directory path for .feature files.
 
     Parameters:
         paths: Absolute directory paths to scan.
+        exclude_tutorials: When True (default), files under `tutorial*` /
+            `tutorial_<group>` directories are skipped - tutorial walkthroughs are
+            not living documentation and no collector mode mines them.
 
     Returns:
         Sorted list of unique matching file paths.
@@ -42,6 +54,11 @@ def discover_feature_files(paths: list[str]) -> list[Path]:
             logger.warning("Path `%s` does not exist - skipping.", path)
             continue
         found = [p for p in root.rglob("*.feature") if p.is_file()]
+        if exclude_tutorials:
+            kept = [p for p in found if not _is_under_tutorial_dir(p, root)]
+            if len(kept) != len(found):
+                logger.debug("Excluded %d tutorial `.feature` file(s) under `%s`.", len(found) - len(kept), path)
+            found = kept
         if not found:
             logger.warning("No .feature files found under `%s`.", path)
             continue

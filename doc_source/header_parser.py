@@ -33,6 +33,47 @@ _FUNC_TITLE_PATTERN = re.compile(r"FUNC-(\d+)\s*·\s*(.+?)\s*$")
 _FUNC_ID_TAG_PATTERN = re.compile(r"^@FUNC_ID:\s*FUNC-(\d+)")
 _KEY_PATTERN = re.compile(r"^(\w+):\s*(.*)$")
 _AC_HEADER_PATTERN = re.compile(r"^AC:(\S+)\s*\(([^)]*)\)")
+_REMOVAL_PLANNED_PATTERN = re.compile(r"removal planned\s+(.+)", re.IGNORECASE)
+
+# Entity-level bullet sections, siblings of the scalar header keys.
+_ENTITY_BULLET_SECTIONS = ("business_value", "preconditions", "not_in_scope", "acceptance_criteria")
+# Bullet markers that open an indented sub-section inside an `AC:` block.
+_AC_SUBSECTION_KEYS = ("preconditions", "not_in_scope")
+
+
+def _empty_ac_extras() -> dict:
+    """Return the additive AC fields (aspect / scope / deprecation) with their defaults."""
+    return {
+        "aspect": [],
+        "preconditions": [],
+        "not_in_scope": [],
+        "removal_planned": None,
+        "descoped_at": None,
+        "descoped_reason": None,
+        "future_release": None,
+    }
+
+
+def _consume_ac_keyword_bullet(current: dict, item: str) -> bool:
+    """
+    Interpret a description-level bullet that is actually an AC keyword line
+    (`Aspect:`, `descoped_at:`, `descoped_reason:`, `future_release:`).
+
+    Returns True when the bullet was consumed as metadata, False when it is plain
+    description text.
+    """
+    if ":" not in item:
+        return False
+    key, _, value = item.partition(":")
+    key = key.strip().lower()
+    value = value.strip()
+    if key == "aspect":
+        current["aspect"] = [part.strip() for part in value.split(",") if part.strip()]
+        return True
+    if key in ("descoped_at", "descoped_reason", "future_release"):
+        current[key] = value or None
+        return True
+    return False
 
 
 def _strip_comment_prefix(line: str) -> str:
@@ -81,10 +122,18 @@ def _parse_bullet_section(section_lines: list[str]) -> list[str]:
 
 
 def _parse_acceptance_criteria(section_lines: list[str]) -> list[dict]:
-    """Parse AC blocks into a list of acceptance criterion dicts."""
+    """
+    Parse AC blocks into a list of acceptance criterion dicts.
+
+    Each dict carries `id`, `state` (verbatim — `deprecated` is kept, not filtered),
+    `version`, `description`, plus `aspect`, per-AC `preconditions` / `not_in_scope`
+    extensions, and the `removal_planned` / `descoped_at` / `descoped_reason` /
+    `future_release` deprecation metadata.
+    """
     criteria: list[dict] = []
     current: Optional[dict] = None
     description_parts: list[str] = []
+    sub_mode: Optional[str] = None
 
     def _flush() -> None:
         if current is not None:
@@ -99,24 +148,52 @@ def _parse_acceptance_criteria(section_lines: list[str]) -> list[dict]:
         header_match = _AC_HEADER_PATTERN.match(text)
         if header_match:
             _flush()
-            paren_parts = header_match.group(2).split(" - ")
-            version = paren_parts[0].strip() if paren_parts else ""
-            state = paren_parts[1].strip() if len(paren_parts) > 1 else ""
-            if not version or not state:
-                logger.warning("Malformed AC block header `%s` - skipping.", text)
-                current = None
-                description_parts = []
-                continue
-            current = {"id": header_match.group(1), "state": state, "version": version, "description": ""}
+            current = _start_acceptance_criterion(header_match, text)
             description_parts = []
-        elif current is not None:
-            if text.startswith("- "):
-                description_parts.append(text[2:].strip())
-            elif description_parts:
-                description_parts[-1] = f"{description_parts[-1]} {text}".strip()
+            sub_mode = None
+            continue
+
+        if current is None:
+            continue
+
+        if text.rstrip(":").lower() in _AC_SUBSECTION_KEYS and text.endswith(":"):
+            sub_mode = text.rstrip(":").lower()
+            continue
+
+        if text.startswith("- "):
+            item = text[2:].strip()
+            if sub_mode in _AC_SUBSECTION_KEYS:
+                current[sub_mode].append(item)
+            elif not _consume_ac_keyword_bullet(current, item):
+                description_parts.append(item)
+            continue
+
+        # Continuation of the previously started bullet.
+        if sub_mode in _AC_SUBSECTION_KEYS and current[sub_mode]:
+            current[sub_mode][-1] = f"{current[sub_mode][-1]} {text}".strip()
+        elif description_parts:
+            description_parts[-1] = f"{description_parts[-1]} {text}".strip()
 
     _flush()
     return criteria
+
+
+def _start_acceptance_criterion(header_match: "re.Match[str]", text: str) -> Optional[dict]:
+    """Build a fresh AC dict from a matched `AC:<id> (<paren>)` header, or None if malformed."""
+    paren_parts = [part.strip() for part in header_match.group(2).split(" - ")]
+    version = paren_parts[0] if paren_parts else ""
+    state = paren_parts[1] if len(paren_parts) > 1 else ""
+    if not version or not state:
+        logger.warning("Malformed AC block header `%s` - skipping.", text)
+        return None
+
+    ac: dict = {"id": header_match.group(1), "state": state, "version": version, "description": ""}
+    ac.update(_empty_ac_extras())
+    for extra in paren_parts[2:]:
+        removal_match = _REMOVAL_PLANNED_PATTERN.match(extra)
+        if removal_match:
+            ac["removal_planned"] = removal_match.group(1).strip()
+    return ac
 
 
 def _extract_feature_description(lines: list[str], title: str) -> str:
@@ -162,6 +239,8 @@ def parse_header(lines: list[str]) -> Optional[dict]:
     current_section: Optional[str] = None
     url: Optional[str] = None
     state: Optional[str] = None
+    deprecated_at: Optional[str] = None
+    deprecation_reason: Optional[str] = None
 
     for content in block:
         if title_id is None:
@@ -181,7 +260,13 @@ def parse_header(lines: list[str]) -> Optional[dict]:
                 elif key == "status":
                     state = value.lower() or None
                     current_section = None
-                elif key in ("business_value", "preconditions", "acceptance_criteria"):
+                elif key == "deprecated_at":
+                    deprecated_at = value or None
+                    current_section = None
+                elif key == "deprecation_reason":
+                    deprecation_reason = value or None
+                    current_section = None
+                elif key in _ENTITY_BULLET_SECTIONS:
                     current_section = key
                     sections[key] = []
                 else:
@@ -207,6 +292,9 @@ def parse_header(lines: list[str]) -> Optional[dict]:
         "description": _extract_feature_description(lines, title),
         "business_value": _parse_bullet_section(sections.get("business_value", [])),
         "preconditions": _parse_bullet_section(sections.get("preconditions", [])),
+        "not_in_scope": _parse_bullet_section(sections.get("not_in_scope", [])),
+        "deprecated_at": deprecated_at,
+        "deprecation_reason": deprecation_reason,
         "acceptance_criteria": _parse_acceptance_criteria(sections.get("acceptance_criteria", [])),
     }
 
@@ -250,6 +338,8 @@ def parse_func_header(lines: list[str]) -> Optional[dict]:
     state: Optional[str] = None
     parent: Optional[str] = None
     func_type: Optional[str] = None
+    deprecated_at: Optional[str] = None
+    deprecation_reason: Optional[str] = None
     sections: dict[str, list[str]] = {}
     current_section: Optional[str] = None
 
@@ -274,7 +364,13 @@ def parse_func_header(lines: list[str]) -> Optional[dict]:
                 elif key == "func_type":
                     func_type = value or None
                     current_section = None
-                elif key == "acceptance_criteria":
+                elif key == "deprecated_at":
+                    deprecated_at = value or None
+                    current_section = None
+                elif key == "deprecation_reason":
+                    deprecation_reason = value or None
+                    current_section = None
+                elif key in ("not_in_scope", "acceptance_criteria"):
                     current_section = key
                     sections[key] = []
                 else:
@@ -298,5 +394,8 @@ def parse_func_header(lines: list[str]) -> Optional[dict]:
         "state": state,
         "parent": parent,
         "func_type": func_type,
+        "not_in_scope": _parse_bullet_section(sections.get("not_in_scope", [])),
+        "deprecated_at": deprecated_at,
+        "deprecation_reason": deprecation_reason,
         "acceptance_criteria": _parse_acceptance_criteria(sections.get("acceptance_criteria", [])),
     }

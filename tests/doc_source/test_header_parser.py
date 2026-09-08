@@ -15,6 +15,21 @@
 #
 from doc_source.header_parser import parse_func_header, parse_header
 
+
+def _ac(**overrides):
+    """Build an expected acceptance-criterion dict with the additive fields defaulted."""
+    base = {
+        "aspect": [],
+        "preconditions": [],
+        "not_in_scope": [],
+        "removal_planned": None,
+        "descoped_at": None,
+        "descoped_reason": None,
+        "future_release": None,
+    }
+    base.update(overrides)
+    return base
+
 FULL_HEADER = """# =============================================================================
 # LIVING DOC — US-27 · Request Access to Domain
 # =============================================================================
@@ -67,19 +82,19 @@ def test_full_header():
         "so that I can be granted the permissions needed to use its data."
     )
     assert result["acceptance_criteria"] == [
-        {
-            "id": "US-27-01",
-            "state": "Active",
-            "version": "v1.9.0",
-            "description": 'A user who is not the domain owner can open the Access tab '
+        _ac(
+            id="US-27-01",
+            state="Active",
+            version="v1.9.0",
+            description='A user who is not the domain owner can open the Access tab '
             'and see a "Request access" button.',
-        },
-        {
-            "id": "US-27-02",
-            "state": "Active",
-            "version": "v1.9.0",
-            "description": "After submitting an access request, the user receives confirmation.",
-        },
+        ),
+        _ac(
+            id="US-27-02",
+            state="Active",
+            version="v1.9.0",
+            description="After submitting an access request, the user receives confirmation.",
+        ),
     ]
 
 
@@ -157,12 +172,12 @@ def test_multi_line_ac_description():
     # Assert
     assert result is not None
     assert result["acceptance_criteria"] == [
-        {
-            "id": "US-1-01",
-            "state": "Active",
-            "version": "v1.0.0",
-            "description": "First sentence continues here. Second sentence.",
-        }
+        _ac(
+            id="US-1-01",
+            state="Active",
+            version="v1.0.0",
+            description="First sentence continues here. Second sentence.",
+        )
     ]
 
 
@@ -187,12 +202,7 @@ def test_malformed_ac_block(caplog):
     # Assert
     assert result is not None
     assert result["acceptance_criteria"] == [
-        {
-            "id": "US-2-02",
-            "state": "Active",
-            "version": "v1.0.0",
-            "description": "Valid criterion.",
-        }
+        _ac(id="US-2-02", state="Active", version="v1.0.0", description="Valid criterion.")
     ]
 
 
@@ -253,18 +263,18 @@ def test_func_full_header():
     assert result["parent"] == "FEAT-001"
     assert result["func_type"] == "button_action"
     assert result["acceptance_criteria"] == [
-        {
-            "id": "FUNC-001-01",
-            "state": "Active",
-            "version": "v1.0.0",
-            "description": "Submitting valid credentials navigates to the dashboard.",
-        },
-        {
-            "id": "FUNC-001-02",
-            "state": "Active",
-            "version": "v1.0.0",
-            "description": "A user with an active session is automatically redirected.",
-        },
+        _ac(
+            id="FUNC-001-01",
+            state="Active",
+            version="v1.0.0",
+            description="Submitting valid credentials navigates to the dashboard.",
+        ),
+        _ac(
+            id="FUNC-001-02",
+            state="Active",
+            version="v1.0.0",
+            description="A user with an active session is automatically redirected.",
+        ),
     ]
 
 
@@ -320,3 +330,103 @@ def test_func_id_tag_mismatch_uses_header(caplog):
     assert result is not None
     assert result["func_id"] == "FUNC-003"
     assert any("mismatches header ID" in message for message in caplog.messages)
+
+
+# ---------------------------------------------------------------------------
+# Canonical authoring format: not_in_scope, deprecation, and full AC grammar
+# ---------------------------------------------------------------------------
+
+FULL_FORMAT_HEADER = """# =============================================================================
+# LIVING DOC — US-40 · Full Format Story
+# =============================================================================
+# status:          deprecated
+# deprecated_at:   2026-05-01
+# deprecation_reason: Superseded by the new access flow.
+# preconditions:
+#   - The user has logged in.
+# not_in_scope:
+#   - Bulk access requests.
+#
+# acceptance_criteria:
+#
+#   AC:US-40-01 (v1.0.0 - active)
+#     - The login screen displays the required field.
+#     - Aspect: username input, password input
+#     preconditions:
+#       - The feature flag is enabled.
+#     not_in_scope:
+#       - Mobile browsers.
+#
+#   AC:US-40-02 (v2.1.0 - deprecated - removal planned v3.0.0)
+#     - A "Remember me" checkbox retains the session.
+#
+#   AC:US-40-03 (v1.0.0 - planned)
+#     - A deferred criterion.
+#     - descoped_at: 2026-04-10
+#     - descoped_reason: Deferred to next sprint.
+#     - future_release: sprint-12
+# =============================================================================
+
+@US_ID:US-40
+Feature: Full Format Story
+As a user, I want the full format so that nothing is dropped.
+"""
+
+
+def test_entity_not_in_scope_and_deprecation_parsed():
+    # Act
+    result = parse_header(FULL_FORMAT_HEADER.splitlines())
+
+    # Assert
+    assert result is not None
+    assert result["not_in_scope"] == ["Bulk access requests."]
+    assert result["deprecated_at"] == "2026-05-01"
+    assert result["deprecation_reason"] == "Superseded by the new access flow."
+
+
+def test_ac_full_grammar_parsed():
+    # Act
+    result = parse_header(FULL_FORMAT_HEADER.splitlines())
+
+    # Assert
+    assert result is not None
+    criteria = {ac["id"]: ac for ac in result["acceptance_criteria"]}
+
+    assert criteria["US-40-01"]["aspect"] == ["username input", "password input"]
+    assert criteria["US-40-01"]["preconditions"] == ["The feature flag is enabled."]
+    assert criteria["US-40-01"]["not_in_scope"] == ["Mobile browsers."]
+
+    assert criteria["US-40-02"]["state"] == "deprecated"
+    assert criteria["US-40-02"]["removal_planned"] == "v3.0.0"
+
+    assert criteria["US-40-03"]["state"] == "planned"
+    assert criteria["US-40-03"]["descoped_at"] == "2026-04-10"
+    assert criteria["US-40-03"]["descoped_reason"] == "Deferred to next sprint."
+    assert criteria["US-40-03"]["future_release"] == "sprint-12"
+    assert criteria["US-40-03"]["description"] == "A deferred criterion."
+
+
+def test_func_header_not_in_scope_and_deprecation():
+    # Arrange
+    lines = [
+        "# =============================================================================",
+        "# LIVING DOC — FUNC-010 · Deprecated Functionality",
+        "# =============================================================================",
+        "# status:    deprecated",
+        "# deprecated_at: 2026-06-01",
+        "# deprecation_reason: Merged into FUNC-011.",
+        "# not_in_scope:",
+        "#   - Legacy keyboard shortcuts.",
+        "# =============================================================================",
+        "@FUNC_ID:FUNC-010",
+        "Feature: Deprecated Functionality",
+    ]
+
+    # Act
+    result = parse_func_header(lines)
+
+    # Assert
+    assert result is not None
+    assert result["not_in_scope"] == ["Legacy keyboard shortcuts."]
+    assert result["deprecated_at"] == "2026-06-01"
+    assert result["deprecation_reason"] == "Merged into FUNC-011."
