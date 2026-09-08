@@ -127,6 +127,20 @@ The mode produces the file `output/ui-tests/ui-tests.json` using the
 - **`func_id`**: always present; `null` when the file has no `@FUNC_ID:` tag.
 - **`ac_ids`**: always an array; empty when the scenario has no `@AC:` tags.
 
+### Error handling
+
+| Situation | Behaviour |
+|---|---|
+| A path in `paths` does not exist or has no matching files | Log warning, skip path, continue |
+| A file cannot be read | Log warning, skip file, continue |
+| File has no `@US_ID:` / `@FUNC_ID:` tag | `us_id` / `func_id` are `null` for its scenarios — no warning |
+| Scenario has no `@AC:` tag | `ac_ids` is `[]` — no warning |
+| Scenario slug collides within a file | Append `-2`, `-3`, … |
+| Output file write fails | Log error, `collect()` returns `False` |
+
+`collect()` returns `True` whenever the output file was written — an empty repository list or
+zero matching files is a successful run with an empty `items` array.
+
 ---
 ## Schema
 
