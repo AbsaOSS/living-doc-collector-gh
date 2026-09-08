@@ -142,6 +142,9 @@ class GHDocSourceCollector:
                     "description": parsed["description"],
                     "business_value": parsed["business_value"],
                     "preconditions": parsed["preconditions"],
+                    "not_in_scope": parsed["not_in_scope"],
+                    "deprecated_at": parsed["deprecated_at"],
+                    "deprecation_reason": parsed["deprecation_reason"],
                     "acceptance_criteria": parsed["acceptance_criteria"],
                 }
             )
@@ -171,6 +174,9 @@ class GHDocSourceCollector:
                     "state": parsed["state"],
                     "parent": parsed["parent"],
                     "func_type": parsed["func_type"],
+                    "not_in_scope": parsed["not_in_scope"],
+                    "deprecated_at": parsed["deprecated_at"],
+                    "deprecation_reason": parsed["deprecation_reason"],
                     "acceptance_criteria": parsed["acceptance_criteria"],
                 }
             )
@@ -206,6 +212,9 @@ class GHDocSourceCollector:
                     "functionalities": parsed["functionalities"],
                     "external_dependencies": parsed["external_dependencies"],
                     "page_object": parsed["page_object"],
+                    "not_in_scope": parsed["not_in_scope"],
+                    "deprecated_at": parsed["deprecated_at"],
+                    "deprecation_reason": parsed["deprecation_reason"],
                 }
             )
 

@@ -141,3 +141,46 @@ def test_multi_line_purpose_joined():
     # Assert
     assert result is not None
     assert result["purpose"] == "Domain detail page with nine sub-tabs: About, Schema, Run history, Data feed."
+
+
+DEPRECATED_PO_HEADER = """\
+/* =============================================================================
+ * LIVING DOC — FEAT-009 · Legacy Screen
+ * =============================================================================
+ * surface_type:          UI
+ * route:                 /legacy
+ * owners:                Unify Team
+ * status:                deprecated
+ * deprecated_at:         2026-07-01
+ * deprecation_reason:    Replaced by FEAT-010.
+ * not_in_scope:          Export flows; Bulk edit
+ * purpose:               Legacy screen kept for reference.
+ * user_stories:          none
+ * functionalities:       none
+ * external_dependencies: none
+ * page-object:           LegacyPage.ts
+ * ============================================================================= */
+
+export class LegacyPage {}
+"""
+
+
+def test_po_deprecation_and_not_in_scope_parsed():
+    # Act
+    result = parse_page_object_header(DEPRECATED_PO_HEADER.splitlines())
+
+    # Assert
+    assert result is not None
+    assert result["deprecated_at"] == "2026-07-01"
+    assert result["deprecation_reason"] == "Replaced by FEAT-010."
+    assert result["not_in_scope"] == ["Export flows", "Bulk edit"]
+
+
+def test_po_not_in_scope_defaults_to_empty_list():
+    # Act
+    result = parse_page_object_header(FULL_PO_HEADER.splitlines())
+
+    # Assert
+    assert result is not None
+    assert result["not_in_scope"] == []
+    assert result["deprecated_at"] is None

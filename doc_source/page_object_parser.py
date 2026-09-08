@@ -71,6 +71,14 @@ def _parse_id_list(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def _parse_scope_list(value: str) -> list[str]:
+    """Parse a `not_in_scope` value - a `;`-separated (falling back to `,`) list of exclusions."""
+    if not value or value.lower() == "none":
+        return []
+    separator = ";" if ";" in value else ","
+    return [item.strip() for item in value.split(separator) if item.strip()]
+
+
 def parse_page_object_header(lines: list[str]) -> Optional[dict]:
     """
     Parse a TypeScript PageObject LIVING DOC header block into a structured dict.
@@ -135,4 +143,7 @@ def parse_page_object_header(lines: list[str]) -> Optional[dict]:
         "functionalities": _parse_id_list(fields.get("functionalities", "")),
         "external_dependencies": fields.get("external_dependencies") or None,
         "page_object": fields.get("page_object") or None,
+        "not_in_scope": _parse_scope_list(fields.get("not_in_scope", "")),
+        "deprecated_at": fields.get("deprecated_at") or None,
+        "deprecation_reason": fields.get("deprecation_reason") or None,
     }

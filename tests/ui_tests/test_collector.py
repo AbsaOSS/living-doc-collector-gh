@@ -70,6 +70,53 @@ def test_collect_single_repo(tmp_path, mocker):
     assert data["items"][1]["tags"] == ["Regression"]
 
 
+TUTORIAL_FEATURE = """@tutorial
+@US_ID:US-26
+Feature: Onboarding walkthrough
+    @AC:US-26-01
+    Scenario: Walkthrough step
+        Given the user starts onboarding
+        Then the tour begins
+"""
+
+
+def test_collect_excludes_tutorials(tmp_path, mocker):
+    # Arrange
+    repo_dir = tmp_path / "repo"
+    features_dir = repo_dir / "features"
+    features_dir.mkdir(parents=True)
+    (features_dir / "create.feature").write_text(FEATURE, encoding="utf-8")
+    tutorial_dir = repo_dir / "tutorial_onboarding"
+    tutorial_dir.mkdir()
+    (tutorial_dir / "tour.feature").write_text(FEATURE, encoding="utf-8")
+    (features_dir / "walkthrough.feature").write_text(TUTORIAL_FEATURE, encoding="utf-8")
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    mocker.patch(
+        "ui_tests.collector.ActionInputs.get_ui_tests_repositories",
+        return_value=[
+            {
+                "organization-name": "absa-group",
+                "repository-name": "aul-ui",
+                "paths": [str(repo_dir)],
+            }
+        ],
+    )
+
+    # Act
+    result = GHUITestsCollector(str(output_dir)).collect()
+
+    # Assert
+    assert result is True
+    output_file = os.path.join(str(output_dir), "ui-tests", "ui-tests.json")
+    with open(output_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    files = {item["source"]["file"] for item in data["items"]}
+    assert files == {"features/create.feature"}
+
+
 def test_collect_local_path_missing(tmp_path, mocker):
     # Arrange
     output_dir = tmp_path / "output"

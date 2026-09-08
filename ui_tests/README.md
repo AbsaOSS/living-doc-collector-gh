@@ -80,8 +80,18 @@ Feature: Create Domain
 
 - File-level `@US_ID:US-{id}` applies `us_id` to all scenarios in the file.
 - Scenario-level `@AC:US-26-01` tags populate `ac_ids` (the `AC:` prefix is stripped).
+- `@AC:<id>/aspect:<kebab-value>` also records the aspect on the scenario→AC link in
+  `ac_links[]` (`{ "id": "<id>", "aspect": "<value>" }`); a bare `@AC:<id>` yields `aspect: null`.
+  `ac_ids[]` always carries the bare IDs regardless of aspect.
 - Any other scenario-level `@tag` populates `tags`.
 - `Background:` blocks are not extracted.
+
+### Intentionally not mined
+
+- **`@tutorial` scenarios** and any **file whose file-level tags include `@tutorial`** produce no
+  records (logged at debug) — tutorial walkthroughs are not AC-linked tests.
+- **`tutorial*` / `tutorial_<group>` directories** are skipped at discovery time.
+- Additional `@AC:<id>/<param>:<value>` params other than `aspect` are ignored for now.
 
 ---
 ## Expected Output
@@ -94,6 +104,7 @@ The mode produces the file `output/ui-tests/ui-tests.json` using the
   "id":            "absa-group/aul-ui/playwright/features/.../domain_create.feature/user-can-...",
   "us_id":         "US-26",
   "ac_ids":        ["US-26-01"],
+  "ac_links":      [{ "id": "US-26-01", "aspect": null }],
   "scenario_name": "User can complete the Create Domain wizard and create a new domain",
   "scenario_type": "Scenario",
   "tags":          ["Regression"],

@@ -7,7 +7,14 @@
         "id":          { "type": "string" },
         "state":       { "type": "string" },
         "version":     { "type": "string" },
-        "description": { "type": "string" }
+        "description": { "type": "string" },
+        "aspect":          { "type": "array", "items": { "type": "string" }, "default": [] },
+        "preconditions":   { "type": "array", "items": { "type": "string" }, "default": [] },
+        "not_in_scope":    { "type": "array", "items": { "type": "string" }, "default": [] },
+        "removal_planned": { "type": ["string", "null"], "default": null },
+        "descoped_at":     { "type": ["string", "null"], "default": null },
+        "descoped_reason": { "type": ["string", "null"], "default": null },
+        "future_release":  { "type": ["string", "null"], "default": null }
       },
       "required": ["id", "state", "version", "description"]
     },
@@ -74,6 +81,9 @@
         "description":         { "type": ["string", "null"], "default": null },
         "business_value":      { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
         "preconditions":       { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
+        "not_in_scope":        { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
+        "deprecated_at":       { "type": ["string", "null"], "default": null },
+        "deprecation_reason":  { "type": ["string", "null"], "default": null },
         "acceptance_criteria": { "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/AcceptanceCriterion" } }, { "type": "null" }], "default": null }
       },
       "required": ["id", "repository_name", "title", "state", "tags", "url", "timestamps"]
@@ -87,6 +97,9 @@
         "state":               { "type": ["string", "null"] },
         "parent":              { "type": ["string", "null"] },
         "func_type":           { "type": ["string", "null"] },
+        "not_in_scope":        { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
+        "deprecated_at":       { "type": ["string", "null"], "default": null },
+        "deprecation_reason":  { "type": ["string", "null"], "default": null },
         "acceptance_criteria": { "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/AcceptanceCriterion" } }, { "type": "null" }], "default": null }
       },
       "required": ["id", "repository_name", "title"]
@@ -105,7 +118,10 @@
         "user_stories":         { "type": "array", "items": { "type": "string" } },
         "functionalities":      { "type": "array", "items": { "type": "string" } },
         "external_dependencies":{ "type": ["string", "null"] },
-        "page_object":          { "type": ["string", "null"] }
+        "page_object":          { "type": ["string", "null"] },
+        "not_in_scope":         { "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }], "default": null },
+        "deprecated_at":        { "type": ["string", "null"], "default": null },
+        "deprecation_reason":   { "type": ["string", "null"], "default": null }
       },
       "required": ["id", "repository_name", "title"]
     }
