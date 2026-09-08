@@ -127,6 +127,37 @@ export INPUT_DOC_ISSUES_REPOSITORIES='[
 export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 ```
 
+The source modes are wired the same way — enable the mode and pass its repository list as JSON:
+
+```
+# Environment variables for 'doc-source' mode functionality
+export INPUT_DOC_SOURCE=true
+export INPUT_DOC_SOURCE_REPOSITORIES='[
+  {
+    "organization-name": "absa-group",
+    "repository-name": "aul-ui",
+    "us-paths":   ["/abs/path/aul-ui/playwright/features/liv_doc_us"],
+    "func-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_func"],
+    "pages-paths":["/abs/path/aul-ui/playwright/pages"]
+  }
+]'
+
+# Environment variables for 'ui-tests' mode functionality
+export INPUT_UI_TESTS=true
+export INPUT_UI_TESTS_REPOSITORIES='[
+  {
+    "organization-name": "absa-group",
+    "repository-name": "aul-ui",
+    "paths": ["/abs/path/aul-ui/playwright/features"]
+  }
+]'
+```
+
+The header/scenario parsers (`doc_source/header_parser.py`, `doc_source/page_object_parser.py`,
+`ui_tests/scenario_parser.py`) are pure functions — raw lines in, structured dicts out, no I/O —
+so they are unit-tested directly without mocks. New modules must meet the project-wide 80 %
+coverage gate (`make coverage`).
+
 ### Running the script locally
 
 For running the GitHub action locally, incorporate these commands into the shell script and save it.
