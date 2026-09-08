@@ -245,10 +245,11 @@ The mode produces `output/doc-source/doc-source.json` with three top-level array
 |---|---|
 | A path in `us-paths` / `func-paths` / `pages-paths` does not exist or has no matching files | Log warning, skip path, continue |
 | A file cannot be read | Log warning, skip file, continue |
-| Header block missing or required field (ID, title) missing | Skip file, continue |
+| Header block missing, or a required field (ID, title) missing | Log warning, skip file, continue |
+| `@US_ID:` / `@FUNC_ID:` tag mismatches the header ID | Log warning, use the header ID |
 | Optional header field missing | Set the output field to `null` / `[]` |
 | Malformed acceptance-criterion block | Log warning, skip that AC, keep the rest of the item |
-| No Git root found above a file | `url` is `null` |
+| No Git root found above a file | Log warning, `url` is `null` |
 | Output file write fails | Log error, `collect()` returns `False` |
 
 `collect()` returns `True` whenever the output file was written — an empty repository list or
