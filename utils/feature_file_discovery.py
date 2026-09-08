@@ -31,7 +31,9 @@ def _is_under_tutorial_dir(file_path: Path, root: Path) -> bool:
         relative_parts = file_path.relative_to(root).parts
     except ValueError:
         relative_parts = file_path.parts
-    return any(part.lower().startswith("tutorial") for part in relative_parts[:-1])
+    return root.name.lower().startswith("tutorial") or any(
+        part.lower().startswith("tutorial") for part in relative_parts[:-1]
+    )
 
 
 def discover_feature_files(paths: list[str], exclude_tutorials: bool = True) -> list[Path]:
