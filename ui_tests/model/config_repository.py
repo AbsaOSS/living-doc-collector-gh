@@ -19,11 +19,7 @@ This module contains a data container for the ui-tests Config Repository,
 which holds all the essential logic.
 """
 
-import logging
-
-from utils.utils import has_string_names
-
-logger = logging.getLogger(__name__)
+from utils.utils import check_repository_names, get_path_list
 
 
 class ConfigRepository:
@@ -53,23 +49,16 @@ class ConfigRepository:
         """Getter of the glob patterns relative to the local path."""
         return self.__paths
 
-    def load_from_json(self, repository_json: dict) -> bool:
+    def load_from_json(self, repository_json: dict) -> None:
         """
         Load the configuration from a JSON object.
 
         @param repository_json: The JSON object containing the repository configuration.
-        @return: bool
+        @return: None
+        @raise ValueError: When the entry is malformed; the message names the missing key or the invalid value.
         """
-        try:
-            self.__organization_name = repository_json["organization-name"]
-            self.__repository_name = repository_json["repository-name"]
-            self.__paths = repository_json["paths"]
-            return has_string_names(repository_json)
-        except KeyError as e:
-            logger.error("The key is not found in the repository JSON input: %s.", e, exc_info=True)
-        except TypeError as e:
-            logger.error("The repository JSON input does not have a dictionary structure: %s.", e, exc_info=True)
-        return False
+        self.__organization_name, self.__repository_name = check_repository_names(repository_json)
+        self.__paths = get_path_list(repository_json, "paths")
 
     def __repr__(self):
         return (

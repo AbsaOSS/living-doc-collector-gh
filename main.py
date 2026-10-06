@@ -23,7 +23,6 @@ import logging
 import sys
 from typing import Any, Callable
 
-from living_doc_utilities.constants import OUTPUT_PATH
 from living_doc_utilities.contracts.codes import Code, ContractError
 from living_doc_utilities.github.utils import set_action_output
 from living_doc_utilities.logging_config import setup_logging
@@ -56,7 +55,8 @@ def run() -> None:
         logger.info("Liv-Doc collector for GitHub - user configuration validation failed.")
         sys.exit(1)
 
-    output_path: str = make_absolute_path(OUTPUT_PATH)
+    # Each mode writes `<output-path>/<mode>/<artifact>.json` and clears only its own `<mode>/` directory.
+    output_path: str = make_absolute_path(ActionInputs.get_output_path())
     all_modes_success: bool = True
 
     modes: list[tuple[Callable[[], bool], Callable[[str], Any], dict[str, str]]] = [

@@ -114,7 +114,7 @@ Repo specifics
   - The contract each mode emits (`doc-source-v1.0.0`, `ui-tests-v1.0.0`) — owned by `living-doc-utilities`, written only via `write_artifact`.
 - High-risk areas
   - `INPUT_*` and repository-JSON parsing in `action_inputs.py`.
-  - GitHub API usage — the REST token check in `action_inputs._validate()`.
+  - GitHub addresses — built only in `utils/github_urls.py`; v0.1.0 makes no network request.
   - Filesystem writes and output-directory cleaning in `utils/artifact.py::store_artifact`.
   - Any local parser, normaliser or contract model — parsing belongs to `living_doc_utilities.authoring`.
   - Any change to the implementation or tests under `doc_issues/` / `tests/doc_issues/` — the mode is PLANNED after v0.1.0 and its code is kept aside unchanged; a status-only doc edit (the PLANNED banner) is expected.

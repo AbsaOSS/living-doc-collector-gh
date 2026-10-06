@@ -67,7 +67,7 @@ repo's own risk areas and review expectations; it is not shared with other repos
 
 ## Repo specifics
 
-- Must treat these as high-risk areas — `INPUT_*` and repository-JSON parsing in `action_inputs.py`, output-directory cleaning and the artifact write in `utils/artifact.py::store_artifact`, the assembly of each mode's result in `doc_source/collector.py` / `ui_tests/collector.py`, and the GitHub REST call in `action_inputs._validate()`.
+- Must treat these as high-risk areas — `INPUT_*` and repository-JSON parsing in `action_inputs.py`, output-directory cleaning and the artifact write in `utils/artifact.py::store_artifact`, the assembly of each mode's result in `doc_source/collector.py` / `ui_tests/collector.py`, and the GitHub addresses in `utils/github_urls.py`.
 - Must treat these as contract-sensitive — the Action output key `output-path`, the per-mode output sub-paths in `utils/constants.py`, exit codes (`0` success, `1` any failure — no `2`–`5` taxonomy), the `"Liv-Doc collector for GitHub - ..."` log strings, the `doc-issues` planned message, and the contract each mode emits (`doc-source-v1.0.0`, `ui-tests-v1.0.0`). Tests assert exact content.
 - Must expect the whole collect pipeline to stay AI-free — flag any LLM call introduced into the runtime path.
 - Must expect unit tests under `tests/` mirroring the package layout, with shared fixtures in `tests/conftest.py`.

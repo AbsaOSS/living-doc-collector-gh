@@ -17,14 +17,49 @@
 import os
 
 import pytest
+from living_doc_utilities.contracts.codes import Code, ContractError
 
+from ui_tests.model.config_repository import ConfigRepository
 from utils.exceptions import InvalidQueryFormatError
 from utils.utils import (
+    load_repository_configs,
     load_template,
     make_absolute_path,
     sanitize_filename,
     validate_query_format,
 )
+
+# load_repository_configs
+
+
+def test_load_repository_configs_returns_one_config_per_entry_in_input_order():
+    # Arrange
+    entries = [
+        {"organization-name": "org", "repository-name": "a", "paths": ["/a"]},
+        {"organization-name": "org", "repository-name": "b", "paths": ["/b"]},
+    ]
+
+    # Act
+    configs = load_repository_configs(entries, ConfigRepository, "ui-tests-repositories")
+
+    # Assert
+    assert [(c.repository_name, c.paths) for c in configs] == [("a", ["/a"]), ("b", ["/b"])]
+
+
+def test_load_repository_configs_names_the_input_the_zero_based_entry_and_the_reason():
+    # Arrange: entry 0 is valid, entry 1 has no `paths`.
+    entries = [
+        {"organization-name": "org", "repository-name": "a", "paths": ["/a"]},
+        {"organization-name": "org", "repository-name": "b"},
+    ]
+
+    # Act
+    with pytest.raises(ContractError) as error:
+        load_repository_configs(entries, ConfigRepository, "ui-tests-repositories")
+
+    # Assert
+    assert error.value.code == Code.INVALID_CONFIGURATION
+    assert error.value.message == "`ui-tests-repositories` entry 1 is malformed: missing key `paths`."
 
 # sanitize_filename
 

@@ -2,9 +2,25 @@ name: 'Living Documentation Collector for GitHub'
 description: 'Collect living documentation data from GitHub repositories.'
 inputs:
   # Base action inputs
-  GITHUB-TOKEN:
-    description: 'GitHub token for authentication.'
+  project-id:
+    description: 'Project id written to every artifact''s `metadata.source.project_id`: lowercase letters, digits and hyphens, starting with a letter or digit.'
     required: true
+  output-path:
+    description: 'Output root; each mode writes `<output-path>/<mode>/<artifact>.json` and clears only its own `<mode>/` directory.'
+    required: false
+    default: './output/collector-gh'
+  allow-partial:
+    description: 'When `true`, a failed source is a `SOURCE_UNAVAILABLE` warning and the mode writes without it; the run still fails if every source failed.'
+    required: false
+    default: 'false'
+  github-server-url:
+    description: 'GitHub server the configured repositories live on, for `source_ref.url` permalinks; on GitHub Enterprise Server pass the workflow''s `github.server_url`.'
+    required: false
+    default: 'https://github.com'
+  github-token:
+    description: 'Optional and unused: the `doc-source` and `ui-tests` modes read local checkouts and make no GitHub API call.'
+    required: false
+    default: ''
   doc-issues:
     description: 'PLANNED - `Documentation Issues` mode is not available in this version; `true` fails the run at start.'
     required: false
@@ -44,7 +60,7 @@ inputs:
 
 outputs:
   output-path:
-    description: 'Path to the collected living documentation files.'
+    description: 'Resolved absolute output root; each enabled mode''s artifact is at `<output-path>/<mode>/<artifact>.json`.'
     value: ${{ steps.liv-doc-collector.outputs.output-path }}
 
 branding:
@@ -69,7 +85,6 @@ runs:
     - name: Prepare environment based on mining regimes
       run: |
         # Set base env variables common for all regimes
-        echo "INPUT_GITHUB_TOKEN=${{ env.GITHUB-TOKEN }}" >> $GITHUB_ENV
         echo "INPUT_DOC_ISSUES=${{ inputs.doc-issues }}" >> $GITHUB_ENV
         echo "INPUT_VERBOSE_LOGGING=${{ inputs.verbose-logging }}" >> $GITHUB_ENV
 
@@ -89,7 +104,10 @@ runs:
     - name: Run Living Documentation Collector for GitHub
       id: liv-doc-collector
       env:
-        INPUT_GITHUB_TOKEN: ${{ env.INPUT_GITHUB_TOKEN }}
+        INPUT_PROJECT_ID: ${{ inputs.project-id }}
+        INPUT_OUTPUT_PATH: ${{ inputs.output-path }}
+        INPUT_ALLOW_PARTIAL: ${{ inputs.allow-partial }}
+        INPUT_GITHUB_SERVER_URL: ${{ inputs.github-server-url }}
         INPUT_DOC_ISSUES: ${{ env.INPUT_DOC_ISSUES }}
         INPUT_DOC_SOURCE: ${{ env.INPUT_DOC_SOURCE }}
         INPUT_UI_TESTS: ${{ env.INPUT_UI_TESTS }}

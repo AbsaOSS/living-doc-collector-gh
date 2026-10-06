@@ -19,11 +19,7 @@ This module contains a data container for the doc-source Config Repository,
 which holds all the essential logic.
 """
 
-import logging
-
-from utils.utils import has_string_names
-
-logger = logging.getLogger(__name__)
+from utils.utils import check_repository_names, get_path_list
 
 
 class ConfigRepository:
@@ -65,29 +61,20 @@ class ConfigRepository:
         """Getter of absolute paths to scan for TypeScript page object files."""
         return self.__pages_paths
 
-    def load_from_json(self, repository_json: dict) -> bool:
+    def load_from_json(self, repository_json: dict) -> None:
         """
         Load the configuration from a JSON object.
 
         @param repository_json: The JSON object containing the repository configuration.
-        @return: bool
+        @return: None
+        @raise ValueError: When the entry is malformed; the message names the missing key or the invalid value.
         """
-        try:
-            self.__organization_name = repository_json["organization-name"]
-            self.__repository_name = repository_json["repository-name"]
-            # "us-paths" is canonical; "paths" is accepted for backward compatibility.
-            if "us-paths" in repository_json:
-                self.__paths = repository_json["us-paths"]
-            else:
-                self.__paths = repository_json["paths"]
-            self.__func_paths = repository_json.get("func-paths", [])
-            self.__pages_paths = repository_json.get("pages-paths", [])
-            return has_string_names(repository_json)
-        except KeyError as e:
-            logger.error("The key is not found in the repository JSON input: %s.", e, exc_info=True)
-        except TypeError as e:
-            logger.error("The repository JSON input does not have a dictionary structure: %s.", e, exc_info=True)
-        return False
+        self.__organization_name, self.__repository_name = check_repository_names(repository_json)
+        # "us-paths" is canonical; "paths" is accepted for backward compatibility.
+        us_paths_key = "paths" if "paths" in repository_json and "us-paths" not in repository_json else "us-paths"
+        self.__paths = get_path_list(repository_json, us_paths_key)
+        self.__func_paths = get_path_list(repository_json, "func-paths", required=False)
+        self.__pages_paths = get_path_list(repository_json, "pages-paths", required=False)
 
     def __repr__(self):
         return (

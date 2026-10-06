@@ -34,7 +34,8 @@ The Collector supports multiple mining modes, each with its own functionality. A
 ### Prerequisites
 
 Before we begin, ensure you have fulfilled the following prerequisites:
-- GitHub Token with permission to fetch repository data such as Issues and Pull Requests.
+- Every repository a mode reads is checked out (`actions/checkout`) earlier in the job. The `doc-source` and
+  `ui-tests` modes read those local checkouts only: they call no GitHub API and need no token.
 - Python version 3.10 or higher.
 
 ### Adding the Action to Your Workflow
@@ -45,9 +46,9 @@ See the default action step definition:
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
   uses: AbsaOSS/living-doc-collector-gh@v0.1.0
-  env:
-    GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
+    project-id: your-project               # Required: written to every artifact's metadata.source.project_id
+
     # modes de/activation
     doc-source: false
     ui-tests: false
@@ -66,9 +67,10 @@ See the full example of action step definition (in the example, non-default valu
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
   uses: AbsaOSS/living-doc-collector-gh@v0.1.0
-  env:
-    GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
+    project-id: your-project               # Required: written to every artifact's metadata.source.project_id
+    output-path: ./output/collector-gh     # Optional: the default
+    allow-partial: true                    # Optional: write without a failed source instead of failing the mode
     doc-source: true                       # Documentation Source mode de/activation
     ui-tests: true                         # UI Tests mode de/activation
     verbose-logging: true                  # Optional: project verbose (debug) logging feature de/activation
@@ -93,24 +95,27 @@ See the full example of action step definition (in the example, non-default valu
         ]
 ```
 
+#### GitHub Enterprise Server
+
+`source_ref.url` permalinks point at `https://github.com` by default. For repositories on GitHub Enterprise
+Server, pass the workflow's own server URL:
+
+```yaml
+- name: Living Documentation Collector for GitHub
+  uses: AbsaOSS/living-doc-collector-gh@v0.1.0
+  with:
+    project-id: your-project
+    github-server-url: ${{ github.server_url }}
+    doc-source: true
+    doc-source-repositories: |
+        [ { "organization-name": "your-organization-name", "repository-name": "your-ui-repository",
+            "us-paths": ["/path/to/checkout/your-ui-repository/features/liv_doc_us"] } ]
+```
+
 ---
 ## Action Configuration
 
 This section outlines the essential parameters that are common to all modes a user can define. Configure the action by customizing the following parameters based on your needs:
-
-### Environment Variables
-
-| Variable Name                | Description                                                                                                | Required | Usage                                                                                                                              |
-|------------------------------|------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------|
-| `REPOSITORIES_ACCESS_TOKEN`  | GitHub access token for authentication, that has permission to access all defined repositories / projects. | Yes      | Store it in the GitHub repository secrets and reference it in the workflow file using  `${{ secrets.REPOSITORIES_ACCESS_TOKEN }}`. |
-| `REQUESTS_CA_BUNDLE`         | Path to a custom CA bundle file for HTTPS certificate verification (e.g., corporate/proxy CA certificates). | No       | Set this when running in an environment with SSL interception. See [DEVELOPER.md](DEVELOPER.md#ssl--tls-certificate-verification) for details. |
-- **Example**:
-  ```yaml
-  env:
-    GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}
-  ```
-
-The way how to generate and store a token into the GitHub repository secrets is described in the [support chapter](#how-to-create-a-token-with-required-scope).
 
 ### Inputs
 
@@ -118,17 +123,22 @@ The way how to generate and store a token into the GitHub repository secrets is 
 
 These inputs are common to all modes.
 
-| Input Name        | Description                                        | Required | Default | Usage                     | 
-|-------------------|----------------------------------------------------|----------|---------|---------------------------|
-| `doc-issues`      | PLANNED — `Documentation Issues` mode is not available in this version. | No       | `false` | `true` fails the run at start (`INVALID_CONFIGURATION`). |
-| `doc-source`      | Enables or disables `Documentation Source` mode. | No       | `false` | Set to true to activate.  |
-| `ui-tests`        | Enables or disables `UI Tests` mode.             | No       | `false` | Set to true to activate.  |
-| `verbose-logging` | Enables or disables verbose (debug) logging.       | No       | `false` | Set to true to activate.  |
-
+| Input Name          | Description | Required | Default |
+|---------------------|-------------|----------|---------|
+| `project-id`        | The project the run documents, written to every artifact's `metadata.source.project_id`. Format: [`PROJECT_ID_PATTERN`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md) (§ Project id). | Yes | — |
+| `output-path`       | Output root. Each mode writes `<output-path>/<mode>/<artifact>.json` and clears only its own `<output-path>/<mode>/` directory, so two collectors (or two runs with different `output-path`) in one tree never touch each other's files. | No | `./output/collector-gh` |
+| `allow-partial`     | `false`: any failed source fails its mode. `true`: the mode writes without a failed source and records one `SOURCE_UNAVAILABLE` warning for it; it still fails if every source failed. | No | `false` |
+| `github-server-url` | GitHub server the configured repositories live on, used only to build `source_ref.url` permalinks. | No | `https://github.com` |
+| `github-token`      | Optional and unused: the `doc-source` and `ui-tests` modes read local checkouts and make no GitHub API call. | No | `''` |
+| `doc-issues`        | PLANNED — `Documentation Issues` mode is not available in this version; `true` fails the run at start (`INVALID_CONFIGURATION`). | No | `false` |
+| `doc-source`        | Enables or disables `Documentation Source` mode. | No | `false` |
+| `ui-tests`          | Enables or disables `UI Tests` mode. | No | `false` |
+| `verbose-logging`   | Enables or disables verbose (debug) logging. | No | `false` |
 
 ##### Example
 ```yaml
 with:
+  project-id: your-project  # Required project id
   doc-source: true          # Activation of Documentation Source mode
   ui-tests: true            # Activation of UI Tests mode
   
@@ -149,7 +159,7 @@ The action provides a main output path that allows users to locate and access th
 This output can be utilized in various ways within your CI/CD pipeline to ensure the documentation is effectively distributed and accessible.
 
 - `output-path`
-  - **Description**: The root output path to the directory where all generated living documentation files are stored.
+  - **Description**: The resolved, absolute output root — the `output-path` input made absolute.
   - **Usage**: 
    ``` yaml
     - name: Living Documentation Collector for GitHub
@@ -160,7 +170,35 @@ This output can be utilized in various ways within your CI/CD pipeline to ensure
       run: echo "GitHub Collector root output path: ${{ steps.living_doc_collector_gh.outputs.output-path }}"            
     ```
 
-> Each mode writes one artifact under the `output-path` directory: `doc-source/doc-source.json` and `ui-tests/ui-tests.json`.
+Each enabled mode writes one artifact under the root; with the default `output-path`:
+
+| Mode | Artifact |
+|---|---|
+| `doc-source` | `output/collector-gh/doc-source/doc-source.json` |
+| `ui-tests` | `output/collector-gh/ui-tests/ui-tests.json` |
+
+The layout rule is `living-doc-utilities`'
+[pipeline rules](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md)
+(§ Collector output layout).
+
+---
+## Errors
+
+Each configured repository entry is one **source**, collected on its own. Codes are defined in
+`living-doc-utilities`' [errors](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/errors.md);
+the failure rules are [R13](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md).
+
+| Situation | Code | Effect |
+|---|---|---|
+| `project-id` missing or malformed; `github-server-url` not an http(s) URL; an enabled mode's `*-repositories` input not a JSON array, or an entry with a missing key or an invalid value | `INVALID_CONFIGURATION` (error) | The run fails at start, before any work: the log names the input, the entry and the reason; no file is written; exit `1` |
+| A configured path of a source does not exist | `SOURCE_UNAVAILABLE` (error) | Default: every source is still tried, then the mode fails — the log names each failed source; no file for that mode; exit `1`. With `allow-partial: true`: one warning per failed source, and the mode writes without it; it still fails if every source failed |
+| A source answers with zero entities | `EMPTY_SOURCE` (warning) | Reported in `warnings[]`; the run succeeds |
+| A source file is outside a git checkout, or its checkout has no resolvable commit | `NO_SOURCE_URL` (warning) | `source_ref.url` is `""` |
+
+`metadata.stats.cardinality.sources_configured` counts the entries of the mode's `*-repositories` input, and
+`sources_failed` the sources that failed while being collected — non-zero only with `allow-partial: true`.
+Mode-specific warnings are listed in the [Documentation Source](doc_source/README.md#errors) and
+[UI Tests](ui_tests/README.md#errors) mode docs.
 
 ---
 ## Contracts
@@ -174,53 +212,16 @@ through `write_artifact`, which fills `metadata.stats` and validates the result 
 > Until `living-doc-toolkit` moves onto `living-doc-utilities` `0.5.0`, `toolkit` on `master` cannot read
 > this output.
 
+The authoring formats this action reads and the pipeline it feeds are documented in `living-doc`:
+[Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md),
+[Collecting from GitHub](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/github-collection.md) and
+[Architecture](https://github.com/AbsaOSS/living-doc/blob/master/docs/introduction/architecture.md).
+
 ---
 
 ## Developer Guide
 
 For local setup, the Makefile quality gate, testing, coverage, running the action locally, versioning, and releasing, see [DEVELOPER.md](DEVELOPER.md).
-
----
-## How-to
-
-This section aims to help the user walk through different processes, such as:
-- [Generating and storing a token as a secret](#how-to-create-a-token-with-required-scope)
-
-### How to Create a Token with Required Scope
-
-1. Go to your GitHub account settings.
-2. Click on the `Developer settings` tab in the left sidebar.
-3. In the left sidebar, click on `Personal access tokens` and choose `Tokens (classic)`.
-4. Click on the `Generate new token` button and choose `Generate new token (classic)`.
-5. Optional - Add a note detailing what the token is for and choose the token expiration date.
-6. Select ONLY bold scope options below:
-   - **workflow**
-   - write:packages
-     - **read:packages**
-   - admin:org
-     - **read:org**
-     - **manage_runners:org**
-   - admin:public_key
-     - **read:public_key**
-   - admin:repo_hook
-     - **read:repo_hook**
-   - admin:enterprise
-     - **manage_runners:enterprise**
-     - **read:enterprise**
-   - audit_log
-     - **read:audit_log**
-   - project
-     - **read:project**
-7. Copy the token value somewhere safe, because you won't be able to view it again.
-8. Authorize the new token for the organization you want to fetch from.
-
-### How to Store Token as a Secret
-
-1. Go to the GitHub repository, from which you want to run the GitHub Action.
-2. Click on the `Settings` tab in the top bar.
-3. In the left sidebar, click on `Secrets and variables` > `Actions`.
-4. Click on the `New repository secret` button.
-5. Name the token `REPOSITORIES_ACCESS_TOKEN` and paste the token value.
 
 ---
 ## Contribution Guidelines
