@@ -73,5 +73,5 @@ repo's own risk areas and review expectations; it is not shared with other repos
 - Must expect unit tests under `tests/` mirroring the package layout, with shared fixtures in `tests/conftest.py`.
 - Must treat the contracts as owned by `living-doc-utilities` — imported, not vendored: flag any committed `*-schema.json`, local contract model, local parser or normaliser, or any artifact read or written other than through `read_artifact` / `write_artifact`.
 - Must expect each mode's full-sample test (`tests/<mode>/test_full_sample.py`) to cover a new contract field, or list it in `NOT_PRODUCED` with a reason.
-- Must flag any change under `doc_issues/` or `tests/doc_issues/`: the mode is PLANNED after v0.1.0 and kept aside unchanged for the port.
+- Must flag any change to the implementation or tests under `doc_issues/` or `tests/doc_issues/`: the mode is PLANNED after v0.1.0 and its code is kept aside unchanged for the port. A status-only doc edit (the PLANNED banner) is expected.
 - Must expect QA to run through the root `Makefile` — `make qa` covers `format-check`, `lint`, `types`, `no-vendored-schemas`, `retired-names` and `coverage`, and `.github/workflows/test.yml` calls the same targets.

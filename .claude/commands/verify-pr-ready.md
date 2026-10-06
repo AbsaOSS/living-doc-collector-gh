@@ -26,10 +26,11 @@ reviewers (no anchoring).
 ## Severity bar — applies to every finding
 
 - **Blocker** — an acceptance criterion not met, a red `make qa` gate, a contract break
-  (see `reviewer.agent.md` "Contract-sensitive outputs"), or a defect with a concrete
-  failure scenario on a reachable path.
-- **Important** — a defect with a concrete failure scenario: named input or state → wrong
-  output, crash, lost data, or a misleading doc statement a user would act on.
+  (see `reviewer.agent.md` "Contract-sensitive outputs"), or a defect on the PR's primary
+  path: a documented, typical input crashes the run, loses or corrupts output, or leaks a
+  secret.
+- **Important** — any other defect with a concrete failure scenario: an edge-case input or
+  state → wrong output, crash, lost data; or a misleading doc statement a user would act on.
 - **Nit** — everything else, including any finding that cannot state a failure scenario.
   Nits are recorded, never block, and are never fixed by this loop.
 

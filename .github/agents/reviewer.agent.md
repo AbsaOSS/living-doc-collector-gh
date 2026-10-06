@@ -50,8 +50,8 @@ Output discipline (reduce review time)
 
 Severity bar
 
-- Must classify as Blocker only an unmet acceptance criterion, a red QA gate, a contract break, or a defect with a concrete failure scenario on a reachable path.
-- Must classify as Important only a defect with a concrete failure scenario — named input or state → wrong output, crash, lost data, or a misleading doc statement a user would act on.
+- Must classify as Blocker only an unmet acceptance criterion, a red QA gate, a contract break, or a defect on the PR's primary path — a documented, typical input crashes the run, loses or corrupts output, or leaks a secret.
+- Must classify as Important any other defect with a concrete failure scenario — an edge-case input or state → wrong output, crash, lost data — or a misleading doc statement a user would act on.
 - Must downgrade to Nit any finding that cannot state a failure scenario.
 
 Verification mode (invoked by `/verify-pr-ready`)
@@ -117,5 +117,5 @@ Repo specifics
   - GitHub API usage — the REST token check in `action_inputs._validate()`.
   - Filesystem writes and output-directory cleaning in `utils/artifact.py::store_artifact`.
   - Any local parser, normaliser or contract model — parsing belongs to `living_doc_utilities.authoring`.
-  - Any change under `doc_issues/` — the mode is PLANNED after v0.1.0 and kept aside unchanged.
+  - Any change to the implementation or tests under `doc_issues/` / `tests/doc_issues/` — the mode is PLANNED after v0.1.0 and its code is kept aside unchanged; a status-only doc edit (the PLANNED banner) is expected.
   - Logging — avoid leaking tokens/headers; keep the whole collect path AI-free.
