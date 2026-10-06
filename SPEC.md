@@ -7,7 +7,7 @@ Per [`.claude/rules/docs-lifecycle.md`](.claude/rules/docs-lifecycle.md), that c
 moved to the live docs:
 
 - [`README.md`](README.md) — modes overview, base inputs, outputs.
-- [`doc_issues/README.md`](doc_issues/README.md) — `doc-issues` mode.
+- [`doc_issues/README.md`](doc_issues/README.md) — `doc-issues` mode (PLANNED after v0.1.0).
 - [`doc_source/README.md`](doc_source/README.md) — `doc-source` mode.
 - [`ui_tests/README.md`](ui_tests/README.md) — `ui-tests` mode.
 - [`DEVELOPER.md`](DEVELOPER.md) — local-dev workflow, quality gate, testing.

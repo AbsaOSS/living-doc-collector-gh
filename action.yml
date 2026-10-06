@@ -6,20 +6,21 @@ inputs:
     description: 'GitHub token for authentication.'
     required: true
   doc-issues:
-    description: 'Enable or disable `Documentation Issues` mode.'
-    required: true
+    description: 'PLANNED - `Documentation Issues` mode is not available in this version; `true` fails the run at start.'
+    required: false
+    default: 'false'
   verbose-logging:
     description: 'Enable or disable verbose logging.'
     required: false
     default: 'false'
 
-  # doc-issues mode action inputs
+  # doc-issues mode action inputs - PLANNED after v0.1.0; not read in this version
   doc-issues-repositories:
-    description: 'JSON string defining the repositories to be included in the documentation generation.'
+    description: 'PLANNED - not read in this version.'
     required: false
     default: '[]'
   doc-issues-project-state-mining:
-    description: 'Enable or disable mining of project state data.'
+    description: 'PLANNED - not read in this version.'
     required: false
     default: 'false'
 
@@ -72,12 +73,6 @@ runs:
         echo "INPUT_DOC_ISSUES=${{ inputs.doc-issues }}" >> $GITHUB_ENV
         echo "INPUT_VERBOSE_LOGGING=${{ inputs.verbose-logging }}" >> $GITHUB_ENV
 
-        # Add LivDoc-specific env variables if the regime is enabled
-        if [[ "${{ inputs.doc-issues }}" == "true" ]]; then
-          echo "INPUT_DOC_ISSUES_REPOSITORIES=$(echo '${{ inputs.doc-issues-repositories }}' | jq -c .)" >> $GITHUB_ENV
-          echo "INPUT_DOC_ISSUES_PROJECT_STATE_MINING=${{ inputs.doc-issues-project-state-mining }}" >> $GITHUB_ENV
-        fi
-
         # Add source-mode env variables
         echo "INPUT_DOC_SOURCE=${{ inputs.doc-source }}" >> $GITHUB_ENV
         echo "INPUT_UI_TESTS=${{ inputs.ui-tests }}" >> $GITHUB_ENV
@@ -101,8 +96,6 @@ runs:
 
         INPUT_VERBOSE_LOGGING: ${{ env.INPUT_VERBOSE_LOGGING }}
 
-        INPUT_DOC_ISSUES_REPOSITORIES: ${{ env.INPUT_DOC_ISSUES_REPOSITORIES }}
-        INPUT_DOC_ISSUES_PROJECT_STATE_MINING: ${{ env.INPUT_DOC_ISSUES_PROJECT_STATE_MINING }}
         INPUT_DOC_SOURCE_REPOSITORIES: ${{ env.INPUT_DOC_SOURCE_REPOSITORIES }}
         INPUT_UI_TESTS_REPOSITORIES: ${{ env.INPUT_UI_TESTS_REPOSITORIES }}
       run: |

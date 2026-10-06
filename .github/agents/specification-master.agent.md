@@ -99,7 +99,7 @@ Repo specifics
 
 - Spec locations
   - Prefer `SPEC.md` for prospective (not-yet-built) behavior; follow `.claude/rules/docs-lifecycle.md` — an implemented section moves out of `SPEC.md` into the live docs in the same PR.
-  - Prefer `README.md` for user-facing usage and examples, the mode docs (`doc_issues/README.md`, `doc_source/README.md`, `ui_tests/README.md`) for mode-specific behavior, and `DEVELOPER.md` for local-dev workflow.
+  - Prefer `README.md` for user-facing usage and examples, the mode docs (`doc_source/README.md`, `ui_tests/README.md`; `doc_issues/README.md` while the mode is PLANNED) for mode-specific behavior, and `DEVELOPER.md` for local-dev workflow.
 - Contract-sensitive outputs
   - Action output key `output-path` (set via `set_action_output`, exposed by `action.yml`).
   - Per-mode output sub-paths in `utils/constants.py` (`DOC_ISSUES_OUTPUT_PATH`, `DOC_SOURCE_OUTPUT_PATH`, `UI_TESTS_OUTPUT_PATH`).
@@ -108,5 +108,5 @@ Repo specifics
   - Schema-versioned JSON structure emitted per mode.
 - High-risk areas
   - `INPUT_*` and repository-JSON parsing in `action_inputs.py` — malformed input and missing permission scenarios.
-  - GitHub API usage — REST token/repo checks in `action_inputs._validate()`, Projects V2 GraphQL in `doc_issues/github_projects.py`: rate limiting and error handling.
+  - GitHub API usage — the REST token check in `action_inputs._validate()`.
   - GitHub Actions I/O — `INPUT_*` env var inputs and `output-path` writes.

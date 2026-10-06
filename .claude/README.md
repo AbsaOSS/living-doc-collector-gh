@@ -12,7 +12,7 @@ hand, just slower. Nothing in CI or the release path requires them.
 | File | Kind | Purpose |
 |---|---|---|
 | `commands/implement-task.md` | slash command | Drive one roadmap task from its spec to a PR-ready description. |
-| `commands/verify-pr-ready.md` | slash command | Verify-only gate: is this branch PR-ready? one yes/no. |
+| `commands/verify-pr-ready.md` | slash command | Convergent review loop before a PR: verified findings in a ledger, delta re-review, one yes/no. |
 | `agents/test-author.md` | subagent | Write deterministic pytest tests using this repo's real mock surface. |
 | `rules/docs-lifecycle.md` | rule | Implemented `SPEC.md` sections **move** into the live docs. |
 
@@ -27,11 +27,13 @@ the sort call, the guard position — never "a test with that name is green".
   collapses the `specification-master` → `senior-developer` → `sdet` → `reviewer` agent
   sequence into one driven command.
 
-- **`/verify-pr-ready <id>`** is the lighter companion for right before opening a PR —
-  useful when a human did most of the implementation. It re-checks every acceptance
-  criterion against code, runs `make qa`, runs the `reviewer` agent, and outputs a single
-  `PR-READY: yes/no` with a specific fix list when the answer is no. It does not implement
-  anything.
+- **`/verify-pr-ready <id>`** is the final gate before opening a PR — useful when a human
+  did most of the implementation. It runs a bounded loop: acceptance criteria against code,
+  `make qa`, one fresh `reviewer` per area of the diff (every file gets a coverage line),
+  independent verification of each finding, fixes for confirmed Blocker/Important rows,
+  then a re-review of the fix diff only — at most 3 fix rounds. Findings live in a
+  gitignored ledger under `.review/<id>/`, so a later session resumes instead of starting a
+  new full review. Output is a single `PR-READY: yes/no`. It never commits or pushes.
 
 Typical flow: `/implement-task` to build it, then `/verify-pr-ready` as the final gate
 before opening the PR.

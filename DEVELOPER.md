@@ -54,8 +54,14 @@ Individual targets:
 | `make types` | Run the mypy type checker |
 | `make test` | Run the unit test suite (integration tests excluded) |
 | `make coverage` | Run the unit suite with the coverage gate (`COV_MIN`, default `80`) |
-| `make qa` | `format-check` + `lint` + `types` + `coverage` |
+| `make no-vendored-schemas` | R12 check 1: fail on any committed contract schema file |
+| `make retired-names` | Fail on any reference to a pre-0.5.0 artifact name or key |
+| `make qa` | `format-check` + `lint` + `types` + `no-vendored-schemas` + `retired-names` + `coverage` |
 | `make help` | List available targets |
+
+`doc-issues` is PLANNED after v0.1.0: `doc_issues/`, the modules only it uses
+(`utils/github_project_queries.py`) and their tests are kept aside unchanged for the port. Every gate
+above excludes them; each exclusion is one commented line in `Makefile`, `pyproject.toml` or `.pylintrc`.
 
 The sections below explain each tool in more detail; the raw commands they show are
 what the corresponding `make` target runs under the hood.
@@ -113,21 +119,11 @@ Also make sure that the INPUT_GITHUB_TOKEN is configured in your environment var
 ```
 # Essential environment variables for GitHub Action functionality
 export INPUT_GITHUB_TOKEN=$(printenv GITHUB_TOKEN)
-export INPUT_DOC_ISSUES=true
 export INPUT_VERBOSE_LOGGING=true
-
-# Environment variables for 'doc-issues' mode functionality
-export INPUT_DOC_ISSUES_REPOSITORIES='[
-  {
-    "organization-name": "Organization Name",
-    "repository-name": "example-project",
-    "projects-title-filter": ["Project Title 1"]
-  }
-]'
-export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 ```
 
-The source modes are wired the same way — enable the mode and pass its repository list as JSON:
+Each mode is enabled by its switch and given its repository list as JSON. The `doc-issues` mode is
+PLANNED: `INPUT_DOC_ISSUES=true` fails the run at start.
 
 ```
 # Environment variables for 'doc-source' mode functionality
@@ -153,16 +149,17 @@ export INPUT_UI_TESTS_REPOSITORIES='[
 ]'
 ```
 
-The header/scenario parsers (`doc_source/header_parser.py`, `doc_source/page_object_parser.py`,
-`ui_tests/scenario_parser.py`) are pure functions — raw lines in, structured dicts out, no I/O —
-so they are unit-tested directly without mocks. New modules must meet the project-wide 80 %
-coverage gate (`make coverage`).
+Parsing is `living-doc-utilities`' (`authoring`); the collectors only discover files and assemble the
+contract result, which `write_artifact` validates before writing. Each mode's full-sample test
+(`tests/<mode>/test_full_sample.py`) runs the collector over `tests/fixtures/full_sample/<mode>/` and
+fails when a contract field outside its `NOT_PRODUCED` list stays empty. New modules must meet the
+project-wide 80 % coverage gate (`make coverage`).
 
 ### Running the script locally
 
 For running the GitHub action locally, incorporate these commands into the shell script and save it.
 ```
-python3 master.py
+python3 main.py
 ```
 The whole script should look like this example:
 ```
@@ -170,20 +167,19 @@ The whole script should look like this example:
 
 # Essential environment variables for GitHub Action functionality
 export INPUT_GITHUB_TOKEN=$(printenv GITHUB_TOKEN)
-export INPUT_DOC_ISSUES=true
 export INPUT_VERBOSE_LOGGING=true
 
-# Environment variables for 'doc-issues' mode functionality
-export INPUT_DOC_ISSUES_REPOSITORIES='[
+# Environment variables for 'doc-source' mode functionality
+export INPUT_DOC_SOURCE=true
+export INPUT_DOC_SOURCE_REPOSITORIES='[
   {
-    "organization-name": "Organization Name",
-    "repository-name": "example-project",
-    "projects-title-filter": ["Project Title 1"]
+    "organization-name": "absa-group",
+    "repository-name": "aul-ui",
+    "us-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_us"]
   }
 ]'
-export INPUT_DOC_ISSUES_PROJECT_STATE_MINING=true
 
-python3 master.py
+python3 main.py
 ```
 
 ### Make the Script Executable
@@ -225,7 +221,7 @@ To run Pylint on a specific file, follow the pattern `pylint <path_to_file>/<nam
 
 Example:
 ```shell
-pylint doc-issues/collector.py
+pylint doc_source/collector.py
 ``` 
 
 ### Expected Output
@@ -265,7 +261,7 @@ To run Black on a specific file, follow the pattern `black <path_to_file>/<name_
 
 Example:
 ```shell
-black doc-issues/collector.py 
+black doc_source/collector.py
 ``` 
 
 ### Expected Output
@@ -302,7 +298,7 @@ To run my[py] check on a specific file, follow the pattern `mypy <path_to_file>/
 
 Example:
 ```shell
-   mypy doc-issues/collector.py
+   mypy doc_source/collector.py
 ``` 
 
 ### Expected Output
@@ -365,7 +361,7 @@ This ensures consistency between:
 - CI/CD workflows
 - Generated JSON output
 
-The version appears in the JSON output under `metadata.generator.version`.
+The version appears in the JSON output under `metadata.producer.version`.
 
 ### Local Development
 

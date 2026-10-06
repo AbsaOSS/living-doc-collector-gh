@@ -1,5 +1,13 @@
 # Living Documentation Issues Mode
 
+![Status](https://img.shields.io/badge/status-planned-blue)
+
+> **PLANNED — not available in this version.** GitHub Issues as a documentation source is planned
+> after v0.1.0. `doc-issues: true` fails the run at start with
+> ``[INVALID_CONFIGURATION] `doc-issues` mode is planned and not available in this version``, and no
+> `doc-issues-*` input is read. The code in `doc_issues/` is kept aside unchanged for the port onto the
+> `living-doc-utilities` contracts; this page describes the mode as it ran before, for that port.
+
 - [Mode De/Activation](#mode-deactivation)
 - [Usage](#usage)
 - [Mode Inputs](#mode-inputs)

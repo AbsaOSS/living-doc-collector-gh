@@ -8,7 +8,7 @@
 - [Expected Output](#expected-output)
 
 This mode mines UI test scenarios from `.feature` file **scenario blocks** in locally checked-out
-repositories and emits a test catalog JSON (`ui-tests-v1.0.0-schema.json`).
+repositories and writes one `ui-tests-v1.0.0` artifact.
 
 ## Mode De/Activation
 
@@ -26,7 +26,8 @@ repositories and emits a test catalog JSON (`ui-tests-v1.0.0-schema.json`).
 
 1. **Checkout before action** — the caller performs `actions/checkout` for every target repository
    before invoking this action. This action never clones or fetches repository contents itself.
-2. **Output folder exists** — the output directory is prepared by the caller before this action runs.
+2. **No output folder to prepare** — the action creates the mode's `ui-tests/` output directory itself and
+   replaces it on every run, so any previous content there is removed.
 
 ---
 ## Usage
@@ -58,104 +59,52 @@ See the default minimal UI Tests mode action step definition:
 |-------------------------|------------------------------------------------------------------------|----------|---------|-------|
 | `ui-tests-repositories` | A JSON string defining the locally checked-out repositories to scan.   | No       | `'[]'`  | Provide a list of repositories with `organization-name`, `repository-name`, and `paths` (absolute directory paths to scan). |
 
-Each repository entry uses the same shape as the [Documentation Source](../doc_source/README.md#mode-inputs) mode.
-
 ---
 ## Feature File Scenario Format
 
-```gherkin
-@US_ID:US-26
-@domain_create
-Feature: Create Domain
-    As a user, I want to create domain.
+Scenarios and their `@AC:<id>[/aspect:<value>]` tags follow the canon in `living-doc`'s
+[Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md)
+and [Living Doc Glossary](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-glossary.md).
+This mode parses them with `living-doc-utilities`' `authoring.scenario` parser.
 
-    @AC:US-26-01
-    @Regression
-    Scenario: User can complete the Create Domain wizard and create a new domain
-        Given the user "1" is logged in
-        And the user is on the Create Domain wizard About screen
-        When the user fills in the domain name "<unique>"
-        Then the user is on the Create Domain wizard Owner screen
-```
+What this mode adds around the parser:
 
-- File-level `@US_ID:US-{id}` applies `us_id` to all scenarios in the file.
-- Scenario-level `@AC:US-26-01` tags populate `ac_ids` (the `AC:` prefix is stripped).
-- `@AC:<id>/aspect:<kebab-value>` also records the aspect on the scenario→AC link in
-  `ac_links[]` (`{ "id": "<id>", "aspect": "<value>" }`); a bare `@AC:<id>` yields `aspect: null`.
-  `ac_ids[]` always carries the bare IDs regardless of aspect.
-- Any other scenario-level `@tag` populates `tags`.
-- `Background:` blocks are not extracted.
-
-### Intentionally not mined
-
-- **`@tutorial` scenarios** and any **file whose file-level tags include `@tutorial`** produce no
-  records (logged at debug) — tutorial walkthroughs are not AC-linked tests.
-- **`tutorial*` / `tutorial_<group>` directories** are skipped at discovery time.
-- Additional `@AC:<id>/<param>:<value>` params other than `aspect` are ignored for now.
+- **`@tutorial`** — a scenario tagged `@tutorial`, or every scenario of a file whose feature-level tags
+  include `@tutorial`, is not mined; `.feature` files under a `tutorial*` / `tutorial_<group>`
+  directory are skipped at discovery time.
+- **`scenario_id`** — `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the
+  file's path is the one from its repository root, whichever scan root found it; a slug repeated within one
+  file gets `-2`, `-3`, … appended; a title with no ASCII letter or digit gets the slug `scenario`.
 
 ---
 ## Expected Output
 
-The mode produces the file `output/ui-tests/ui-tests.json` using the
-`ui-tests-v1.0.0-schema.json` schema. Each item has the form:
+The mode writes `output/ui-tests/ui-tests.json`, a
+[`ui-tests-v1.0.0`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md)
+artifact, through `write_artifact`: the result is validated before the write and written atomically.
 
-```json
-{
-  "id":            "absa-group/aul-ui/playwright/features/.../domain_create.feature/user-can-...",
-  "us_id":         "US-26",
-  "func_id":       null,
-  "ac_ids":        ["US-26-01"],
-  "ac_links":      [{ "id": "US-26-01", "aspect": null }],
-  "scenario_name": "User can complete the Create Domain wizard and create a new domain",
-  "scenario_type": "Scenario",
-  "tags":          ["Regression"],
-  "steps": [
-    { "keyword": "Given", "text": "the user \"1\" is logged in" },
-    { "keyword": "And",   "text": "the user is on the Create Domain wizard About screen" }
-  ],
-  "source": {
-    "org":  "absa-group",
-    "repo": "aul-ui",
-    "file": "playwright/features/liv_doc_us/domain_create.feature",
-    "line": 74
-  }
-}
-```
+| Key | Content |
+|---|---|
+| `schema_version` | `ui-tests-v1.0.0` |
+| `metadata` | the standard envelope — `producer`, `run` (GitHub Actions context), `source`, `generated_at`, `stats` |
+| `warnings[]` | every parser warning (e.g. a malformed `@AC:` tag), each with the source file's `path` in its `context` |
+| `scenarios[]` | one contract `Scenario` per `Scenario:` / `Scenario Outline:` — `scenario_id`, `title`, `source_ref`, `tags`, `acceptance_criteria` (`{id, aspect}`) |
 
-- **`id` format**: `{organization-name}/{repository-name}/{relative-file-path}/{scenario-name-slug}`
-- **`us_id`**: `null` when the file has no `@US_ID:` tag.
-- **`func_id`**: always present; `null` when the file has no `@FUNC_ID:` tag.
-- **`ac_ids`**: always an array; empty when the scenario has no `@AC:` tags.
+- **`metadata.source.project_id`** — `unset-project` until the `project-id` input is added.
+- **`source_ref`** — `system: GitHub`; `native_id` is the file's path from its repository root;
+  `native_type` is `scenario`; `url` is the file on the default branch; `tracker_state` is `committed`.
 
 ### Error handling
 
 | Situation | Behaviour |
 |---|---|
+| A repository entry cannot be loaded (e.g. `organization-name` or `repository-name` is empty, not a string, or contains `/`) | Log error, skip the entry; counted in `sources_configured` and `sources_failed` |
 | A path in `paths` does not exist or has no matching files | Log warning, skip path, continue |
 | A file cannot be read | Log warning, skip file, continue |
-| File has no `@US_ID:` / `@FUNC_ID:` tag | `us_id` / `func_id` are `null` for its scenarios — no warning |
-| Scenario has no `@AC:` tag | `ac_ids` is `[]` — no warning |
-| Scenario slug collides within a file | Append `-2`, `-3`, … |
-| Output file write fails | Log error, `collect()` returns `False` |
+| A malformed `@AC:` tag | `MALFORMED_AC` warning; the scenario is kept without that link |
+| A file is outside a git checkout | `source_ref.url` is empty; `NO_SOURCE_URL` warning (only when the file yields a scenario) |
+| A `scenario_id` is already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it |
+| The result fails contract validation, or the file cannot be written | Log error, no output file, `collect()` returns `False` |
 
-`collect()` returns `True` whenever the output file was written — an empty repository list or
-zero matching files is a successful run with an empty `items` array.
-
----
-## Schema
-
-[`ui_tests/schema/ui-tests-v1.0.0-schema.json`](schema/ui-tests-v1.0.0-schema.json) is
-**generated** from the Pydantic models in [`ui_tests/models.py`](models.py) — via
-[`ui_tests/schema_export.py`](schema_export.py) (`python -m ui_tests.schema_export`) — not
-hand-authored. Those models are this repo's source of truth for the `ui-tests.json` contract;
-the file-level `metadata` / `warnings` block is the shared definition in
-[`common/models.py`](../common/models.py), the same one `doc-issues` and `doc-source` use.
-
-**If you change `ui_tests/models.py`, regenerate the schema in the same change
-(`python -m ui_tests.schema_export`).** A test (`tests/common/test_schema_export.py`) fails if
-the committed file drifts from the models.
-
-A downstream consumer is the **schema consumer**: it vendors a pinned copy of this generated
-schema for its own validation and consumes it independently (no direct code dependency),
-mirroring the [Schema Sync Obligation](../doc_issues/README.md#schema-sync-obligation) documented
-for `doc-issues`.
+`collect()` returns `True` whenever the artifact was written — an empty repository list or zero
+matching files is a successful run with an empty `scenarios` list.

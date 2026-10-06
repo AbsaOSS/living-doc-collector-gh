@@ -6,12 +6,15 @@
 
 PYTHON      ?= python3
 PIP         ?= $(PYTHON) -m pip
-PY_FILES     = $(shell git ls-files '*.py')
+# `doc-issues` PLANNED after v0.1.0, kept aside unchanged for the port: doc_issues/, the modules only it uses and
+# their tests are left out of formatting and linting.
+KEPT_ASIDE   = ':!doc_issues/**' ':!tests/doc_issues/**' ':!utils/github_project_queries.py' ':!tests/utils/test_github_project_queries.py'
+PY_FILES     = $(shell git ls-files '*.py' $(KEPT_ASIDE))
 PYLINT_MIN  ?= 9.5
 COV_MIN     ?= 80
 
 .DEFAULT_GOAL := help
-.PHONY: help install qa lint format format-check types test coverage
+.PHONY: help install qa lint format format-check types test coverage no-vendored-schemas retired-names
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -20,7 +23,7 @@ help: ## Show this help.
 install: ## Install runtime and development dependencies.
 	$(PIP) install -r requirements.txt
 
-qa: format-check lint types coverage ## Run the full quality gate (format, lint, types, tests + coverage).
+qa: format-check lint types no-vendored-schemas retired-names coverage ## Run the full quality gate (format, lint, types, contract checks, tests + coverage).
 
 format: ## Reformat all tracked Python files (ruff autofix + Black).
 	ruff check --fix $(PY_FILES)
@@ -35,6 +38,17 @@ lint: ## Run ruff and Pylint (enforce the minimum score).
 
 types: ## Run the mypy static type checker.
 	mypy .
+
+# R12 check 1: contract schemas come from living-doc-utilities, never committed here.
+# `doc-issues` PLANNED after v0.1.0, kept aside unchanged for the port: its schema file is allowed until then.
+no-vendored-schemas: ## Fail on any committed contract schema file (R12 check 1).
+	$(PYTHON) -m living_doc_utilities.contracts.check_no_vendored_schemas --allow doc_issues
+
+# Names of the pre-0.5.0 artifacts, each pattern written so it never matches itself. `doc-issues` PLANNED after
+# v0.1.0, kept aside unchanged for the port: doc_issues/ is not searched.
+retired-names: ## Fail on any reference to a retired artifact name or key.
+	@if git grep -nE 'doc-issues[.]json|items[[][]]|"item[s]"|original_[m]etadata|descoped_[a]t|future_[r]elease' \
+		-- ':!tests/**' ':!CHANGELOG*' ':!doc_issues/**'; then exit 1; fi
 
 test: ## Run the unit test suite (integration tests excluded).
 	pytest --ignore=tests/integration -v tests/

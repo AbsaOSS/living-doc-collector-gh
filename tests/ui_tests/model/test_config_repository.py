@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import pytest
+
 from ui_tests.model.config_repository import ConfigRepository
 
 
@@ -66,3 +68,26 @@ def test_load_from_json_with_wrong_structure_input_logs_error(mocker):
     mock_log_error.assert_called_once_with(
         "The repository JSON input does not have a dictionary structure: %s.", mocker.ANY, exc_info=True
     )
+
+
+@pytest.mark.parametrize(
+    "names",
+    [
+        {"organization-name": 123, "repository-name": "aul-ui"},
+        {"organization-name": "absa-group", "repository-name": ""},
+        {"organization-name": "absa-group", "repository-name": None},
+        {"organization-name": "absa/group", "repository-name": "aul-ui"},
+    ],
+    ids=["int-organization", "empty-repository", "null-repository", "slash-in-organization"],
+)
+def test_load_from_json_with_a_name_that_is_not_a_non_empty_string_logs_error(mocker, names):
+    # Arrange
+    config_repository = ConfigRepository()
+    mock_log_error = mocker.patch("utils.utils.logger.error")
+
+    # Act
+    actual = config_repository.load_from_json({**names, "paths": []})
+
+    # Assert
+    assert actual is False
+    mock_log_error.assert_called_once()

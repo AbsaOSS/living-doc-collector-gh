@@ -113,7 +113,8 @@ unsafe-load-any-extension=no
 
 [MASTER]
 
-ignore-paths=tests
+# `doc-issues` PLANNED after v0.1.0, kept aside unchanged for the port: doc_issues/ and the modules only it uses.
+ignore-paths=tests,^doc_issues/,^utils/github_project_queries.py$
 
 [BASIC]
 

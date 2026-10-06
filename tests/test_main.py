@@ -15,41 +15,12 @@
 #
 import os
 
+import pytest
 from living_doc_utilities.constants import OUTPUT_PATH
 
 from main import run
 
 # run
-
-
-def test_run_correct_behaviour_with_all_regimes_enabled(mocker):
-    # Arrange
-    mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
-
-    expected_output_path = os.path.abspath(OUTPUT_PATH)
-    mock_log_info = mocker.patch("logging.getLogger").return_value.info
-    mocker.patch.dict(os.environ, {"INPUT_GITHUB_TOKEN": "fake_token",
-                                   "INPUT_DOC_ISSUES": "true"})
-    mock_doc_issues_collector = mocker.patch("main.GHDocIssuesCollector")
-    mock_doc_issues_collector.generate = mocker.MagicMock(return_value=True)
-
-    # Act
-    run()
-
-    # Assert
-    # mock_doc_issues_collector.assert_called_once()
-    mock_log_info.assert_has_calls(
-        [
-            mocker.call("Liv-Doc collector for GitHub - starting."),
-            mocker.call("Liv-Doc collector for GitHub - Starting the `doc-issues` mode."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode completed successfully."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", expected_output_path),
-            mocker.call("Liv-Doc collector for GitHub - ending."),
-        ],
-        any_order=False,
-    )
 
 
 def test_run_with_zero_modes_enabled(mocker):
@@ -58,18 +29,17 @@ def test_run_with_zero_modes_enabled(mocker):
 
     mock_log_info = mocker.patch("logging.getLogger").return_value.info
     mocker.patch.dict(os.environ, {"INPUT_GITHUB_TOKEN": "fake_token", "INPUT_DOC_ISSUES": "false"})
-    mock_doc_issues_collector = mocker.patch("main.GHDocIssuesCollector")
-    expected_output_path = os.path.abspath("./output")  # Adding the default value
+    mock_doc_source_collector = mocker.patch("main.GHDocSourceCollector")
+    expected_output_path = os.path.abspath(OUTPUT_PATH)
 
     # Act
     run()
 
     # Assert
-    mock_doc_issues_collector.assert_not_called()
+    mock_doc_source_collector.assert_not_called()
     mock_log_info.assert_has_calls(
         [
             mocker.call("Liv-Doc collector for GitHub - starting."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", expected_output_path),
@@ -79,38 +49,28 @@ def test_run_with_zero_modes_enabled(mocker):
     )
 
 
-def test_run_doc_issues_mode_failed(mocker):
-    mock_log_info = mocker.patch("logging.getLogger").return_value.info
-    mock_exit = mocker.patch("sys.exit")
-    mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
-    mocker.patch("action_inputs.ActionInputs.is_doc_issues_mode_enabled", return_value=True)
-    mocker.patch("main.GHDocIssuesCollector.collect", return_value=False)
-    expected_output_path = os.path.abspath("./output")  # Adding the default value
+def test_run_doc_issues_mode_fails_at_start_as_planned(mocker):
+    # Arrange
+    mocker.patch.dict(os.environ, {"INPUT_GITHUB_TOKEN": "fake_token", "INPUT_DOC_ISSUES": "true"})
+    mock_logger = mocker.patch("logging.getLogger").return_value
+    mock_validate = mocker.patch("action_inputs.ActionInputs.validate_user_configuration")
+    mock_doc_source_collector = mocker.patch("main.GHDocSourceCollector")
+    mock_ui_tests_collector = mocker.patch("main.GHUITestsCollector")
 
-    mocker.patch.dict(
-        os.environ,
-        {
-            "INPUT_GITHUB_TOKEN": "fake_token",
-            "INPUT_DOC_ISSUES": "true",
-            "INPUT_OUTPUT_PATH": "./user/output/path",
-        },
+    # Act
+    with pytest.raises(SystemExit) as exit_info:
+        run()
+
+    # Assert
+    assert exit_info.value.code == 1
+    mock_logger.error.assert_called_once()
+    fmt, error = mock_logger.error.call_args.args
+    assert fmt % error == (
+        "[INVALID_CONFIGURATION] `doc-issues` mode is planned and not available in this version"
     )
-
-    run()
-
-    mock_log_info.assert_has_calls(
-        [
-            mocker.call("Liv-Doc collector for GitHub - starting."),
-            mocker.call("Liv-Doc collector for GitHub - Starting the `doc-issues` mode."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode failed."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", expected_output_path),
-            mocker.call("Liv-Doc collector for GitHub - ending."),
-        ],
-        any_order=False,
-    )
-    mock_exit.assert_called_once_with(1)
+    mock_validate.assert_not_called()
+    mock_doc_source_collector.assert_not_called()
+    mock_ui_tests_collector.assert_not_called()
 
 
 def test_validate_user_configuration_failed(mocker):
@@ -129,43 +89,10 @@ def test_validate_user_configuration_failed(mocker):
         [
             mocker.call("Liv-Doc collector for GitHub - starting."),
             mocker.call("Liv-Doc collector for GitHub - user configuration validation failed."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
             mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", "/unit/test/output/path"),
             mocker.call("Liv-Doc collector for GitHub - ending."),
-
-        ],
-        any_order=False,
-    )
-
-    mock_exit.assert_called_once_with(1)
-
-
-def test_validate_query_formats_failed(mocker):
-    # Mock ActionInputs.validate_user_configuration to return True
-    mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
-    mocker.patch("main.make_absolute_path", return_value="/unit/test/output/path")  # Mock make_absolute_path
-
-    # Mock validate_query_formats to return False
-    mocker.patch("main.validate_query_formats", return_value=False)
-    mock_logger_info = mocker.patch("logging.getLogger").return_value.info
-    mock_exit = mocker.patch("sys.exit")
-
-    # Run the function
-    run()
-
-    # Assert logger and sys.exit were called
-    mock_logger_info.assert_has_calls(
-        [
-            mocker.call("Liv-Doc collector for GitHub - starting."),
-            mocker.call("Liv-Doc collector for GitHub - query format validation failed."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-issues` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode disabled."),
-            mocker.call("Liv-Doc collector for GitHub - root output path set to `%s`.", "/unit/test/output/path"),
-            mocker.call("Liv-Doc collector for GitHub - ending."),
-
         ],
         any_order=False,
     )
@@ -176,7 +103,6 @@ def test_validate_query_formats_failed(mocker):
 def test_run_doc_source_and_ui_tests_modes_success(mocker):
     # Arrange
     mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
-    mocker.patch("main.validate_query_formats", return_value=True)
     mocker.patch("main.ActionInputs.is_doc_issues_mode_enabled", return_value=False)
     mocker.patch("main.ActionInputs.is_doc_source_mode_enabled", return_value=True)
     mocker.patch("main.ActionInputs.is_ui_tests_mode_enabled", return_value=True)
@@ -202,7 +128,6 @@ def test_run_doc_source_and_ui_tests_modes_success(mocker):
 def test_run_doc_source_and_ui_tests_modes_failed(mocker):
     # Arrange
     mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
-    mocker.patch("main.validate_query_formats", return_value=True)
     mocker.patch("main.ActionInputs.is_doc_issues_mode_enabled", return_value=False)
     mocker.patch("main.ActionInputs.is_doc_source_mode_enabled", return_value=True)
     mocker.patch("main.ActionInputs.is_ui_tests_mode_enabled", return_value=True)
