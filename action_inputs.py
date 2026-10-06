@@ -27,16 +27,12 @@ import requests
 from living_doc_utilities.github.utils import get_action_input
 from living_doc_utilities.inputs.action_inputs import BaseActionInputs
 
-from doc_issues.model.config_repository import ConfigRepository
 from utils.constants import (
-    DOC_ISSUES_PROJECT_STATE_MINING,
-    DOC_ISSUES_REPOSITORIES,
     DOC_SOURCE_REPOSITORIES,
     UI_TESTS_REPOSITORIES,
     VERBOSE_LOGGING,
     Mode,
 )
-from utils.exceptions import FetchRepositoriesException
 
 logger = logging.getLogger(__name__)
 
@@ -50,19 +46,11 @@ class ActionInputs(BaseActionInputs):
     @staticmethod
     def is_doc_issues_mode_enabled() -> bool:
         """
-        Getter of the LivDoc mode switch.
-        @return: True if LivDoc mode is enabled, False otherwise.
+        Getter of the doc-issues mode switch. The mode is PLANNED: enabling it fails the run at start,
+        and no other doc-issues input is read.
+        @return: True if doc-issues mode is requested, False otherwise.
         """
-        mode: str = Mode.DOC_ISSUES.value
-        return get_action_input(mode, "false").lower() == "true"
-
-    @staticmethod
-    def is_project_state_mining_enabled() -> bool:
-        """
-        Getter of the project state mining switch.
-        @return: True if project state mining is enabled, False otherwise.
-        """
-        return get_action_input(DOC_ISSUES_PROJECT_STATE_MINING, "false").lower() == "true"
+        return get_action_input(Mode.DOC_ISSUES.value, "false").lower() == "true"
 
     @staticmethod
     def is_doc_source_mode_enabled() -> bool:
@@ -115,53 +103,14 @@ class ActionInputs(BaseActionInputs):
         ca_bundle: str | None = os.getenv("REQUESTS_CA_BUNDLE")
         return ca_bundle if ca_bundle else True
 
-    @staticmethod
-    def get_repositories() -> list[ConfigRepository]:
-        """
-        Getter and parser of the Config Repositories.
-
-        @return: A list of Config Repositories
-        @raise FetchRepositoriesException: When parsing JSON string to dictionary fails.
-        """
-        repositories = []
-        action_input = get_action_input(DOC_ISSUES_REPOSITORIES, "[]")
-        try:
-            # Parse the repositories json string into json dictionary format
-            repositories_json = json.loads(action_input)
-
-            # Load repositories into ConfigRepository object from JSON
-            for repository_json in repositories_json:
-                config_repository = ConfigRepository()
-                if config_repository.load_from_json(repository_json):
-                    repositories.append(config_repository)
-                else:
-                    logger.error("Failed to load repository from JSON: %s.", repository_json)
-
-        except json.JSONDecodeError as e:
-            logger.error("Error parsing JSON repositories: %s.", e, exc_info=True)
-            raise FetchRepositoriesException from e
-
-        except TypeError as e:
-            logger.error("Type error parsing input JSON repositories: %s.", action_input)
-            raise FetchRepositoriesException from e
-
-        return repositories
-
     def _validate(self) -> int:
         err_counter = 0
-        repositories = []
 
         # Warn (non-fatal) when a source mode is enabled without configured repositories
         if self.is_doc_source_mode_enabled() and not self.get_doc_source_repositories():
             logger.warning("`doc-source` mode is enabled but `doc-source-repositories` is empty.")
         if self.is_ui_tests_mode_enabled() and not self.get_ui_tests_repositories():
             logger.warning("`ui-tests` mode is enabled but `ui-tests-repositories` is empty.")
-
-        # validate the repositories configuration
-        try:
-            repositories = self.get_repositories()
-        except FetchRepositoriesException:
-            err_counter += 1
 
         github_token = self.get_github_token()
         headers = {"Authorization": f"token {github_token}"}
@@ -181,38 +130,7 @@ class ActionInputs(BaseActionInputs):
             logger.error("User configuration validation failed.")
             return err_counter
 
-        # Hint: continue validation when the received TOKEN is valid
-        for repository in repositories:
-            org_name = repository.organization_name
-            repo_name = repository.repository_name
-            github_repo_url = f"https://api.github.com/repos/{org_name}/{repo_name}"
-
-            response = requests.get(github_repo_url, headers=headers, timeout=10, verify=verify_cert)
-
-            if response.status_code == 404:
-                logger.error(
-                    "Repository '%s/%s' could not be found on GitHub. Please verify that the repository "
-                    "exists and that your authorization token is correct.",
-                    org_name,
-                    repo_name,
-                )
-                err_counter += 1
-            elif response.status_code != 200:
-                logger.error(
-                    "An error occurred while validating the repository '%s/%s'. "
-                    "The response status code is %s. Response: %s",
-                    org_name,
-                    repo_name,
-                    response.status_code,
-                    response.text,
-                )
-                err_counter += 1
-
-        if err_counter > 0:
-            logger.error("User configuration validation failed.")
-        else:
-            logger.info("User configuration validation successfully completed.")
-
+        logger.info("User configuration validation successfully completed.")
         self.print_effective_configuration()
 
         return err_counter
@@ -221,12 +139,6 @@ class ActionInputs(BaseActionInputs):
         """
         Print the effective configuration of the action inputs.
         """
-        logger.info("Mode: `doc-issues`: %s.", "Enabled" if ActionInputs.is_doc_issues_mode_enabled() else "Disabled")
-        logger.info("Mode(doc-issues): `doc-issues-repositories`: %s.", self.get_repositories())
-        logger.info(
-            "Mode(doc-issues): `doc-issues-project-state-mining`: %s.",
-            ActionInputs.is_project_state_mining_enabled(),
-        )
         logger.info("Mode: `doc-source`: %s.", "Enabled" if ActionInputs.is_doc_source_mode_enabled() else "Disabled")
         logger.info("Mode(doc-source): `doc-source-repositories`: %s.", self.get_doc_source_repositories())
         logger.info("Mode: `ui-tests`: %s.", "Enabled" if ActionInputs.is_ui_tests_mode_enabled() else "Disabled")

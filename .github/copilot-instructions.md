@@ -32,14 +32,14 @@ Module map — a flat package per mode plus shared `utils/`:
 
 | Path | Responsibility |
 |---|---|
-| `main.py` | Entry point — `run()`; orchestrates user-config validation, query-format validation, and the three mode collectors, then sets the `output-path` Action output and maps any failure to exit code `1` |
+| `main.py` | Entry point — `run()`; fails at start when the PLANNED `doc-issues` mode is requested, then orchestrates user-config validation and the two mode collectors, sets the `output-path` Action output and maps any failure to exit code `1` |
 | `action_inputs.py` | Input layer — `ActionInputs(BaseActionInputs)`, reads every `INPUT_*` via `living_doc_utilities.github.utils.get_action_input`, `_validate()` / `validate_user_configuration()` |
-| `doc_issues/` | `doc-issues` mode — `collector.py` (`GHDocIssuesCollector`), `body_parser.py` (markdown issue body → structured data), `github_projects.py` (`GitHubProjects` — Projects V2 GraphQL mining), `model/` (`ConfigRepository`, `ConsolidatedIssue`, `GitHubProject`, `ProjectIssue`) |
-| `doc_source/` | `doc-source` mode — `collector.py` (`GHDocSourceCollector`), `header_parser.py` (`.feature` `# ===` header blocks), `page_object_parser.py` (TypeScript PageObject `LIVING DOC` blocks), `model/config_repository.py` |
-| `ui_tests/` | `ui-tests` mode — `collector.py` (`GHUITestsCollector`), `scenario_parser.py` (`.feature` scenario blocks → test catalog), `model/config_repository.py` |
-| `utils/` | Shared — `constants.py` (`Mode` enum, `INPUT_*` key names, per-mode output sub-paths, GraphQL query templates), `exceptions.py` (`LivingDocumentationCollectorException` + `FetchRepositoriesException` / `InvalidQueryFormatError`), `feature_file_discovery.py` (shared file discovery for the source modes), `github_project_queries.py` (`validate_query_formats`), `utils.py` (`make_absolute_path`, `validate_query_format`) |
+| `doc_issues/` | `doc-issues` mode — PLANNED after v0.1.0; kept aside unchanged for the port, imported by no active module and excluded from pytest, mypy, pylint, coverage and the R12 checks |
+| `doc_source/` | `doc-source` mode — `collector.py` (`GHDocSourceCollector`: file discovery, `authoring` parsers, `derive_statuses` + `check_relations` once per run, `DocSourceResult`), `model/config_repository.py` |
+| `ui_tests/` | `ui-tests` mode — `collector.py` (`GHUITestsCollector`: file discovery, `authoring.scenario`, `UITestsResult`), `model/config_repository.py` |
+| `utils/` | Shared — `artifact.py` (metadata envelope, `source_ref`, warning location, `store_artifact` → `write_artifact`), `constants.py` (`Mode` enum, `INPUT_*` key names, per-mode output sub-paths), `exceptions.py`, `feature_file_discovery.py` (shared file discovery for the source modes), `utils.py` (`make_absolute_path`); `github_project_queries.py` is kept aside with `doc_issues/` |
 
-- Must treat `main.py` function `run()` as the entry point — its step order is setup logging → `ActionInputs().validate_user_configuration()` → `validate_query_formats()` → for each mode `doc-issues` / `doc-source` / `ui-tests`: skip when disabled, else `collector_class(output_path).collect()` → `set_action_output("output-path", output_path)` → `sys.exit(1)` when any enabled mode failed.
+- Must treat `main.py` function `run()` as the entry point — its step order is setup logging → exit `1` with `INVALID_CONFIGURATION` when `doc-issues` is requested → `ActionInputs().validate_user_configuration()` → for each mode `doc-source` / `ui-tests`: skip when disabled, else `collector_class(output_path).collect()` → `set_action_output("output-path", output_path)` → `sys.exit(1)` when any enabled mode failed.
 - Must keep the step order and the `"Liv-Doc collector for GitHub - ..."` step logs in `run()` stable, since `tests/test_main.py` asserts on them.
 
 Inputs — `INPUT_*` environment variables, parsed only in `ActionInputs` (key names in `utils/constants.py`):
@@ -47,12 +47,10 @@ Inputs — `INPUT_*` environment variables, parsed only in `ActionInputs` (key n
 | Input | Env var | Required | Notes |
 |---|---|---|---|
 | `GITHUB-TOKEN` | `INPUT_GITHUB_TOKEN` | yes | read through `BaseActionInputs.get_github_token()` |
-| `doc-issues` | `INPUT_DOC_ISSUES` | yes | mode switch; `"false"` when unset |
+| `doc-issues` | `INPUT_DOC_ISSUES` | no | PLANNED; `"true"` fails the run at start; default `false` |
 | `doc-source` | `INPUT_DOC_SOURCE` | yes | mode switch; `"false"` when unset |
 | `ui-tests` | `INPUT_UI_TESTS` | yes | mode switch; `"false"` when unset |
 | `verbose-logging` | `INPUT_VERBOSE_LOGGING` | no | default `false` |
-| `doc-issues-repositories` | `INPUT_DOC_ISSUES_REPOSITORIES` | no | JSON array string, default `[]` |
-| `doc-issues-project-state-mining` | `INPUT_DOC_ISSUES_PROJECT_STATE_MINING` | no | default `false` |
 | `doc-source-repositories` | `INPUT_DOC_SOURCE_REPOSITORIES` | no | JSON array string, default `[]` |
 | `ui-tests-repositories` | `INPUT_UI_TESTS_REPOSITORIES` | no | JSON array string, default `[]` |
 | _(env only)_ `REQUESTS_CA_BUNDLE` | `REQUESTS_CA_BUNDLE` | no | custom CA bundle, read in `ActionInputs.get_ca_bundle()` |
@@ -60,8 +58,9 @@ Inputs — `INPUT_*` environment variables, parsed only in `ActionInputs` (key n
 Contract-sensitive outputs:
 
 - Must keep the Action output key `output-path` stable — set via `set_action_output("output-path", ...)` and exposed by `action.yml` as `output-path`.
-- Must keep the per-mode output sub-paths stable — `DOC_ISSUES_OUTPUT_PATH`, `DOC_SOURCE_OUTPUT_PATH`, `UI_TESTS_OUTPUT_PATH` in `utils/constants.py` — and the schema-versioned JSON structure each mode emits.
-- Must keep exit-code behaviour stable — `0` on success, `1` on any failure (user-config validation, query-format validation, or an enabled mode's `collect()` returning `False`). There is no `2`–`5` taxonomy in this repo.
+- Must keep the per-mode output sub-paths stable — `DOC_SOURCE_OUTPUT_PATH`, `UI_TESTS_OUTPUT_PATH` in `utils/constants.py`.
+- Must write each artifact only through `living_doc_utilities.contracts.io.write_artifact` (via `utils.artifact.store_artifact`), and read one only through `read_artifact`; the artifact's shape is the `living-doc-utilities` contract (`doc-source-v1.0.0`, `ui-tests-v1.0.0`), not this repo's.
+- Must keep exit-code behaviour stable — `0` on success, `1` on any failure (`doc-issues` requested, user-config validation, or an enabled mode's `collect()` returning `False`). There is no `2`–`5` taxonomy in this repo.
 - Must keep the `"Liv-Doc collector for GitHub - ..."` log strings stable — tests assert exact text.
 
 ## Coding guidelines
@@ -77,7 +76,7 @@ Contract-sensitive outputs:
 - Must read every input through `ActionInputs`, and Must not call `get_action_input` or `os.getenv("INPUT_...")` from any other module.
 - Must centralise parsing, defaulting, and validation in `ActionInputs` (`_validate()` / `validate_user_configuration()`).
 - Avoid duplicating input validation across modules.
-- Must raise `FetchRepositoriesException` for unparseable repository JSON so `_validate()` counts it as a configuration error and `run()` exits `1`.
+- Must not read any `doc-issues-*` input: the mode is PLANNED, and only its switch is read, to fail the run.
 
 ## Language and style
 
@@ -105,25 +104,25 @@ Contract-sensitive outputs:
 
 - Prefer leaf modules raising the typed exceptions in `utils/exceptions.py`.
 - Must let `main.run()` be the only place that translates a failure into an Action-failure exit code.
-- Prefer private helpers (`_name`) for internal collector behaviour (`_fetch_*`, `_store_*`, `_clean_output_directory`).
-- Must keep integration boundaries — the GitHub REST/GraphQL API, `PyGithub`, and the filesystem — explicit and mockable.
-- Prefer pure line-in / dict-out parsers (`header_parser`, `page_object_parser`, `scenario_parser`, `body_parser`) with no I/O.
+- Prefer private helpers (`_name`) for internal collector behaviour (`_collect_*`, `_load_repositories`).
+- Must keep integration boundaries — the GitHub REST API and the filesystem — explicit and mockable.
+- Must parse authored text only with `living_doc_utilities.authoring` (`feature_header`, `page_object`, `scenario`, `identity`, `status`, `relations`), and Must not add a local parser, normaliser or contract model.
 
 ## Testing
 
 - Must use `pytest` with `pytest-mock` (`mocker`), and Must not use `unittest`.
-- Must keep tests under `tests/`, mirroring the package layout — `tests/doc_issues/`, `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`, plus `tests/test_main.py` and `tests/test_action_inputs.py`.
+- Must keep tests under `tests/`, mirroring the package layout — `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`, plus `tests/test_main.py`, `tests/test_action_inputs.py` and `tests/test_contract_checks.py`.
 - Must test behaviour — return values, raised exceptions, log messages, exit codes.
 - Must mock `INPUT_*` environment variables and the GitHub API in unit tests.
 - Must not call external services or the real GitHub API in unit tests.
 - Prefer shared fixtures in `tests/conftest.py`.
-- Must keep `doc_issues/schema/doc-issues-v1.0.0-schema.json` generated, never hand-edited — change `doc_issues/models.py`, then run `python -m doc_issues.schema_export`.
-- Must keep the producer parity check `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` (`AdapterResult.model_validate(data)`) passing — it validates the collector's real output against this repo's local Pydantic models.
-- Must treat consumer compatibility as a separate obligation, not covered by this repo's tests — `living-doc-toolkit` vendors its own pinned schema copy, adapter models, and `CONFIRMED_MIN` / `CONFIRMED_MAX` bounds, synchronized per its `packages/adapters/collector_gh/SCHEMA_SYNC.md`.
+- Must treat the contracts as owned by `living-doc-utilities` — imported, never vendored: no committed `*-schema.json`, no local contract model.
+- Must keep each mode's R12 check 3 test (`tests/<mode>/test_full_sample.py`) green — every contract field has occupancy > 0 over the fully authored fixture, or is in `NOT_PRODUCED` with a reason.
+- Must not edit `tests/fixtures/golden/` — it is copied verbatim from `living-doc-utilities` at the pinned tag.
 
 ## Tooling and quality gates
 
-- Must run `make qa` before finishing a code change — it runs `format-check` → `lint` → `types` → `coverage` and fails on the first failing gate.
+- Must run `make qa` before finishing a code change — it runs `format-check` → `lint` → `types` → `no-vendored-schemas` → `retired-names` → `coverage` and fails on the first failing gate.
 - Must use the individual targets while iterating — `make format`, `make format-check`, `make lint`, `make types`, `make test`, `make coverage`.
 - Must keep `make lint` clean — it runs ruff (`E` / `F` / `I` / `B` over tracked `*.py`, config in `pyproject.toml`) then Pylint, and Pylint must score 9.5 or higher.
 - Must keep `make format-check` (Black, line length 120, config in `pyproject.toml`) clean, and Prefer `make format` (ruff autofix + Black) to fix import order and formatting in one step.

@@ -25,7 +25,7 @@ class LivingDocumentationCollectorException(Exception):
 
 
 class FetchRepositoriesException(LivingDocumentationCollectorException):
-    """Raised when fetching repositories fails in get_repositories()."""
+    """Raised when the repositories input cannot be parsed."""
 
 
 class InvalidQueryFormatError(LivingDocumentationCollectorException):

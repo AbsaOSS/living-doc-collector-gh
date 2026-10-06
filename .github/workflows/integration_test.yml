@@ -16,10 +16,19 @@
 
 name: "Integration Test"
 
+# Runs the action's two active modes, `doc-source` and `ui-tests`, over this repository's committed
+# fixtures. `doc-issues` is PLANNED after v0.1.0 and is not run.
 on:
   pull_request:
     paths:
-      - 'doc_issues/**'
+      - 'doc_source/**'
+      - 'ui_tests/**'
+      - 'utils/**'
+      - 'main.py'
+      - 'action_inputs.py'
+      - 'pyproject.toml'
+      - 'tests/fixtures/**'
+      - 'requirements.txt'
       - 'action.yml'
       - '.github/workflows/integration_test.yml'
   workflow_dispatch:
@@ -44,104 +53,38 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run collector on living-doc-collector-gh repository
+      - name: Run collector on the committed fixtures
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Set required inputs as environment variables
+          FIXTURES="${GITHUB_WORKSPACE}/tests/fixtures"
           export INPUT_GITHUB_TOKEN="${GITHUB_TOKEN}"
-          export INPUT_DOC_ISSUES="true"
-          export INPUT_DOC_ISSUES_REPOSITORIES='[{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh"}]'
+          export INPUT_DOC_SOURCE="true"
+          export INPUT_DOC_SOURCE_REPOSITORIES="[{\"organization-name\": \"AbsaOSS\", \"repository-name\": \"living-doc-collector-gh\", \"us-paths\": [\"${FIXTURES}/golden/gherkin/liv_doc_us\"], \"func-paths\": [\"${FIXTURES}/golden/gherkin/liv_doc_func\"], \"pages-paths\": [\"${FIXTURES}/golden/pageobject\"]}]"
+          export INPUT_UI_TESTS="true"
+          export INPUT_UI_TESTS_REPOSITORIES="[{\"organization-name\": \"AbsaOSS\", \"repository-name\": \"living-doc-collector-gh\", \"paths\": [\"${FIXTURES}/golden/gherkin\", \"${FIXTURES}/full_sample/ui_tests\"]}]"
           export INPUT_VERBOSE_LOGGING="true"
-          
-          # Run the main collector script
+
           python3 main.py
 
-      - name: Verify output structure
-        run: |
-          # Check that the output directory exists
-          if [ ! -d "./output/doc-issues" ]; then
-            echo "Error: Output directory not found"
-            exit 1
-          fi
-          
-          # Check that the doc-issues.json file exists
-          if [ ! -f "./output/doc-issues/doc-issues.json" ]; then
-            echo "Error: doc-issues.json not found"
-            exit 1
-          fi
-          
-          echo "✓ Output directory and file exist"
-
-      - name: Validate JSON structure
+      - name: Validate the artifacts against their contracts
         run: |
           python3 << 'EOF'
-          import json
-          import sys
-          from datetime import datetime
+          from living_doc_utilities.contracts.doc_source import DocSourceResult
+          from living_doc_utilities.contracts.io import read_artifact
+          from living_doc_utilities.contracts.ui_tests import UITestsResult
 
-          # Load the generated JSON
-          with open('./output/doc-issues/doc-issues.json', 'r') as f:
-              data = json.load(f)
+          doc_source = read_artifact("./output/doc-source/doc-source.json", "doc-source")
+          assert isinstance(doc_source, DocSourceResult)
+          assert doc_source.metadata.producer.name == "AbsaOSS/living-doc-collector-gh"
+          ids = sorted(e.entity_id for e in [*doc_source.user_stories, *doc_source.features, *doc_source.functionalities])
+          assert ids == ["FEAT-001", "FEAT-003", "FUNC-001", "FUNC-002", "US-001"], ids
+          print(f"✓ doc-source: {len(ids)} entities, {len(doc_source.warnings)} warning(s)")
 
-          print("Validating JSON structure...")
-
-          # Check top-level structure
-          assert 'metadata' in data, "Missing 'metadata' section"
-          assert 'items' in data, "Missing 'items' section"
-          print("✓ Top-level structure is correct")
-
-          # Validate metadata
-          metadata = data['metadata']
-          required_metadata_fields = ['producer', 'source', 'run', 'original_metadata']
-          for field in required_metadata_fields:
-              assert field in metadata, f"Missing metadata field: {field}"
-          print("✓ Metadata section has all required fields")
-
-          # Validate producer
-          assert 'name' in metadata['producer'], "Missing producer name"
-          assert metadata['producer']['name'] == 'AbsaOSS/living-doc-collector-gh', "Incorrect producer name"
-          assert 'version' in metadata['producer'], "Missing producer version"
-          print("✓ Producer metadata is correct")
-
-          # Validate schema_version
-          original_metadata = metadata['original_metadata']
-          assert 'schema_version' in original_metadata, "Missing schema_version in original_metadata"
-          print(f"✓ Schema version: {original_metadata['schema_version']}")
-
-          # Validate timestamp format
-          try:
-              datetime.fromisoformat(original_metadata['generated_at'].replace('Z', '+00:00'))
-              print("✓ Timestamp format is valid ISO-8601")
-          except ValueError as e:
-              print(f"✗ Invalid timestamp format: {e}")
-              sys.exit(1)
-
-          # Validate source
-          assert 'repositories' in metadata['source'], "Missing source repositories"
-          print("✓ Source metadata is present")
-
-          # Validate run info
-          assert 'workflow' in metadata['run'], "Missing workflow in run metadata"
-          assert 'run_id' in metadata['run'], "Missing run_id in run metadata"
-          print("✓ Run metadata is present")
-
-          # Validate items
-          items = data['items']
-          print(f"Found {len(items)} item(s)")
-
-          if items:
-              first_item = items[0]
-
-              # Check required base fields
-              required_fields = ['id', 'title', 'state', 'url']
-              for field in required_fields:
-                  assert field in first_item, f"Missing required field: {field}"
-              print("✓ Item base fields are present")
-
-          print("\n✅ All validation checks passed!")
-          print(f"Generated file: {original_metadata['generated_at']}")
-          print(f"Total items: {len(items)}")
+          ui_tests = read_artifact("./output/ui-tests/ui-tests.json", "ui-tests")
+          assert isinstance(ui_tests, UITestsResult)
+          assert ui_tests.scenarios, "no scenario collected"
+          print(f"✓ ui-tests: {len(ui_tests.scenarios)} scenarios, {len(ui_tests.warnings)} warning(s)")
           EOF
 
       - name: Upload output artifact
@@ -151,24 +94,3 @@ jobs:
           name: integration-test-output
           path: ./output/
           retention-days: 7
-
-      - name: Display sample output
-        if: always()
-        run: |
-          echo "=== Sample Output ==="
-          python3 << 'EOF'
-          import json
-          
-          with open('./output/doc-issues/doc-issues.json', 'r') as f:
-              data = json.load(f)
-          
-          # Print metadata
-          print("\n--- File Metadata ---")
-          print(json.dumps(data['metadata'], indent=2))
-          
-          # Print first item (if exists)
-          if data['items']:
-              first_item = data['items'][0]
-              print(f"\n--- Sample Item ({first_item.get('id', 'unknown')}) ---")
-              print(json.dumps(first_item, indent=2))
-          EOF

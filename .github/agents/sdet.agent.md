@@ -85,7 +85,7 @@ Non-goals
 Repo specifics
 
 - Test locations
-  - Tests: `tests/` (mirrors the package tree — `tests/doc_issues/`, `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`, plus `tests/test_main.py`, `tests/test_action_inputs.py`).
+  - Tests: `tests/` (mirrors the package tree — `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`, plus `tests/test_main.py`, `tests/test_action_inputs.py`, `tests/test_contract_checks.py`; `tests/doc_issues/` is kept aside, PLANNED after v0.1.0).
   - Shared fixtures: `tests/conftest.py`.
 - Coverage target
   - Must keep coverage ≥ 80% when running `make coverage`.

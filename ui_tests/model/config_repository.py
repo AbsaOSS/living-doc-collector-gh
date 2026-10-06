@@ -21,6 +21,8 @@ which holds all the essential logic.
 
 import logging
 
+from utils.utils import has_string_names
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,7 +64,7 @@ class ConfigRepository:
             self.__organization_name = repository_json["organization-name"]
             self.__repository_name = repository_json["repository-name"]
             self.__paths = repository_json["paths"]
-            return True
+            return has_string_names(repository_json)
         except KeyError as e:
             logger.error("The key is not found in the repository JSON input: %s.", e, exc_info=True)
         except TypeError as e:

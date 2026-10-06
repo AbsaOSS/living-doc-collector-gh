@@ -3,7 +3,7 @@
 [![Build and Test](https://github.com/AbsaOSS/living-doc-collector-gh/actions/workflows/test.yml/badge.svg)](https://github.com/AbsaOSS/living-doc-collector-gh/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A GitHub Action that extracts living-documentation content from GitHub Projects, Issues, and locally checked-out repositories and emits machine-readable JSON for the downstream `living-doc-*` documentation generators.
+A GitHub Action that extracts living-documentation content from locally checked-out repositories and emits machine-readable JSON, in the contracts `living-doc-utilities` owns, for the downstream `living-doc-*` tools.
 
 ## Overview
 
@@ -17,14 +17,14 @@ The Collector supports multiple mining modes, each with its own functionality. A
 
 | Mode | Purpose | Typical output |
 |------|---------|----------------|
-| **[Documentation Issues](doc_issues/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Data-mines GitHub repositories and Projects for documentation tickets that carry project documentation. | Issue / project living-documentation JSON |
-| **[Documentation Source](doc_source/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Mines **User Story**, **Functionality**, and **Feature** blocks from locally checked-out repositories. | `doc-source` structured JSON |
-| **[UI Tests](ui_tests/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Mines UI test scenarios from `.feature` scenario blocks in locally checked-out repositories. | UI test catalog JSON |
+| **[Documentation Source](doc_source/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Mines **User Story**, **Functionality**, and **Feature** blocks from locally checked-out repositories. | `doc-source-v1.0.0` |
+| **[UI Tests](ui_tests/README.md)** ![Status](https://img.shields.io/badge/status-in%20development-orange) | Mines UI test scenarios from `.feature` scenario blocks in locally checked-out repositories. | `ui-tests-v1.0.0` |
+| **[Documentation Issues](doc_issues/README.md)** | GitHub Issues as a documentation source. | ![Status](https://img.shields.io/badge/status-planned-blue) — after v0.1.0; `doc-issues: true` fails the run at start |
 
 **Key features**
-- 🔎 Multi-source: GitHub Projects and Issues plus locally checked-out repositories
-- 🧩 Modular: activate only the mining modes you need (`doc-issues`, `doc-source`, `ui-tests`)
-- 📄 Structured output: schema-versioned JSON ready for the downstream generators
+- 🔎 Source-code mining: living-doc headers and Gherkin scenarios from locally checked-out repositories
+- 🧩 Modular: activate only the mining modes you need (`doc-source`, `ui-tests`)
+- 📄 Structured output: [contract](#contracts) artifacts, validated before they are written
 - ⚡ Deterministic: the same inputs always produce the same JSON
 - 🔁 Pipeline-ready: chains with the other `living-doc-*` actions
 
@@ -49,14 +49,12 @@ See the default action step definition:
     GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
     # modes de/activation
-    doc-issues: false
     doc-source: false
     ui-tests: false
 ```
 
 See the default action step definitions for each mode:
 
-- [Documentation Issues mode default step definition](doc_issues/README.md#usage)
 - [Documentation Source mode default step definition](doc_source/README.md#usage)
 - [UI Tests mode default step definition](ui_tests/README.md#usage)
 
@@ -71,26 +69,28 @@ See the full example of action step definition (in the example, non-default valu
   env:
     GITHUB-TOKEN: ${{ secrets.REPOSITORIES_ACCESS_TOKEN }}  
   with:
-    doc-issues: true                       # Documentation Issues mode de/activation
+    doc-source: true                       # Documentation Source mode de/activation
+    ui-tests: true                         # UI Tests mode de/activation
     verbose-logging: true                  # Optional: project verbose (debug) logging feature de/activation
-    
-    # 'Documentation Issues' mode required configuration
-    doc-issues-repositories: |
+
+    doc-source-repositories: |
         [
           {
             "organization-name": "your-organization-name",
-            "repository-name": "your-project-living-documentation",
-            "projects-title-filter": []
-          },
-          {
-            "organization-name": "your-organization-name",
-            "repository-name": "your-another-project-living-documentation",
-            "projects-title-filter": ["Management Overview"]
+            "repository-name": "your-ui-repository",
+            "us-paths":    ["/path/to/checkout/your-ui-repository/features/liv_doc_us"],
+            "func-paths":  ["/path/to/checkout/your-ui-repository/features/liv_doc_func"],
+            "pages-paths": ["/path/to/checkout/your-ui-repository/pages"]
           }
         ]
-      
-    # 'Documentation Issues' mode optional configuration
-    doc-issues-project-state-mining: true     # project state mining feature de/activation
+    ui-tests-repositories: |
+        [
+          {
+            "organization-name": "your-organization-name",
+            "repository-name": "your-ui-repository",
+            "paths": ["/path/to/checkout/your-ui-repository/features"]
+          }
+        ]
 ```
 
 ---
@@ -120,7 +120,7 @@ These inputs are common to all modes.
 
 | Input Name        | Description                                        | Required | Default | Usage                     | 
 |-------------------|----------------------------------------------------|----------|---------|---------------------------|
-| `doc-issues`      | Enables or disables `Documentation Issues` mode. | No       | `false` | Set to true to activate.  |
+| `doc-issues`      | PLANNED — `Documentation Issues` mode is not available in this version. | No       | `false` | `true` fails the run at start (`INVALID_CONFIGURATION`). |
 | `doc-source`      | Enables or disables `Documentation Source` mode. | No       | `false` | Set to true to activate.  |
 | `ui-tests`        | Enables or disables `UI Tests` mode.             | No       | `false` | Set to true to activate.  |
 | `verbose-logging` | Enables or disables verbose (debug) logging.       | No       | `false` | Set to true to activate.  |
@@ -129,7 +129,6 @@ These inputs are common to all modes.
 ##### Example
 ```yaml
 with:
-  doc-issues: true          # Activation of Documentation Issues mode
   doc-source: true          # Activation of Documentation Source mode
   ui-tests: true            # Activation of UI Tests mode
   
@@ -140,7 +139,6 @@ with:
 
 Mode-specific inputs and outputs are detailed in the respective mode's documentation:
 
-- [Documentation Issues mode specific inputs](doc_issues/README.md#mode-inputs)
 - [Documentation Source mode specific inputs](doc_source/README.md#mode-inputs)
 - [UI Tests mode specific inputs](ui_tests/README.md#mode-inputs)
     
@@ -162,7 +160,19 @@ This output can be utilized in various ways within your CI/CD pipeline to ensure
       run: echo "GitHub Collector root output path: ${{ steps.living_doc_collector_gh.outputs.output-path }}"            
     ```
 
-> Each mode generates its output files, which is stored in the `output-path` directory with clear naming conventions.
+> Each mode writes one artifact under the `output-path` directory: `doc-source/doc-source.json` and `ui-tests/ui-tests.json`.
+
+---
+## Contracts
+
+The artifacts this action writes — `doc-source-v1.0.0` and `ui-tests-v1.0.0` — are contracts owned by
+[`living-doc-utilities`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md).
+This repository imports their models and parsers from the pinned `living-doc-utilities` release; it does not
+vendor them: no schema file and no local copy of a contract model is committed here. Every artifact is written
+through `write_artifact`, which fills `metadata.stats` and validates the result before anything is written.
+
+> Until `living-doc-toolkit` moves onto `living-doc-utilities` `0.5.0`, `toolkit` on `master` cannot read
+> this output.
 
 ---
 

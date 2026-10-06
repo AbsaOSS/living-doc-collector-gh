@@ -11,40 +11,43 @@ surface** — so you mock the right target on the first try instead of guessing.
 ## Rules
 
 - Must use `pytest` + `pytest-mock` (`mocker`). Tests live under `tests/`, mirroring the
-  package layout (`tests/doc_issues/`, `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`).
+  package layout (`tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`).
 - Must mock `INPUT_*` environment variables (via `monkeypatch.setenv` / `mocker.patch`).
 - Must mock GitHub API interactions; never make real network calls.
 - Must keep contract-sensitive strings and exit codes stable.
 - Prefer adding to shared fixtures in `tests/conftest.py` over duplicating setup.
 - Must keep coverage ≥ 80% under `make test` / `make coverage`.
+- Must not write tests for `doc_issues/` or `tests/doc_issues/`: the `doc-issues` mode is PLANNED after
+  v0.1.0 and kept aside unchanged, excluded from pytest, coverage, mypy and pylint.
+
+## Contracts
+
+The artifact contracts (`doc-source-v1.0.0`, `ui-tests-v1.0.0`) are owned by
+`living-doc-utilities` and imported, never vendored: no local model, parser or schema file.
+A test reads an artifact only with `living_doc_utilities.contracts.io.read_artifact` and asserts on
+the typed model it returns (`DocSourceResult`, `UITestsResult`) — never `json.load` plus dict checks
+on the contract's shape.
 
 ## Mock / fixture cheat-table (sourced from what already exists in `tests/`)
 
 | What you need to fake | Pattern used in this repo | Where to copy it from |
 |---|---|---|
-| GitHub client (`github.Github`) | `mocker.patch("<module>.Github")`, then stub `.get_repo()` / `.get_rate_limit()` on the return value | `tests/conftest.py::doc_issues_collector`, `tests/doc_issues/test_collector.py` |
-| `Repository` / `Rate` / `RateLimit` / project objects | `mocker.Mock(spec=<class>)`, set only the attributes under test | `tests/conftest.py::repository_setup`, `mock_rate_limiter`, `github_project_setup` |
-| Rate limiter | `rate_limiter` / `mock_rate_limiter` fixtures (`GithubRateLimiter` wrapping a `spec=Github` mock) | `tests/conftest.py` |
 | `INPUT_*` action inputs | `monkeypatch.setenv("INPUT_...", ...)` or `mocker.patch("<module>.ActionInputs.get_*", return_value=...)` | `tests/test_action_inputs.py` |
+| Repository scan configuration | `mocker.patch("doc_source.collector.ActionInputs.get_doc_source_repositories", return_value=[...])` pointing at `tmp_path` dirs | `tests/doc_source/test_collector.py::_configure` |
 | `GITHUB_OUTPUT` file | autouse `_set_github_output_env` fixture points it at `tmp_path` | `tests/conftest.py` |
-| Collector internals (`_fetch_*`, `_store_*`, `_clean_output_directory`) | `mocker.patch.object(collector, "_method", return_value=...)` to isolate the method under test | `tests/doc_issues/test_collector.py` |
-| Filesystem (`os.path.exists`, `shutil.rmtree`, `os.makedirs`) | `mocker.patch("os.path.exists", return_value=True)` etc. | `tests/doc_issues/test_collector.py` |
-| Raw HTTP (`requests` in `action_inputs.py` / `github_projects.py`) | `responses` library — register expected requests + canned JSON; add `responses` to `requirements.txt` first | keep one HTTP-mocking convention |
-| Logging assertions | `mocker.patch("<module>.logger")` and assert on `.info` / `.warning` / `.error` | `tests/doc_issues/test_collector.py` |
-| `main.run()` exit code + logs | `mocker.patch("sys.exit")`, assert `assert_called_once_with(1)` and `mock_log_info.assert_has_calls([...])` | `tests/test_main.py` |
-| toolkit adapter contract (`doc-issues.json`) | validate real collector output against `doc_issues/models.py` — `AdapterResult.model_validate(data)` — not a static fixture | `tests/doc_issues/test_collector.py::test_save_issues_with_audit_data` |
-| Schema-export utility (`doc-issues-v1.0.0-schema.json`) | `export_schema()` must equal the committed file | `tests/doc_issues/test_schema_export.py` |
-| `.feature` / PageObject parsing input | pass raw line lists to the pure parsers (`header_parser`, `page_object_parser`, `scenario_parser`, `body_parser`) — no mocks needed | `doc_source/`, `ui_tests/`, `doc_issues/` parser modules |
+| `GITHUB_*` run context in `metadata.run` | `monkeypatch.setenv("GITHUB_RUN_ID", ...)` etc. | `tests/doc_source/test_full_sample.py::_artifact` |
+| A git checkout (for `source_ref.url`) | create `tmp_path / "repo" / ".git"`; or patch `utils.artifact.find_repo_root` to `None` for `NO_SOURCE_URL` | `tests/doc_source/test_collector.py` |
+| An unreadable source file | patch `pathlib.Path.read_text` with `autospec=True` and raise only for `.feature` / `.ts` suffixes | `tests/doc_source/test_collector.py::test_unreadable_file_is_skipped` |
+| A contract validation failure | patch the collector's `build_metadata` to return a `model_construct`-ed invalid `Source`, so `write_artifact`'s own validation fails | `tests/doc_source/test_collector.py::test_collect_validation_failure_leaves_no_output_file` |
+| Raw HTTP (`requests` in `action_inputs.py`) | `mocker.patch("action_inputs.requests.get", return_value=<Mock with status_code>)` | `tests/test_action_inputs.py` |
+| Logging assertions | `mocker.patch("<module>.logger")` and assert on `.info` / `.warning` / `.error` | `tests/doc_source/test_collector.py` |
+| `main.run()` exit code + logs | `mocker.patch("sys.exit")` and `mock_log_info.assert_has_calls([...])`; or `pytest.raises(SystemExit)` when the run must stop | `tests/test_main.py` |
+| R12 check 3 (full sample) | run the collector over `tests/fixtures/full_sample/<mode>/`; every `metadata.stats.field_occupancy` path is > 0 or listed in `NOT_PRODUCED` with a reason | `tests/doc_source/test_full_sample.py`, `tests/ui_tests/test_full_sample.py` |
+| Golden entities | `tests/fixtures/golden/` is copied verbatim from `living-doc-utilities` at the pinned tag; never edit it | `tests/doc_source/test_golden_entities.py` |
 
-**Changing the `doc-issues.json` contract:** edit `doc_issues/models.py`, regenerate the
-schema (`python -m doc_issues.schema_export`), and let the parity check in
-`test_save_issues_with_audit_data` fail loudly if the collector's real output no longer
-matches the models — there is no separate fixture directory to update.
-
-**Direct HTTP stubbing:** the GitHub surface is reached through PyGithub and is mocked at
-the `Github` object today. If a change introduces raw `requests` calls, stub them with the
-`responses` library (add it to `requirements.txt` first) rather than patching `requests`
-ad hoc — keep one HTTP-mocking convention.
+**Changing what a mode emits:** the contract is `living-doc-utilities`'; a change to a field's
+shape is a change there, picked up by re-pinning. Here, add the authored input to the mode's
+full-sample fixture and let the occupancy test fail loudly if the field stays empty.
 
 ## Output
 

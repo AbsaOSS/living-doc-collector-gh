@@ -179,3 +179,5 @@ default_output.txt
 .DS_Store
 SPEC.md
 output/*
+# Local review loop state (/verify-pr-ready ledger, snapshots)
+.review/

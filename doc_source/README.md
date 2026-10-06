@@ -4,15 +4,15 @@
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
 - [Mode Inputs](#mode-inputs)
-- [Header Formats](#header-formats)
+- [Authoring Formats](#authoring-formats)
 - [Expected Output](#expected-output)
 
-This mode mines **User Story**, **Functionality**, and **Feature** living documentation from
-locally checked-out repositories and emits structured JSON.
+This mode mines **User Story**, **Functionality** and **Feature** living documentation from
+locally checked-out repositories and writes one `doc-source-v1.0.0` artifact.
 
-- **User Stories** — parsed from `# ===` header blocks in `.feature` files tagged `@US_ID:US-NNN`.
-- **Functionalities** — parsed from `# ===` header blocks in `.feature` files tagged `@FUNC_ID:FUNC-NNN`.
-- **Features** — parsed from `/* === */` LIVING DOC header blocks in TypeScript page object files.
+- **User Stories** — the living-doc header of each `.feature` file under `us-paths`.
+- **Functionalities** — the living-doc header of each `.feature` file under `func-paths`.
+- **Features** — the living-doc header comment of each TypeScript PageObject file under `pages-paths`.
 
 ## Mode De/Activation
 
@@ -30,7 +30,8 @@ locally checked-out repositories and emits structured JSON.
 
 1. **Checkout before action** — the caller performs `actions/checkout` for every target repository
    before invoking this action. This action never clones or fetches repository contents itself.
-2. **Output folder exists** — the output directory is prepared by the caller before this action runs.
+2. **No output folder to prepare** — the action creates the mode's `doc-source/` output directory itself and
+   replaces it on every run, so any previous content there is removed.
 
 ---
 ## Usage
@@ -66,211 +67,73 @@ Each repository entry:
 
 | Field               | Type     | Required | Description |
 |---------------------|----------|----------|-------------|
-| `organization-name` | string   | yes      | GitHub org name (used in the output `id`). |
-| `repository-name`   | string   | yes      | GitHub repo name (used in the output `id`). |
+| `organization-name` | string   | yes      | GitHub org name (used in `source_ref.url` and `metadata.source`). |
+| `repository-name`   | string   | yes      | GitHub repo name (used in `source_ref.url` and `metadata.source`). |
 | `us-paths`          | string[] | yes*     | Absolute directory paths to scan for User Story `.feature` files. Accepts `"paths"` as a backward-compatible alias. |
 | `func-paths`        | string[] | no       | Absolute directory paths to scan for Functionality `.feature` files. Omit to skip. |
-| `pages-paths`       | string[] | no       | Absolute directory paths to scan for TypeScript page object files. Omit to skip. |
+| `pages-paths`       | string[] | no       | Absolute directory paths to scan for TypeScript PageObject files. Omit to skip. |
 
 *At least one of `us-paths` / `paths` must be present; all other path fields are optional.
 
 ---
-## Header Formats
+## Authoring Formats
 
-### User Story (`.feature` file)
+The `.feature` header and PageObject header formats, their keys and the acceptance-criterion grammar are
+defined once, in `living-doc`:
 
-```gherkin
-# =============================================================================
-# LIVING DOC — US-27 · Request Access to Domain
-# =============================================================================
-# source:         https://github.com/org/repo/issues/3
-# status:         active
-# business_value:
-#   - Enables data consumers to gain access to domains they need.
-# preconditions:
-#   - The user has logged in.
-# acceptance_criteria:
-#   AC:US-27-01 (v1.9.0 - Active)
-#     - A user who is not the domain owner can open the Access tab.
-# =============================================================================
+- [Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md)
+- [Living Doc Glossary](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-glossary.md)
 
-@US_ID:US-27
-Feature: Request Access to Domain
-```
+This mode parses them with `living-doc-utilities`' `authoring` parsers (`feature_header`, `page_object`,
+`identity`), then settles every entity's state with `derive_statuses` and checks relations with
+`check_relations`, once per run over all User Stories, Functionalities and Features together.
 
-### Functionality (`.feature` file)
+What this mode adds around the parsers:
 
-```gherkin
-# =============================================================================
-# LIVING DOC — FUNC-001 · Authentication Screen — Credential-based Login
-# =============================================================================
-# status:    active
-# parent:    FEAT-001
-# func_type: button_action
-#
-# acceptance_criteria:
-#
-#   AC:FUNC-001-01 (v1.0.0 - Active)
-#     - Submitting valid credentials navigates to the dashboard.
-# =============================================================================
-
-@FUNC_ID:FUNC-001
-Feature: Authentication Screen — Credential-based Login
-```
-
-### Feature (TypeScript page object `.ts` file)
-
-```typescript
-/* =============================================================================
- * LIVING DOC — FEAT-001 · Authentication Screen
- * =============================================================================
- * surface_type:          UI
- * route:                 /
- * owners:                Unify Team
- * status:                active
- * purpose:               Authentication screen where users enter credentials.
- * user_stories:          US-1
- * functionalities:       FUNC-001, FUNC-002, FUNC-003
- * external_dependencies: none
- * page-object:           LoginPage.ts
- * ============================================================================= */
-```
-
-### Parsed fields (canonical authoring format)
-
-The parsers follow the canonical format defined in the Living Doc guide pages
-(`living-doc-header-types.md` §1–§3, `living-doc-glossary.md` "Acceptance Criterion").
-
-**Entity level** (User Story, Functionality, Feature):
-
-| Field | Source | Output |
-|---|---|---|
-| `not_in_scope` | `# not_in_scope:` bullet section (sibling of `preconditions`; PageObject: `not_in_scope:` `;`-separated list) | `not_in_scope[]` |
-| `deprecated_at` | `# deprecated_at:` header key (set when `status: deprecated`) | `deprecated_at` |
-| `deprecation_reason` | `# deprecation_reason:` header key | `deprecation_reason` |
-
-**Acceptance criterion level** (each `acceptance_criteria[]` record):
-
-| Field | Source | Output |
-|---|---|---|
-| `state` | token after ` - ` in `(…)` — kept **verbatim**, including `deprecated`; deprecated/descoped ACs are **not** dropped | `state` |
-| `aspect` | `- Aspect: <v1>, <v2>` line under the AC | `aspect[]` |
-| `preconditions` | indented `preconditions:` sub-section under the AC — **extends** the entity list | `preconditions[]` |
-| `not_in_scope` | indented `not_in_scope:` sub-section under the AC — **extends** the entity list | `not_in_scope[]` |
-| `removal_planned` | third `(…)` segment `removal planned v<x>` on a deprecated AC | `removal_planned` |
-| `descoped_at` / `descoped_reason` / `future_release` | `- descoped_at:` / `- descoped_reason:` / `- future_release:` bullets under the AC | same keys |
-
-### Intentionally not mined
-
-- **`tutorial*` / `tutorial_<group>` directories** — tutorial walkthroughs are not living
-  documentation; `.feature` files under them are skipped at discovery time.
-- **`# rationale:` (FUNC header) and `- Rationale:` (AC) lines** — free-text design context, not
-  a structured contract field.
-- **`superseded_by`, `owner_changed_at`, `owner_change_reason`** — entity-history metadata with no
-  downstream consumer yet.
-- **PageObject `wizard-steps`, `stub-reason`, cross-reference (`parent-feat`) headers** — surface
-  operational detail, not part of the mined Feature contract.
-- **Custom `{placeholder-name}:` AC keyword lines** (other than `Aspect:`) — kept inside the AC
-  `description` prose rather than split into a field.
+- `.feature` files under a `tutorial*` / `tutorial_<group>` directory are skipped at discovery time.
+- A `.ts` file under `pages-paths` that never names `LIVING DOC` in a header comment is code, not
+  documentation, and is skipped silently — including a helper that opens with an eslint directive or a
+  JSDoc block. A `LIVING DOC` banner placed after another comment is still parsed, and reported.
+- A cross-reference PageObject header (`parent-feat:`) adds its page to its Feature's `pages`; one whose
+  Feature is not in the run is reported `UNRESOLVED_RELATION` and dropped.
 
 ---
 ## Expected Output
 
-The mode produces `output/doc-source/doc-source.json` with three top-level arrays:
+The mode writes `output/doc-source/doc-source.json`, a
+[`doc-source-v1.0.0`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md)
+artifact, through `write_artifact`: the result is validated before the write and written atomically.
 
-```json
-{
-  "user_stories": [
-    {
-      "id":          "absa-group/aul-ui/US-27",
-      "title":       "Request Access to Domain",
-      "state":       "active",
-      "tags":        [],
-      "url":         "https://github.com/org/repo/issues/3",
-      "timestamps":  null,
-      "description": "As a data consumer, I want to request access ...",
-      "business_value": ["Enables data consumers to gain access to domains they need."],
-      "preconditions":  ["The user has logged in."],
-      "not_in_scope":   [],
-      "deprecated_at":  null,
-      "deprecation_reason": null,
-      "acceptance_criteria": [
-        {
-          "id": "US-27-01", "state": "Active", "version": "v1.9.0", "description": "...",
-          "aspect": [], "preconditions": [], "not_in_scope": [],
-          "removal_planned": null, "descoped_at": null, "descoped_reason": null, "future_release": null
-        }
-      ]
-    }
-  ],
-  "functionalities": [
-    {
-      "id":        "absa-group/aul-ui/FUNC-001",
-      "title":     "Authentication Screen — Credential-based Login",
-      "state":     "active",
-      "parent":    "FEAT-001",
-      "func_type": "button_action",
-      "acceptance_criteria": [
-        { "id": "FUNC-001-01", "state": "Active", "version": "v1.0.0", "description": "..." }
-      ]
-    }
-  ],
-  "features": [
-    {
-      "id":                   "absa-group/aul-ui/FEAT-001",
-      "title":                "Authentication Screen",
-      "state":                "active",
-      "surface_type":         "UI",
-      "route":                "/",
-      "owners":               "Unify Team",
-      "purpose":              "Authentication screen where users enter credentials.",
-      "user_stories":         ["US-1"],
-      "functionalities":      ["FUNC-001", "FUNC-002", "FUNC-003"],
-      "external_dependencies": "none",
-      "page_object":          "LoginPage.ts"
-    }
-  ],
-  "metadata": { ... },
-  "warnings": []
-}
-```
+| Key | Content |
+|---|---|
+| `schema_version` | `doc-source-v1.0.0` |
+| `metadata` | the standard envelope — `producer`, `run` (GitHub Actions context), `source`, `generated_at`, `stats` |
+| `warnings[]` | every parser, status and relation warning of the run; a warning about one file carries its `path` in its `context`, and a status or relation warning carries the `entity_id` |
+| `user_stories[]`, `features[]`, `functionalities[]` | one contract `Entity` per parsed file |
 
-- **`id` format**: `{organization-name}/{repository-name}/{US|FUNC|FEAT}-{id}`
-- **`timestamps`**: always `null` for user stories — no GitHub Issue timestamp equivalent.
-- **`tags`**: always `[]` for user stories — `.feature` tags do not map to issue labels.
+- **`metadata.source.project_id`** — `unset-project` until the `project-id` input is added.
+- **`metadata.stats`** — computed by `write_artifact`; `entities_skipped` counts entities not emitted (no
+  parseable entity id, an id already collected, or rejected by the contract), `unresolved_refs` counts
+  `UNRESOLVED_RELATION` warnings.
+- **`source_ref`** — `system: GitHub`; `native_id` is the file's path from its repository root;
+  `native_type` is `feature-file` or `page-object`; `url` is the file on the default branch
+  (`https://github.com/<org>/<repo>/blob/HEAD/<path>`); `tracker_state` is `committed`.
+- **`tags`** and **`timestamps`** — always empty: a source file carries no labels and no
+  created/updated/closed time.
 
 ### Error handling
 
 | Situation | Behaviour |
 |---|---|
-| A path in `us-paths` / `func-paths` / `pages-paths` does not exist or has no matching files | Log warning, skip path, continue |
+| A repository entry cannot be loaded (e.g. `organization-name` or `repository-name` is empty, not a string, or contains `/`) | Log error, skip the entry; counted in `sources_configured` and `sources_failed` |
+| A configured path does not exist or has no matching files | Log warning, skip path, continue |
 | A file cannot be read | Log warning, skip file, continue |
-| Header block missing, or a required field (ID, title) missing | Log warning, skip file, continue |
-| `@US_ID:` / `@FUNC_ID:` tag mismatches the header ID | Log warning, use the header ID |
-| Optional header field missing | Set the output field to `null` / `[]` |
-| Malformed acceptance-criterion block | Log warning, skip that AC, keep the rest of the item |
-| No Git root found above a file | Log warning, `url` is `null` |
-| Output file write fails | Log error, `collect()` returns `False` |
+| A header has no parseable entity id | Not emitted; `MISSING_ENTITY_ID` with path and title; counted in `entities_skipped` |
+| An entity id already collected from another file | The first file read keeps it; the later one is not emitted; `AUTHORING_ERROR` with path and `entity_id`; counted in `entities_skipped` |
+| An entity the contract rejects (e.g. an AC id of another entity) | Not emitted; `AUTHORING_ERROR` with path, `entity_id` and the reason; counted in `entities_skipped`; statuses and relations are derived without it, so a reference to it is `UNRESOLVED_RELATION`; a rejected Feature takes its cross-reference pages with it |
+| A file is outside a git checkout | `source_ref.url` is empty; `NO_SOURCE_URL` warning |
+| Malformed header lines or acceptance criteria | Coded warning in `warnings[]`; the rest of the entity is kept |
+| The result fails contract validation, or the file cannot be written | Log error, no output file, `collect()` returns `False` |
 
-`collect()` returns `True` whenever the output file was written — an empty repository list or
-zero matching files is a successful run with empty output arrays.
-
----
-## Schema
-
-[`doc_source/schema/doc-source-v1.0.0-schema.json`](schema/doc-source-v1.0.0-schema.json) is
-**generated** from the Pydantic models in [`doc_source/models.py`](models.py) — via
-[`doc_source/schema_export.py`](schema_export.py) (`python -m doc_source.schema_export`) — not
-hand-authored. Those models are this repo's source of truth for the `doc-source.json` contract;
-the file-level `metadata` / `warnings` block is the shared definition in
-[`common/models.py`](../common/models.py), the same one `doc-issues` and `ui-tests` use.
-
-**If you change `doc_source/models.py`, regenerate the schema in the same change
-(`python -m doc_source.schema_export`).** A test (`tests/common/test_schema_export.py`) fails if
-the committed file drifts from the models.
-
-A downstream consumer is the **schema consumer**: it vendors a pinned copy of this generated
-schema for its own validation and consumes it independently (no direct code dependency),
-mirroring the [Schema Sync Obligation](../doc_issues/README.md#schema-sync-obligation) documented
-for `doc-issues`.
-
+`collect()` returns `True` whenever the artifact was written — an empty repository list or zero
+matching files is a successful run with empty lists.
