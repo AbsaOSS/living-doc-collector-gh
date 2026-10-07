@@ -121,7 +121,7 @@ The run-level codes (`INVALID_CONFIGURATION`, `SOURCE_UNAVAILABLE`, `EMPTY_SOURC
 | An entity the contract rejects (e.g. an AC id of another entity) | Not emitted; `AUTHORING_ERROR` with path, `entity_id` and the reason; counted in `entities_skipped`; statuses and relations are derived without it, so a reference to it is `UNRESOLVED_RELATION`; a rejected Feature takes its cross-reference pages with it |
 | A cross-reference page whose Feature is not in the run | Dropped; `UNRESOLVED_RELATION` |
 | Malformed header lines or acceptance criteria | Coded warning in `warnings[]`; the rest of the entity is kept |
-| The result fails contract validation, or the file cannot be written | Log error, no output file, the mode fails |
+| The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file |
 
 A warning about one file carries its `path` in its `context`; a status or relation warning carries the
 `entity_id`.

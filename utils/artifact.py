@@ -207,7 +207,7 @@ def source_context(input_name: str, index: int, repository: SourceRepository) ->
 
 def collect_sources(
     sources: list[tuple[str, Callable[[], int]]], allow_partial: bool
-) -> tuple[list[ContractWarning], int]:
+) -> tuple[list[ContractWarning], list[int]]:
     """
     Collect each configured source on its own, then decide the mode once every source was tried (R13).
 
@@ -218,16 +218,16 @@ def collect_sources(
     @param sources: Each source's context (`source_context`) and its collect function, which returns the count of
         entities the source answered with, or raises a `ContractError` before it collects anything.
     @param allow_partial: The `allow-partial` input.
-    @return: The source warnings, in source order, and the count of failed sources.
+    @return: The source warnings, in source order, and the positions of the failed sources in `sources`.
     @raise ContractError: `SOURCE_UNAVAILABLE` when the mode fails.
     """
     warnings: list[ContractWarning] = []
-    failed = 0
-    for context, collect in sources:
+    failed: list[int] = []
+    for index, (context, collect) in enumerate(sources):
         try:
             answered = collect()
         except ContractError as e:
-            failed += 1
+            failed.append(index)
             failure = ContractError(e.code, e.message, context)
             if allow_partial:
                 logger.warning("%s", failure)
@@ -241,8 +241,8 @@ def collect_sources(
                     code=Code.EMPTY_SOURCE.name, message="Source answered with zero entities.", context=context
                 )
             )
-    if failed and (not allow_partial or failed == len(sources)):
-        raise ContractError(Code.SOURCE_UNAVAILABLE, f"{failed} of {len(sources)} configured sources failed.")
+    if failed and (not allow_partial or len(failed) == len(sources)):
+        raise ContractError(Code.SOURCE_UNAVAILABLE, f"{len(failed)} of {len(sources)} configured sources failed.")
     return warnings, failed
 
 
@@ -252,7 +252,7 @@ def build_metadata(project_id: str, repositories: list[SourceRepository], cardin
     records, keeping only the caller-owned counters of `cardinality`.
 
     @param project_id: The `project-id` input, validated at start.
-    @param repositories: The configured repositories the artifact documents.
+    @param repositories: The repositories the artifact documents: those of the configured sources that answered.
     @param cardinality: The caller-owned counters: sources configured/failed, unresolved refs, skipped entities.
     @return: The metadata envelope.
     """

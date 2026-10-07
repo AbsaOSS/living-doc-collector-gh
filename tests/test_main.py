@@ -180,6 +180,36 @@ def test_run_doc_source_and_ui_tests_modes_failed(mocker):
     mock_exit.assert_called_once_with(1)
 
 
+def test_run_one_mode_failed_removes_the_output_of_the_mode_that_succeeded(mocker):
+    # Arrange
+    mocker.patch("action_inputs.ActionInputs.validate_user_configuration", return_value=True)
+    mocker.patch("main.ActionInputs.is_doc_issues_mode_enabled", return_value=False)
+    mocker.patch("main.ActionInputs.is_doc_source_mode_enabled", return_value=True)
+    mocker.patch("main.ActionInputs.is_ui_tests_mode_enabled", return_value=True)
+    mocker.patch("main.GHDocSourceCollector.collect", return_value=False)
+    mocker.patch("main.GHUITestsCollector.collect", return_value=True)
+    mocker.patch("main.make_absolute_path", return_value="/unit/test/output/path")
+    mock_clear_output_dir = mocker.patch("main.clear_output_dir", return_value=True)
+    mock_log_info = mocker.patch("logging.getLogger").return_value.info
+    mock_exit = mocker.patch("sys.exit")
+
+    # Act
+    run()
+
+    # Assert
+    mock_clear_output_dir.assert_called_once_with(os.path.join("/unit/test/output/path", "ui-tests"))
+    mock_log_info.assert_has_calls(
+        [
+            mocker.call("Liv-Doc collector for GitHub - `doc-source` mode failed."),
+            mocker.call("Liv-Doc collector for GitHub - Starting the `ui-tests` mode."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` mode completed successfully."),
+            mocker.call("Liv-Doc collector for GitHub - `ui-tests` output removed, as the run failed."),
+        ],
+        any_order=False,
+    )
+    mock_exit.assert_called_once_with(1)
+
+
 
 # end to end: `run()` over local checkouts, every input set as the action sets it
 
@@ -474,6 +504,28 @@ def test_a_failed_source_fails_the_run_and_its_mode_writes_nothing(e2e, monkeypa
     assert not output_root.joinpath(_MODES[mode]["artifact"][0]).exists()
 
 
+@pytest.mark.parametrize(("failing", "succeeding"), [("doc-source", "ui-tests"), ("ui-tests", "doc-source")])
+def test_a_failed_mode_fails_the_run_and_no_mode_writes(e2e, monkeypatch, caplog, failing, succeeding):
+    # Arrange: the succeeding mode writes its artifact first or second; either way the failed run leaves none.
+    src = e2e / "src"
+    _two_sources_second_missing(monkeypatch, src / failing, failing)
+    _MODES[succeeding]["write"](src / succeeding, 1)
+    _enable(monkeypatch, succeeding, [_entry(succeeding, "repo-a", src / succeeding)])
+    output_root = e2e / "output"
+    monkeypatch.setenv("INPUT_OUTPUT_PATH", str(output_root))
+
+    # Act
+    with pytest.raises(SystemExit) as exit_info:
+        run()
+
+    # Assert
+    assert exit_info.value.code == 1
+    info = _messages(caplog, logging.INFO)
+    assert f"Liv-Doc collector for GitHub - `{succeeding}` mode completed successfully." in info
+    assert f"Liv-Doc collector for GitHub - `{succeeding}` output removed, as the run failed." in info
+    assert _files_under(output_root) == []
+
+
 @pytest.mark.parametrize("mode", ["doc-source", "ui-tests"])
 def test_allow_partial_writes_the_sources_that_answered_and_succeeds(e2e, monkeypatch, caplog, mode):
     # Arrange
@@ -496,6 +548,8 @@ def test_allow_partial_writes_the_sources_that_answered_and_succeeds(e2e, monkey
     assert artifact.warnings[0] == unavailable[0]
     assert artifact.metadata.stats.cardinality.sources_configured == 2
     assert artifact.metadata.stats.cardinality.sources_failed == 1
+    # The failed source's repository is not documented, so the metadata does not name it.
+    assert artifact.metadata.source.repositories == ["absa-group/repo-a"]
     assert f"[SOURCE_UNAVAILABLE] Configured path `{missing}` does not exist or is not a directory. ({context})" in (
         _messages(caplog, logging.WARNING)
     )

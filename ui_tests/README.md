@@ -108,7 +108,7 @@ The run-level codes (`INVALID_CONFIGURATION`, `SOURCE_UNAVAILABLE`, `EMPTY_SOURC
 | A malformed `@AC:` tag | `MALFORMED_AC` warning with the file's `path`; the scenario is kept without that link |
 | A file outside a git checkout | `NO_SOURCE_URL`, only when the file yields a scenario |
 | A `scenario_id` is already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it |
-| The result fails contract validation, or the file cannot be written | Log error, no output file, the mode fails |
+| The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file |
 
 ---
 ## Formats

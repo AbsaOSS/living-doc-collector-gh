@@ -127,7 +127,7 @@ These inputs are common to all modes.
 |---------------------|-------------|----------|---------|
 | `project-id`        | The project the run documents, written to every artifact's `metadata.source.project_id`. Format: [`PROJECT_ID_PATTERN`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md) (§ Project id). | Yes | — |
 | `output-path`       | Output root. Each mode writes `<output-path>/<mode>/<artifact>.json` and clears only its own `<output-path>/<mode>/` directory, so two collectors (or two runs with different `output-path`) in one tree never touch each other's files. | No | `./output/collector-gh` |
-| `allow-partial`     | `false`: any failed source fails its mode. `true`: the mode writes without a failed source and records one `SOURCE_UNAVAILABLE` warning for it; it still fails if every source failed. | No | `false` |
+| `allow-partial`     | `false`: any failed source fails its mode, and with it the run. `true`: the mode writes without a failed source and records one `SOURCE_UNAVAILABLE` warning for it; it still fails if every source failed. | No | `false` |
 | `github-server-url` | GitHub server the configured repositories live on, used only to build `source_ref.url` permalinks. | No | `https://github.com` |
 | `github-token`      | Optional and unused: the `doc-source` and `ui-tests` modes read local checkouts and make no GitHub API call. | No | `''` |
 | `doc-issues`        | PLANNED — `Documentation Issues` mode is not available in this version; `true` fails the run at start (`INVALID_CONFIGURATION`). | No | `false` |
@@ -191,12 +191,17 @@ the failure rules are [R13](https://github.com/AbsaOSS/living-doc-utilities/blob
 | Situation | Code | Effect |
 |---|---|---|
 | `project-id` missing or malformed; `github-server-url` not an http(s) URL; an enabled mode's `*-repositories` input not a JSON array, or an entry with a missing key or an invalid value | `INVALID_CONFIGURATION` (error) | The run fails at start, before any work: the log names the input, the entry and the reason; no file is written; exit `1` |
-| A configured path of a source does not exist | `SOURCE_UNAVAILABLE` (error) | Default: every source is still tried, then the mode fails — the log names each failed source; no file for that mode; exit `1`. With `allow-partial: true`: one warning per failed source, and the mode writes without it; it still fails if every source failed |
+| A configured path of a source does not exist | `SOURCE_UNAVAILABLE` (error) | Default: every source is still tried, then the mode fails — the log names each failed source; the run writes no file; exit `1`. With `allow-partial: true`: one warning per failed source, and the mode writes without it; it still fails if every source failed |
 | A source answers with zero entities | `EMPTY_SOURCE` (warning) | Reported in `warnings[]`; the run succeeds |
 | A source file is outside a git checkout, or its checkout has no resolvable commit | `NO_SOURCE_URL` (warning) | `source_ref.url` is `""` |
 
+A failed mode fails the whole run: a mode that already wrote its artifact has it removed again, so a run that
+exits `1` leaves no output file, not even the other mode's.
+
 `metadata.stats.cardinality.sources_configured` counts the entries of the mode's `*-repositories` input, and
 `sources_failed` the sources that failed while being collected — non-zero only with `allow-partial: true`.
+`metadata.source.repositories` lists only the repositories the artifact documents: a repository whose every
+entry failed is not listed, and stays visible through its `SOURCE_UNAVAILABLE` warning.
 Mode-specific warnings are listed in the [Documentation Source](doc_source/README.md#errors) and
 [UI Tests](ui_tests/README.md#errors) mode docs.
 

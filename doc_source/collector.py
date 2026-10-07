@@ -137,7 +137,7 @@ class GHDocSourceCollector:
         server = ActionInputs.get_github_server_url()
         repositories = [SourceRepository(c.organization_name, c.repository_name, server) for c in configs]
         collected = _Collected()
-        source_warnings, sources_failed = collect_sources(
+        source_warnings, failed = collect_sources(
             [
                 (
                     source_context(input_name(DOC_SOURCE_REPOSITORIES), index, repository),
@@ -164,10 +164,11 @@ class GHDocSourceCollector:
         return DocSourceResult(
             metadata=build_metadata(
                 project_id,
-                repositories,
+                # Only the repositories the artifact documents; a failed source stays a warning.
+                [repository for index, repository in enumerate(repositories) if index not in failed],
                 Cardinality(
                     sources_configured=len(configs),
-                    sources_failed=sources_failed,
+                    sources_failed=len(failed),
                     unresolved_refs=sum(1 for w in warnings if w.code == Code.UNRESOLVED_RELATION.name),
                     entities_skipped=collected.entities_skipped,
                 ),

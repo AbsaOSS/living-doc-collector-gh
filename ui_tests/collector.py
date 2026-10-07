@@ -136,7 +136,7 @@ class GHUITestsCollector:
         repositories = [SourceRepository(c.organization_name, c.repository_name, server) for c in configs]
         scenarios: dict[str, Scenario] = {}
         warnings: list[ContractWarning] = []
-        source_warnings, sources_failed = collect_sources(
+        source_warnings, failed = collect_sources(
             [
                 (
                     source_context(input_name(UI_TESTS_REPOSITORIES), index, repository),
@@ -150,8 +150,9 @@ class GHUITestsCollector:
         return UITestsResult(
             metadata=build_metadata(
                 project_id,
-                repositories,
-                Cardinality(sources_configured=len(configs), sources_failed=sources_failed),
+                # Only the repositories the artifact documents; a failed source stays a warning.
+                [repository for index, repository in enumerate(repositories) if index not in failed],
+                Cardinality(sources_configured=len(configs), sources_failed=len(failed)),
             ),
             warnings=source_warnings + warnings,
             scenarios=list(scenarios.values()),

@@ -44,9 +44,11 @@ removes the last network call. It also makes the collector follow `living-doc-ut
 - Each `*-repositories` entry is one source, collected on its own by `collect_sources`.
 - A missing configured path is `SOURCE_UNAVAILABLE`. It replaces the old warn-and-skip, and is raised before the
   source adds anything.
-- By default, every source is tried first; then the mode fails, writes no file, and the run exits `1`.
+- By default, every source is tried first; then the mode fails, and the run exits `1` and writes no file. A
+  failed mode fails the whole run: `main.py` removes the artifact of a mode that already succeeded.
 - With the new input `allow-partial: true`, the mode writes without the failed sources, with one warning each.
-  It still fails if every source failed.
+  It still fails if every source failed. `metadata.source.repositories` names only the repositories the artifact
+  documents, so a failed source's repository is left out; `collect_sources` returns the failed sources' positions.
 - A source that answers with zero entities gives `EMPTY_SOURCE`.
 - `sources_configured` is the entry count. `sources_failed` counts only sources that failed while being collected.
 
@@ -67,30 +69,32 @@ removes the last network call. It also makes the collector follow `living-doc-ut
 ### Acceptance criteria
 
 - [x] **Default layout; separate `output-path`s don't interfere** — `utils/constants.py:64`, `action_inputs.py:109`,
-      `main.py:59`; clearing only `<mode>/`: `utils/artifact.py:337`.
-      Tests: `tests/test_main.py:272`, `tests/test_main.py:297`.
+      `main.py:62`; clearing only `<mode>/`: `utils/artifact.py:337`.
+      Tests: `tests/test_main.py:302`, `tests/test_main.py:327`.
 - [x] **Bad `project-id` or repository entry fails at start with `INVALID_CONFIGURATION`, no file; `project_id` on
       every output** — `action_inputs.py:93-106` (`re.fullmatch(PROJECT_ID_PATTERN, …)` at `:102`),
-      `utils/utils.py:103`, `action_inputs.py:187-212`, run before any mode at `main.py:54-56`; written at
+      `utils/utils.py:103`, `action_inputs.py:187-212`, run before any mode at `main.py:57-59`; written at
       `utils/artifact.py:275`.
-      Tests: `tests/test_main.py:356`, `:375`, `:272`.
+      Tests: `tests/test_main.py:386`, `:405`, `:302`.
 - [x] **No token, network blocked** — no `requests` and no token read in active code.
-      Test: `tests/test_main.py:400` (patches `socket.socket.connect` / `connect_ex`).
+      Test: `tests/test_main.py:430` (patches `socket.socket.connect` / `connect_ex`).
 - [x] **Permalinks on `github.com` by default and on `ghe.example`; `NO_SOURCE_URL` outside git; the grep matches
       only `utils/github_urls.py`** — `utils/github_urls.py:27-54`, `utils/artifact.py:95-114`,
       `utils/artifact.py:169`.
       Tests: `tests/doc_source/test_collector.py:269`, `:294`, `:346`; `tests/ui_tests/test_collector.py:175`,
       `:194`, `:211`; `tests/utils/test_artifact.py:78`.
 - [x] **Per-source failures** — `utils/feature_file_discovery.py:34`, `utils/artifact.py:208-246`,
-      `utils/artifact.py:344`. Tests:
-  - missing second source, exit ≠ 0, no file: `tests/test_main.py:456`
-  - `allow-partial` writes the first source, one warning, `sources_failed: 1`: `tests/test_main.py:478`
-  - all sources missing with `allow-partial` fails: `tests/test_main.py:505`
-  - empty source gives `EMPTY_SOURCE`: `tests/test_main.py:536`
+      `utils/artifact.py:344`, `main.py:106-110`. Tests:
+  - missing second source, exit ≠ 0, no file: `tests/test_main.py:486`
+  - one mode failed, the other's artifact removed, no file: `tests/test_main.py:183`, `:508`
+  - `allow-partial` writes the first source, one warning, `sources_failed: 1`, only the answered repository in
+    `source.repositories`: `tests/test_main.py:530`
+  - all sources missing with `allow-partial` fails: `tests/test_main.py:559`
+  - empty source gives `EMPTY_SOURCE`: `tests/test_main.py:590`
 - [x] **CI and docs on the new layout; `workflows/README.md` gone; the four inputs exist and are documented** —
       `.github/workflows/integration_test.yml:60,81,91,104`, `action.yml:5-23,107-110`, `README.md:128-132,185`,
       `doc_source/README.md:90-92`, `ui_tests/README.md:78-80`.
-- [x] **`make qa` green** — 239 passed, coverage 99.04 %, Pylint 9.99, mypy clean, Black/ruff clean, R12 checks pass.
+- [x] **`make qa` green** — 242 passed, coverage 99.06 %, Pylint 9.99, mypy clean, Black/ruff clean, R12 checks pass.
 
 ## Release Notes
 - **Breaking:** artifacts move to `<output-path>/<mode>/<artifact>.json`. The default is now
@@ -100,10 +104,12 @@ removes the last network call. It also makes the collector follow `living-doc-ut
   or malformed value fails the run at start with `INVALID_CONFIGURATION`.
 - **Breaking:** a malformed `doc-source-repositories` / `ui-tests-repositories` entry now fails the run at start
   with `INVALID_CONFIGURATION`, naming the entry and key; it used to be skipped.
-- **Breaking:** a missing configured path now fails its source with `SOURCE_UNAVAILABLE`, and with it the mode (no
-  file, exit `1`); it used to be skipped with a warning.
+- **Breaking:** a missing configured path now fails its source with `SOURCE_UNAVAILABLE`, and with it the mode and
+  the run (exit `1`); it used to be skipped with a warning.
+- **Breaking:** a failed run writes no file: when one mode fails, the artifact the other mode wrote is removed.
 - New input `allow-partial` (default `false`): writes without the failed sources, with one `SOURCE_UNAVAILABLE`
-  warning each. It still fails if every source failed.
+  warning each, and leaves their repositories out of `metadata.source.repositories`. It still fails if every
+  source failed.
 - A source with zero entities is reported as an `EMPTY_SOURCE` warning.
 - New input `github-server-url` (default `https://github.com`). On GitHub Enterprise Server, pass
   `${{ github.server_url }}`.

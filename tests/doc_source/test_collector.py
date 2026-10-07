@@ -661,7 +661,7 @@ def test_allow_partial_writes_only_the_sources_that_answered(tmp_path, mocker, m
     assert artifact.warnings[0] == unavailable[0]
     assert artifact.metadata.stats.cardinality.sources_configured == 2
     assert artifact.metadata.stats.cardinality.sources_failed == 1
-    assert artifact.metadata.source.repositories == ["absa-group/aul-api", "absa-group/aul-ui"]
+    assert artifact.metadata.source.repositories == ["absa-group/aul-ui"]
 
 
 def test_allow_partial_puts_source_warnings_before_parse_warnings(tmp_path, mocker, monkeypatch):

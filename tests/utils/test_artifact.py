@@ -235,12 +235,12 @@ def test_collect_sources_returns_no_warning_when_every_source_answers():
 
     # Assert
     assert warnings == []
-    assert failed == 0
+    assert failed == []
 
 
 def test_collect_sources_with_no_source_is_no_failure():
     # Act & Assert
-    assert collect_sources([], allow_partial=False) == ([], 0)
+    assert collect_sources([], allow_partial=False) == ([], [])
 
 
 def test_collect_sources_reports_a_source_answering_zero_entities_as_empty_source():
@@ -249,7 +249,7 @@ def test_collect_sources_reports_a_source_answering_zero_entities_as_empty_sourc
 
     # Assert
     assert [(w.code, w.context) for w in warnings] == [("EMPTY_SOURCE", "entry=1")]
-    assert failed == 0
+    assert failed == []
 
 
 def test_collect_sources_by_default_tries_every_source_then_fails_the_mode(mocker):
@@ -284,7 +284,7 @@ def test_collect_sources_with_allow_partial_turns_each_failed_source_into_a_warn
     # Assert
     assert [(w.code, w.context) for w in warnings] == [("SOURCE_UNAVAILABLE", "entry=1"), ("EMPTY_SOURCE", "entry=2")]
     assert warnings[0].message == "Configured path `/x` does not exist or is not a directory."
-    assert failed == 1
+    assert failed == [1]
     mock_log_warning.assert_called_once()
 
 
