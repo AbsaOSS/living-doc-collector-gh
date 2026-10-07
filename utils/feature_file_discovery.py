@@ -22,7 +22,17 @@ This module contains the shared feature file discovery utility used by the
 import logging
 from pathlib import Path
 
+from living_doc_utilities.contracts.codes import Code, ContractError
+
 logger = logging.getLogger(__name__)
+
+
+def _configured_root(path: str) -> Path:
+    """A configured scan directory; one that is missing fails its whole source (R13)."""
+    root = Path(path)
+    if not root.is_dir():
+        raise ContractError(Code.SOURCE_UNAVAILABLE, f"Configured path `{path}` does not exist or is not a directory.")
+    return root
 
 
 def _is_under_tutorial_dir(file_path: Path, root: Path) -> bool:
@@ -48,13 +58,13 @@ def discover_feature_files(paths: list[str], exclude_tutorials: bool = True) -> 
 
     Returns:
         Sorted list of unique matching file paths.
+
+    Raises:
+        ContractError: `SOURCE_UNAVAILABLE` when a configured path is missing.
     """
     matched: set[Path] = set()
     for path in paths:
-        root = Path(path)
-        if not root.exists():
-            logger.warning("Path `%s` does not exist - skipping.", path)
-            continue
+        root = _configured_root(path)
         found = [p for p in root.rglob("*.feature") if p.is_file()]
         excluded_count = 0
         if exclude_tutorials:
@@ -83,13 +93,13 @@ def discover_ts_files(paths: list[str]) -> list[Path]:
 
     Returns:
         Sorted list of unique matching file paths.
+
+    Raises:
+        ContractError: `SOURCE_UNAVAILABLE` when a configured path is missing.
     """
     matched: set[Path] = set()
     for path in paths:
-        root = Path(path)
-        if not root.exists():
-            logger.warning("Path `%s` does not exist - skipping.", path)
-            continue
+        root = _configured_root(path)
         found = [p for p in root.rglob("*.ts") if p.is_file()]
         if not found:
             logger.warning("No .ts files found under `%s`.", path)

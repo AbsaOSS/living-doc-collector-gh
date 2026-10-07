@@ -20,10 +20,10 @@ for the GH Action.
 """
 
 import logging
+import os
 import sys
 from typing import Any, Callable
 
-from living_doc_utilities.constants import OUTPUT_PATH
 from living_doc_utilities.contracts.codes import Code, ContractError
 from living_doc_utilities.github.utils import set_action_output
 from living_doc_utilities.logging_config import setup_logging
@@ -31,6 +31,8 @@ from living_doc_utilities.logging_config import setup_logging
 from action_inputs import ActionInputs
 from doc_source.collector import GHDocSourceCollector
 from ui_tests.collector import GHUITestsCollector
+from utils.artifact import clear_output_dir
+from utils.constants import DOC_SOURCE_OUTPUT_PATH, UI_TESTS_OUTPUT_PATH
 from utils.utils import make_absolute_path
 
 # GitHub Issues as a documentation source is planned after v0.1.0; `doc_issues/` is kept aside for that port.
@@ -56,33 +58,39 @@ def run() -> None:
         logger.info("Liv-Doc collector for GitHub - user configuration validation failed.")
         sys.exit(1)
 
-    output_path: str = make_absolute_path(OUTPUT_PATH)
+    # Each mode writes `<output-path>/<mode>/<artifact>.json` and clears only its own `<mode>/` directory.
+    output_path: str = make_absolute_path(ActionInputs.get_output_path())
     all_modes_success: bool = True
 
-    modes: list[tuple[Callable[[], bool], Callable[[str], Any], dict[str, str]]] = [
+    modes: list[tuple[Callable[[], bool], Callable[[str], Any], str, dict[str, str]]] = [
         (
             ActionInputs.is_doc_source_mode_enabled,
             GHDocSourceCollector,
+            DOC_SOURCE_OUTPUT_PATH,
             {
                 "start": "Liv-Doc collector for GitHub - Starting the `doc-source` mode.",
                 "success": "Liv-Doc collector for GitHub - `doc-source` mode completed successfully.",
                 "failed": "Liv-Doc collector for GitHub - `doc-source` mode failed.",
                 "disabled": "Liv-Doc collector for GitHub - `doc-source` mode disabled.",
+                "discarded": "Liv-Doc collector for GitHub - `doc-source` output removed, as the run failed.",
             },
         ),
         (
             ActionInputs.is_ui_tests_mode_enabled,
             GHUITestsCollector,
+            UI_TESTS_OUTPUT_PATH,
             {
                 "start": "Liv-Doc collector for GitHub - Starting the `ui-tests` mode.",
                 "success": "Liv-Doc collector for GitHub - `ui-tests` mode completed successfully.",
                 "failed": "Liv-Doc collector for GitHub - `ui-tests` mode failed.",
                 "disabled": "Liv-Doc collector for GitHub - `ui-tests` mode disabled.",
+                "discarded": "Liv-Doc collector for GitHub - `ui-tests` output removed, as the run failed.",
             },
         ),
     ]
 
-    for is_enabled, collector_class, messages in modes:
+    written: list[tuple[str, dict[str, str]]] = []
+    for is_enabled, collector_class, mode_dir, messages in modes:
         if not is_enabled():
             logger.info(messages["disabled"])
             continue
@@ -90,9 +98,16 @@ def run() -> None:
         logger.info(messages["start"])
         if collector_class(output_path).collect():
             logger.info(messages["success"])
+            written.append((mode_dir, messages))
         else:
             logger.info(messages["failed"])
             all_modes_success = False
+
+    # A failed mode fails the run, and a failed run writes no file (R13): remove what the other modes wrote.
+    if not all_modes_success:
+        for mode_dir, messages in written:
+            if clear_output_dir(os.path.join(output_path, mode_dir)):
+                logger.info(messages["discarded"])
 
     # Set the output for the GitHub Action
     set_action_output("output-path", output_path)

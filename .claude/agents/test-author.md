@@ -36,10 +36,9 @@ on the contract's shape.
 | Repository scan configuration | `mocker.patch("doc_source.collector.ActionInputs.get_doc_source_repositories", return_value=[...])` pointing at `tmp_path` dirs | `tests/doc_source/test_collector.py::_configure` |
 | `GITHUB_OUTPUT` file | autouse `_set_github_output_env` fixture points it at `tmp_path` | `tests/conftest.py` |
 | `GITHUB_*` run context in `metadata.run` | `monkeypatch.setenv("GITHUB_RUN_ID", ...)` etc. | `tests/doc_source/test_full_sample.py::_artifact` |
-| A git checkout (for `source_ref.url`) | create `tmp_path / "repo" / ".git"`; or patch `utils.artifact.find_repo_root` to `None` for `NO_SOURCE_URL` | `tests/doc_source/test_collector.py` |
+| A git checkout (for `source_ref.url`) | the `git_checkout` fixture: a real `git init` with one commit, returning its HEAD sha (a bare `.git` directory resolves no commit, so it gives `NO_SOURCE_URL`); or patch `utils.artifact.find_repo_root` to `None` | `tests/conftest.py` |
 | An unreadable source file | patch `pathlib.Path.read_text` with `autospec=True` and raise only for `.feature` / `.ts` suffixes | `tests/doc_source/test_collector.py::test_unreadable_file_is_skipped` |
 | A contract validation failure | patch the collector's `build_metadata` to return a `model_construct`-ed invalid `Source`, so `write_artifact`'s own validation fails | `tests/doc_source/test_collector.py::test_collect_validation_failure_leaves_no_output_file` |
-| Raw HTTP (`requests` in `action_inputs.py`) | `mocker.patch("action_inputs.requests.get", return_value=<Mock with status_code>)` | `tests/test_action_inputs.py` |
 | Logging assertions | `mocker.patch("<module>.logger")` and assert on `.info` / `.warning` / `.error` | `tests/doc_source/test_collector.py` |
 | `main.run()` exit code + logs | `mocker.patch("sys.exit")` and `mock_log_info.assert_has_calls([...])`; or `pytest.raises(SystemExit)` when the run must stop | `tests/test_main.py` |
 | R12 check 3 (full sample) | run the collector over `tests/fixtures/full_sample/<mode>/`; every `metadata.stats.field_occupancy` path is > 0 or listed in `NOT_PRODUCED` with a reason | `tests/doc_source/test_full_sample.py`, `tests/ui_tests/test_full_sample.py` |

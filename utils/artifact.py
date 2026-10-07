@@ -17,15 +17,17 @@
 """
 This module contains the helpers the `doc-source` and `ui-tests` collectors share to build a
 contract artifact: the metadata envelope, a source file's `source_ref`, warning location context,
-and running a mode: clearing its output directory, then building and writing its result through the one
-write path (`write_artifact`).
+collecting each configured source on its own (R13), and running a mode: clearing its output directory, then
+building and writing its result through the one write path (`write_artifact`).
 """
 
 import logging
 import os
 import shutil
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -46,25 +48,26 @@ from living_doc_utilities.contracts.registry import ContractResult
 from pydantic import ValidationError
 
 from utils.constants import get_package_version
+from utils.github_urls import DEFAULT_SERVER_URL, blob_url
 
 logger = logging.getLogger(__name__)
 
 PRODUCER_NAME = "AbsaOSS/living-doc-collector-gh"
 
-# TODO(project-id input): the follow-up collector-gh issue adds the `project-id` action input; until then every
-# artifact carries this internal default.
-DEFAULT_PROJECT_ID = "unset-project"
-
 # A committed source file has no tracker; its provenance state is that it is committed to the repository.
 SOURCE_FILE_TRACKER_STATE = "committed"
+
+# `git rev-parse` reads the local checkout only; the cap guards against a hung git process.
+_GIT_TIMEOUT_SECONDS = 10
 
 
 @dataclass(frozen=True)
 class SourceRepository:
-    """One configured repository: its GitHub organization and name."""
+    """One configured repository: its GitHub organization and name, and the GitHub server it lives on."""
 
     organization_name: str
     repository_name: str
+    server_url: str = DEFAULT_SERVER_URL
 
     @property
     def full_name(self) -> str:
@@ -86,6 +89,30 @@ def find_repo_root(file_path: Path) -> Optional[Path]:
         if current.parent == current:
             return None
         current = current.parent
+
+
+@lru_cache(maxsize=None)
+def head_commit(repo_root: Path) -> Optional[str]:
+    """
+    The commit a checkout is at: `git rev-parse HEAD` in it. Read once per checkout and run.
+
+    @param repo_root: The checkout's root, as `find_repo_root` returns it.
+    @return: The commit SHA, or None when git cannot resolve one (no commit yet, not a git repository, no `git`).
+    """
+    try:
+        # `--git-dir`, not `-C`: a broken `.git` must not fall back to an enclosing repository's commit. `/`-separated:
+        # on Windows, git cannot follow a submodule's relative `gitdir:` from a `\`-separated `--git-dir`.
+        completed = subprocess.run(
+            ["git", f"--git-dir={(repo_root / '.git').as_posix()}", "rev-parse", "--verify", "HEAD"],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=_GIT_TIMEOUT_SECONDS,
+        )
+    except (OSError, subprocess.SubprocessError) as e:
+        logger.debug("Cannot resolve the HEAD commit of `%s`: %s.", repo_root, e)
+        return None
+    return completed.stdout.strip() or None
 
 
 def relative_path(file_path: Path, scan_roots: list[str]) -> str:
@@ -110,9 +137,10 @@ def build_source_ref(
     """
     Build the provenance pointer of a record mined from a committed source file.
 
-    `native_id` is the file's path from the repository root and `url` its GitHub blob URL on the default
-    branch. A file outside a git checkout gets an empty `url`, a scan-root-relative `native_id` and a
-    `NO_SOURCE_URL` warning.
+    `native_id` is the file's path from the repository root and `url` its permalink at the checkout's HEAD commit
+    on the repository's GitHub server. A file outside a git checkout gets an empty `url`, a scan-root-relative
+    `native_id` and a `NO_SOURCE_URL` warning; so does a file in a checkout whose HEAD commit git cannot resolve,
+    with its `native_id` still from the repository root.
 
     @param repository: The configured repository the file belongs to.
     @param file_path: The source file.
@@ -121,20 +149,25 @@ def build_source_ref(
     @return: The source_ref and any warning raised while building it.
     """
     root = find_repo_root(file_path)
-    warnings: list[ContractWarning] = []
+    sha: Optional[str] = None
     if root is None:
         native_id = relative_path(file_path, scan_roots)
+    else:
+        native_id = file_path.resolve().relative_to(root).as_posix()
+        sha = head_commit(root)
+    warnings: list[ContractWarning] = []
+    if sha is None:
         url = ""
+        reason = "outside a git checkout" if root is None else "in a checkout with no resolvable HEAD commit"
         warnings.append(
             ContractWarning(
                 code=Code.NO_SOURCE_URL.name,
-                message="Source file is outside a git checkout, so no URL can be derived.",
+                message=f"Source file is {reason}, so no URL can be derived.",
                 context=f"path={native_id!r}",
             )
         )
     else:
-        native_id = file_path.resolve().relative_to(root).as_posix()
-        url = f"https://github.com/{repository.full_name}/blob/HEAD/{native_id}"
+        url = blob_url(repository.server_url, repository.organization_name, repository.repository_name, sha, native_id)
 
     source_ref = SourceRef(
         system="GitHub",
@@ -161,12 +194,66 @@ def with_path(warnings: list[ContractWarning], path: str) -> list[ContractWarnin
     return located
 
 
-def build_metadata(repositories: list[SourceRepository], cardinality: Cardinality) -> Metadata:
+def source_context(input_name: str, index: int, repository: SourceRepository) -> str:
+    """
+    The warning context naming one configured source: its `*-repositories` entry and its repository.
+
+    @param input_name: The mode's `*-repositories` input.
+    @param index: The entry's position in that input.
+    @param repository: The entry's repository.
+    @return: E.g. `input='ui-tests-repositories' entry=1 repository='org/repo'`.
+    """
+    return f"input={input_name!r} entry={index} repository={repository.full_name!r}"
+
+
+def collect_sources(
+    sources: list[tuple[str, Callable[[], int]]], allow_partial: bool
+) -> tuple[list[ContractWarning], list[int]]:
+    """
+    Collect each configured source on its own, then decide the mode once every source was tried (R13).
+
+    By default any failed source fails the mode. With `allow_partial`, each failed source is a `SOURCE_UNAVAILABLE`
+    warning and the mode goes on without it, unless every source failed. A source that answers with zero entities
+    is an `EMPTY_SOURCE` warning.
+
+    @param sources: Each source's context (`source_context`) and its collect function, which returns the count of
+        entities the source answered with, or raises a `ContractError` before it collects anything.
+    @param allow_partial: The `allow-partial` input.
+    @return: The source warnings, in source order, and the positions of the failed sources in `sources`.
+    @raise ContractError: `SOURCE_UNAVAILABLE` when the mode fails.
+    """
+    warnings: list[ContractWarning] = []
+    failed: list[int] = []
+    for index, (context, collect) in enumerate(sources):
+        try:
+            answered = collect()
+        except ContractError as e:
+            failed.append(index)
+            failure = ContractError(e.code, e.message, context)
+            if allow_partial:
+                logger.warning("%s", failure)
+                warnings.append(ContractWarning(code=e.code.name, message=e.message, context=context))
+            else:
+                logger.error("%s", failure)
+            continue
+        if answered == 0:
+            warnings.append(
+                ContractWarning(
+                    code=Code.EMPTY_SOURCE.name, message="Source answered with zero entities.", context=context
+                )
+            )
+    if failed and (not allow_partial or len(failed) == len(sources)):
+        raise ContractError(Code.SOURCE_UNAVAILABLE, f"{len(failed)} of {len(sources)} configured sources failed.")
+    return warnings, failed
+
+
+def build_metadata(project_id: str, repositories: list[SourceRepository], cardinality: Cardinality) -> Metadata:
     """
     Build the metadata envelope of a collector artifact. `write_artifact` recomputes `stats` from the
     records, keeping only the caller-owned counters of `cardinality`.
 
-    @param repositories: The configured repositories the artifact documents.
+    @param project_id: The `project-id` input, validated at start.
+    @param repositories: The repositories the artifact documents: those of the configured sources that answered.
     @param cardinality: The caller-owned counters: sources configured/failed, unresolved refs, skipped entities.
     @return: The metadata envelope.
     """
@@ -186,7 +273,7 @@ def build_metadata(repositories: list[SourceRepository], cardinality: Cardinalit
             sha=os.getenv("GITHUB_SHA"),
         ),
         source=Source(
-            project_id=DEFAULT_PROJECT_ID,
+            project_id=project_id,
             systems=["GitHub"],
             organizations=sorted({repository.organization_name for repository in repositories}),
             repositories=sorted({repository.full_name for repository in repositories}),
@@ -238,15 +325,15 @@ def store_artifact(result: ContractResult, output_dir: str, file_name: str) -> b
 
 def collect_artifact(build_result: Callable[[], ContractResult], output_dir: str, file_name: str, mode: str) -> bool:
     """
-    Run one mode: clear its output directory, build its contract result and write it. A result that fails
-    contract validation, while being built or in `write_artifact`, leaves no output file - not even a previous
-    run's.
+    Run one mode: clear its output directory, build its contract result and write it. A mode that fails - a
+    failed source (R13), or a result that fails contract validation while being built or in `write_artifact` -
+    leaves no output file, not even a previous run's.
 
     @param build_result: The mode collector's entry point.
     @param output_dir: The mode's output directory.
     @param file_name: The artifact's file name.
     @param mode: The mode's name, for the log.
-    @return: True when the artifact was written, False on a validation or write failure.
+    @return: True when the artifact was written, False on a source, validation or write failure.
     """
     if not clear_output_dir(output_dir):
         return False
@@ -254,5 +341,8 @@ def collect_artifact(build_result: Callable[[], ContractResult], output_dir: str
         result = build_result()
     except ValidationError as e:
         logger.error("The `%s` result fails contract validation, nothing written: %s", mode, e)
+        return False
+    except ContractError as e:
+        logger.error("The `%s` mode failed, nothing written: %s", mode, e)
         return False
     return store_artifact(result, output_dir, file_name)

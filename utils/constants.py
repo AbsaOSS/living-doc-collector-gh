@@ -44,7 +44,24 @@ def get_package_version() -> str:
         return "unknown"
 
 
+def input_name(key: str) -> str:
+    """
+    An action input's name as a workflow writes it, for messages.
+
+    @param key: The input's key, e.g. `DOC_SOURCE_REPOSITORIES`.
+    @return: The input's name, e.g. `doc-source-repositories`.
+    """
+    return key.lower().replace("_", "-")
+
+
 VERBOSE_LOGGING = "VERBOSE_LOGGING"
+PROJECT_ID = "PROJECT_ID"
+OUTPUT_PATH = "OUTPUT_PATH"
+ALLOW_PARTIAL = "ALLOW_PARTIAL"
+GITHUB_SERVER_URL = "GITHUB_SERVER_URL"
+
+# The root of every mode's output directory when `output-path` is not set.
+DEFAULT_OUTPUT_PATH = "./output/collector-gh"
 
 # doc-issues mode Action inputs
 DOC_ISSUES_PROJECT_STATE_MINING = "DOC_ISSUES_PROJECT_STATE_MINING"
@@ -68,8 +85,7 @@ class Mode(Enum):
     UI_TESTS = "UI_TESTS"
 
 
-# Regime output paths
-DOC_ISSUES_OUTPUT_PATH = "./output/doc-issues"
+# Regime output directories, under `output-path`
 DOC_SOURCE_OUTPUT_PATH = "doc-source"
 UI_TESTS_OUTPUT_PATH = "ui-tests"
 

@@ -2,7 +2,7 @@
 
 - [Project Setup](#project-setup)
 - [Quality Gate (Makefile)](#quality-gate-makefile)
-- [SSL / TLS Certificate Verification](#ssl--tls-certificate-verification)
+- [Run the Action Locally](#run-the-action-locally)
 - [Run Pylint Check Locally](#run-pylint-check-locally)
 - [Run Black Tool Locally](#run-black-tool-locally)
 - [Run mypy Tool Locally](#run-mypy-tool-locally)
@@ -67,38 +67,10 @@ The sections below explain each tool in more detail; the raw commands they show 
 what the corresponding `make` target runs under the hood.
 
 ---
-## SSL / TLS Certificate Verification
+## Run the Action Locally
 
-For environments with SSL/TLS interception (e.g., corporate proxies, Zscaler), you need to provide a custom CA bundle.
-
-### Using Custom CA Bundle
-
-Set the `REQUESTS_CA_BUNDLE` environment variable to the path of your CA certificate file:
-
-```shell
-export REQUESTS_CA_BUNDLE=/path/to/corporate-ca.pem
-```
-
-The Python `requests` library and GitHub API client will use this bundle to verify HTTPS connections.
-If not set, the system default CA bundle will be used.
-
-### Example with run_script.sh
-
-The provided `run_script.sh` helper script handles CA bundle setup automatically:
-
-```shell
-# Set the path to your corporate CA certificate
-export SSL_CERT_FILE=/path/to/corporate-ca.pem
-
-# Run the script (it will combine certifi's CA bundle with your corporate CA)
-./run_script.sh
-```
-
-The script exports `REQUESTS_CA_BUNDLE` with a combined CA bundle (system CAs + your corporate CA).
-
----
-
-If you need to run the scripts locally, follow these steps:
+The `doc-source` and `ui-tests` modes read local checkouts only: a local run makes no network request and needs
+no token. If you need to run the scripts locally, follow these steps:
 
 ### Create the Shell Script
 
@@ -115,10 +87,11 @@ Add the shebang line at the top of the sh script file.
 
 Set the configuration environment variables in the shell script following the structure below.
 The collector supports mining in multiple modes, so you can use just the environment variables you need.
-Also make sure that the INPUT_GITHUB_TOKEN is configured in your environment variables.
+`INPUT_PROJECT_ID` is required; the artifacts land under `INPUT_OUTPUT_PATH` (default `./output/collector-gh`).
 ```
 # Essential environment variables for GitHub Action functionality
-export INPUT_GITHUB_TOKEN=$(printenv GITHUB_TOKEN)
+export INPUT_PROJECT_ID=aul
+export INPUT_OUTPUT_PATH=./output/collector-gh
 export INPUT_VERBOSE_LOGGING=true
 ```
 
@@ -166,7 +139,7 @@ The whole script should look like this example:
 #!/bin/sh
 
 # Essential environment variables for GitHub Action functionality
-export INPUT_GITHUB_TOKEN=$(printenv GITHUB_TOKEN)
+export INPUT_PROJECT_ID=aul
 export INPUT_VERBOSE_LOGGING=true
 
 # Environment variables for 'doc-source' mode functionality

@@ -53,12 +53,11 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      # No token: both modes read the local checkout and make no GitHub API call.
       - name: Run collector on the committed fixtures
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           FIXTURES="${GITHUB_WORKSPACE}/tests/fixtures"
-          export INPUT_GITHUB_TOKEN="${GITHUB_TOKEN}"
+          export INPUT_PROJECT_ID="living-doc-collector-gh"
           export INPUT_DOC_SOURCE="true"
           export INPUT_DOC_SOURCE_REPOSITORIES="[{\"organization-name\": \"AbsaOSS\", \"repository-name\": \"living-doc-collector-gh\", \"us-paths\": [\"${FIXTURES}/golden/gherkin/liv_doc_us\"], \"func-paths\": [\"${FIXTURES}/golden/gherkin/liv_doc_func\"], \"pages-paths\": [\"${FIXTURES}/golden/pageobject\"]}]"
           export INPUT_UI_TESTS="true"
@@ -70,20 +69,30 @@ jobs:
       - name: Validate the artifacts against their contracts
         run: |
           python3 << 'EOF'
+          import subprocess
+
           from living_doc_utilities.contracts.doc_source import DocSourceResult
           from living_doc_utilities.contracts.io import read_artifact
           from living_doc_utilities.contracts.ui_tests import UITestsResult
 
-          doc_source = read_artifact("./output/doc-source/doc-source.json", "doc-source")
+          head = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, check=True, text=True).stdout.strip()
+          permalink = f"https://github.com/AbsaOSS/living-doc-collector-gh/blob/{head}/"
+
+          doc_source = read_artifact("./output/collector-gh/doc-source/doc-source.json", "doc-source")
           assert isinstance(doc_source, DocSourceResult)
           assert doc_source.metadata.producer.name == "AbsaOSS/living-doc-collector-gh"
-          ids = sorted(e.entity_id for e in [*doc_source.user_stories, *doc_source.features, *doc_source.functionalities])
+          assert doc_source.metadata.source.project_id == "living-doc-collector-gh"
+          entities = [*doc_source.user_stories, *doc_source.features, *doc_source.functionalities]
+          ids = sorted(e.entity_id for e in entities)
           assert ids == ["FEAT-001", "FEAT-003", "FUNC-001", "FUNC-002", "US-001"], ids
+          assert all(e.source_ref.url.startswith(permalink) for e in entities), [e.source_ref.url for e in entities]
           print(f"✓ doc-source: {len(ids)} entities, {len(doc_source.warnings)} warning(s)")
 
-          ui_tests = read_artifact("./output/ui-tests/ui-tests.json", "ui-tests")
+          ui_tests = read_artifact("./output/collector-gh/ui-tests/ui-tests.json", "ui-tests")
           assert isinstance(ui_tests, UITestsResult)
+          assert ui_tests.metadata.source.project_id == "living-doc-collector-gh"
           assert ui_tests.scenarios, "no scenario collected"
+          assert all(s.source_ref.url.startswith(permalink) for s in ui_tests.scenarios)
           print(f"✓ ui-tests: {len(ui_tests.scenarios)} scenarios, {len(ui_tests.warnings)} warning(s)")
           EOF
 
@@ -92,5 +101,5 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: integration-test-output
-          path: ./output/
+          path: ./output/collector-gh/
           retention-days: 7

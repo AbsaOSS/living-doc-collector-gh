@@ -16,6 +16,7 @@
 from pathlib import Path
 
 import pytest
+from living_doc_utilities.contracts.codes import Code, ContractError
 from living_doc_utilities.contracts.doc_source import DocSourceResult
 from living_doc_utilities.contracts.envelope import Source
 from living_doc_utilities.contracts.io import read_artifact
@@ -91,18 +92,23 @@ def _write(path, text):
     return path
 
 
+def _entry(repo_dir, repository_name="aul-ui"):
+    """A repository entry scanning `us`, `func` and `pages` under `repo_dir`, each created: a missing configured
+    path fails its source."""
+    for name in ("us", "func", "pages"):
+        (repo_dir / name).mkdir(parents=True, exist_ok=True)
+    return {
+        "organization-name": "absa-group",
+        "repository-name": repository_name,
+        "us-paths": [str(repo_dir / "us")],
+        "func-paths": [str(repo_dir / "func")],
+        "pages-paths": [str(repo_dir / "pages")],
+    }
+
+
 def _configure(mocker, repo_dir):
     mocker.patch(
-        "doc_source.collector.ActionInputs.get_doc_source_repositories",
-        return_value=[
-            {
-                "organization-name": "absa-group",
-                "repository-name": "aul-ui",
-                "us-paths": [str(repo_dir / "us")],
-                "func-paths": [str(repo_dir / "func")],
-                "pages-paths": [str(repo_dir / "pages")],
-            }
-        ],
+        "doc_source.collector.ActionInputs.get_doc_source_repositories", return_value=[_entry(repo_dir)]
     )
 
 
@@ -148,7 +154,7 @@ def test_collect_writes_a_valid_artifact_read_back_as_the_contract_model(tmp_pat
     data = artifact.model_dump(mode="json")
     assert data["schema_version"] == "doc-source-v1.0.0"
     assert set(data) == {"schema_version", "metadata", "warnings", "user_stories", "features", "functionalities"}
-    assert data["metadata"]["source"]["project_id"] == "unset-project"
+    assert data["metadata"]["source"]["project_id"] == "test-project"
     assert data["metadata"]["source"]["repositories"] == ["absa-group/aul-ui"]
     assert data["metadata"]["stats"]["cardinality"]["entities"] == 3
     assert data["metadata"]["stats"]["cardinality"]["sources_configured"] == 1
@@ -172,8 +178,8 @@ def test_collect_validation_failure_leaves_no_output_file(tmp_path, mocker):
     _configure(mocker, tmp_path / "repo")
     stale = _write(tmp_path / "output" / "doc-source" / "doc-source.json", "{}")
 
-    def invalid_metadata(repositories, cardinality):
-        metadata = build_metadata(repositories, cardinality)
+    def invalid_metadata(project_id, repositories, cardinality):
+        metadata = build_metadata(project_id, repositories, cardinality)
         # Bypasses model validation, so only write_artifact's own schema validation can catch it.
         metadata.source = Source.model_construct(project_id="Not A Valid Id", systems=["GitHub"])
         return metadata
@@ -254,15 +260,16 @@ def test_entity_without_parseable_id_is_skipped_and_reported(tmp_path, mocker):
     assert len(missing) == 1
     assert missing[0].context.startswith("path='no_id.feature' ")
     assert "title='Story without an id'" in missing[0].context
+    assert not [w for w in result.warnings if w.code == "EMPTY_SOURCE"]  # a skipped entity is still an answer
 
 
 # source_ref
 
 
-def test_source_ref_points_at_the_file_in_its_repository(tmp_path, mocker):
+def test_source_ref_points_at_the_file_in_its_repository(tmp_path, mocker, git_checkout):
     # Arrange
     repo_dir = tmp_path / "repo"
-    (repo_dir / ".git").mkdir(parents=True)
+    sha = git_checkout(repo_dir)
     _write_entity_set(repo_dir)
     _configure(mocker, repo_dir)
 
@@ -274,10 +281,66 @@ def test_source_ref_points_at_the_file_in_its_repository(tmp_path, mocker):
     assert story_ref.system == "GitHub"
     assert story_ref.native_id == "us/story_1.feature"
     assert story_ref.native_type == "feature-file"
-    assert story_ref.url == "https://github.com/absa-group/aul-ui/blob/HEAD/us/story_1.feature"
+    assert story_ref.url == f"https://github.com/absa-group/aul-ui/blob/{sha}/us/story_1.feature"
     assert story_ref.tracker_state == "committed"
     assert result.features[0].source_ref.native_type == "page-object"
+    assert result.features[0].source_ref.url == (
+        f"https://github.com/absa-group/aul-ui/blob/{sha}/pages/Feature1Page.ts"
+    )
     assert not [w for w in result.warnings if w.code == "NO_SOURCE_URL"]
+
+
+@pytest.mark.parametrize("server", ["https://ghe.example", "https://ghe.example/"], ids=["plain", "trailing-slash"])
+def test_source_ref_url_is_on_the_configured_github_server(tmp_path, mocker, monkeypatch, git_checkout, server):
+    # Arrange
+    repo_dir = tmp_path / "repo"
+    sha = git_checkout(repo_dir)
+    _write_entity_set(repo_dir)
+    _configure(mocker, repo_dir)
+    monkeypatch.setenv("INPUT_GITHUB_SERVER_URL", server)
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    assert result.user_stories[0].source_ref.url == (
+        f"https://ghe.example/absa-group/aul-ui/blob/{sha}/us/story_1.feature"
+    )
+    assert result.functionalities[0].source_ref.url == (
+        f"https://ghe.example/absa-group/aul-ui/blob/{sha}/func/func_1.feature"
+    )
+
+
+def test_source_ref_in_a_checkout_with_no_resolvable_commit_reports_no_source_url(tmp_path, mocker):
+    # Arrange: a fake, empty `.git` directory - git resolves no HEAD commit there.
+    repo_dir = tmp_path / "repo"
+    (repo_dir / ".git").mkdir(parents=True)
+    _write_entity_set(repo_dir)
+    _configure(mocker, repo_dir)
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    story_ref = result.user_stories[0].source_ref
+    assert story_ref.url == ""
+    assert story_ref.native_id == "us/story_1.feature"
+    no_url = [w.context for w in result.warnings if w.code == "NO_SOURCE_URL"]
+    assert sorted(no_url) == ["path='func/func_1.feature'", "path='pages/Feature1Page.ts'", "path='us/story_1.feature'"]
+
+
+def test_invalid_github_server_url_fails_the_build(tmp_path, mocker, monkeypatch):
+    # Arrange
+    _configure(mocker, tmp_path / "repo")
+    monkeypatch.setenv("INPUT_GITHUB_SERVER_URL", "ghe.example")
+
+    # Act
+    with pytest.raises(ContractError) as error:
+        GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    assert error.value.code == Code.INVALID_CONFIGURATION
+    assert "`github-server-url`" in error.value.message
 
 
 def test_source_ref_outside_a_git_checkout_reports_no_source_url(tmp_path, mocker):
@@ -327,6 +390,7 @@ def test_cross_reference_page_without_its_feature_is_reported(tmp_path, mocker):
     unresolved = [w for w in result.warnings if w.code == "UNRESOLVED_RELATION"]
     assert [w.context for w in unresolved] == ["path='Feature7DetailsPage.ts' target='FEAT-7'"]
     assert result.metadata.stats.cardinality.unresolved_refs == 1
+    assert not [w for w in result.warnings if w.code == "EMPTY_SOURCE"]  # a cross-reference page is an answer
 
 
 def test_typescript_file_without_header_is_ignored(tmp_path, mocker):
@@ -338,9 +402,9 @@ def test_typescript_file_without_header_is_ignored(tmp_path, mocker):
     # Act
     result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
 
-    # Assert
+    # Assert: code is no entity, so the source answered with none.
     assert result.features == []
-    assert result.warnings == []
+    assert [w.code for w in result.warnings] == ["EMPTY_SOURCE"]
     assert result.metadata.stats.cardinality.entities_skipped == 0
 
 
@@ -361,9 +425,9 @@ def test_typescript_file_whose_first_comment_is_not_a_header_is_ignored(tmp_path
     # Act
     result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
 
-    # Assert
+    # Assert: code is no entity, so the source answered with none.
     assert result.features == []
-    assert result.warnings == []
+    assert [w.code for w in result.warnings] == ["EMPTY_SOURCE"]
     assert result.metadata.stats.cardinality.entities_skipped == 0
 
 
@@ -423,21 +487,35 @@ def test_non_utf8_file_is_skipped(tmp_path, mocker):
     assert mock_log_warning.call_args.args[0] == "Could not read file `%s`: %s - skipping."
 
 
-def test_invalid_repository_configuration_is_logged_and_skipped(tmp_path, mocker):
+def test_invalid_repository_configuration_raises_invalid_configuration(tmp_path, mocker):
     # Arrange
     mocker.patch(
         "doc_source.collector.ActionInputs.get_doc_source_repositories",
         return_value=[{"organization-name": "absa-group"}],
     )
-    mock_log_error = mocker.patch("utils.utils.logger.error")
 
     # Act
-    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+    with pytest.raises(ContractError) as error:
+        GHDocSourceCollector(str(tmp_path / "output")).build_result()
 
     # Assert
-    assert result.metadata.stats.cardinality.sources_configured == 1
-    assert result.metadata.stats.cardinality.sources_failed == 1
-    mock_log_error.assert_called_once()
+    assert error.value.code == Code.INVALID_CONFIGURATION
+    assert error.value.message == "`doc-source-repositories` entry 0 is malformed: missing key `repository-name`."
+
+
+def test_invalid_repository_configuration_fails_collect_with_no_output_file(tmp_path, mocker):
+    # Arrange
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[{"organization-name": "absa-group"}],
+    )
+
+    # Act
+    actual = GHDocSourceCollector(str(tmp_path / "output")).collect()
+
+    # Assert
+    assert actual is False
+    assert not (tmp_path / "output" / "doc-source").exists()
 
 
 def test_entity_the_contract_rejects_is_skipped_and_the_run_continues(tmp_path, mocker):
@@ -496,3 +574,148 @@ def test_reference_to_a_rejected_entity_is_reported_unresolved(tmp_path, mocker)
     assert "entity_id='FEAT-1' target='US-1'" in unresolved
     assert result.metadata.stats.cardinality.unresolved_refs == len(unresolved)
     assert result.metadata.stats.cardinality.entities_skipped == 1
+
+
+# project-id
+
+
+def test_collect_writes_the_configured_project_id(tmp_path, mocker, monkeypatch):
+    # Arrange
+    _write_entity_set(tmp_path / "repo")
+    _configure(mocker, tmp_path / "repo")
+    monkeypatch.setenv("INPUT_PROJECT_ID", "aul-docs-7")
+
+    # Act
+    assert GHDocSourceCollector(str(tmp_path / "output")).collect() is True
+
+    # Assert
+    artifact = read_artifact(tmp_path / "output" / "doc-source" / "doc-source.json", "doc-source")
+    assert artifact.metadata.source.project_id == "aul-docs-7"
+
+
+# per-source failures (R13)
+
+
+def _configure_two_sources(mocker, tmp_path):
+    """Entry 0 holds a full entity set; entry 1 holds a story, but its `func` path is missing."""
+    _write_entity_set(tmp_path / "repo_a")
+    entry_b = _entry(tmp_path / "repo_b", repository_name="aul-api")
+    _write(tmp_path / "repo_b" / "us" / "story_2.feature", US_FEATURE_TEMPLATE.format(num=2))
+    (tmp_path / "repo_b" / "func").rmdir()
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[_entry(tmp_path / "repo_a"), entry_b],
+    )
+    return tmp_path / "repo_b" / "func"
+
+
+def test_a_source_with_a_missing_path_fails_the_mode(tmp_path, mocker):
+    # Arrange
+    missing = _configure_two_sources(mocker, tmp_path)
+    mock_log_error = mocker.patch("utils.artifact.logger.error")
+
+    # Act
+    with pytest.raises(ContractError) as error:
+        GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    assert error.value.code == Code.SOURCE_UNAVAILABLE
+    assert error.value.message == "1 of 2 configured sources failed."
+    assert [str(call.args[1]) for call in mock_log_error.call_args_list] == [
+        f"[SOURCE_UNAVAILABLE] Configured path `{missing}` does not exist or is not a directory. "
+        "(input='doc-source-repositories' entry=1 repository='absa-group/aul-api')"
+    ]
+
+
+def test_a_failed_source_leaves_no_output_file(tmp_path, mocker):
+    # Arrange
+    _configure_two_sources(mocker, tmp_path)
+    stale = _write(tmp_path / "output" / "doc-source" / "doc-source.json", "{}")
+
+    # Act
+    actual = GHDocSourceCollector(str(tmp_path / "output")).collect()
+
+    # Assert
+    assert actual is False
+    assert not stale.exists()
+    assert not (tmp_path / "output" / "doc-source").exists()
+
+
+def test_allow_partial_writes_only_the_sources_that_answered(tmp_path, mocker, monkeypatch):
+    # Arrange: entry 1's story exists, but its source failed, so it adds nothing.
+    _configure_two_sources(mocker, tmp_path)
+    monkeypatch.setenv("INPUT_ALLOW_PARTIAL", "true")
+
+    # Act
+    assert GHDocSourceCollector(str(tmp_path / "output")).collect() is True
+
+    # Assert
+    artifact = read_artifact(tmp_path / "output" / "doc-source" / "doc-source.json", "doc-source")
+    assert [e.entity_id for e in artifact.user_stories] == ["US-1"]
+    assert [e.entity_id for e in artifact.functionalities] == ["FUNC-1"]
+    assert [e.entity_id for e in artifact.features] == ["FEAT-1"]
+    unavailable = [w for w in artifact.warnings if w.code == "SOURCE_UNAVAILABLE"]
+    assert [w.context for w in unavailable] == [
+        "input='doc-source-repositories' entry=1 repository='absa-group/aul-api'"
+    ]
+    assert artifact.warnings[0] == unavailable[0]
+    assert artifact.metadata.stats.cardinality.sources_configured == 2
+    assert artifact.metadata.stats.cardinality.sources_failed == 1
+    assert artifact.metadata.source.repositories == ["absa-group/aul-ui"]
+
+
+def test_allow_partial_puts_source_warnings_before_parse_warnings(tmp_path, mocker, monkeypatch):
+    # Arrange: entry 0 fails; entry 1 answers with a story that has no parseable id.
+    _write(
+        tmp_path / "repo_b" / "us" / "no_id.feature",
+        US_FEATURE_TEMPLATE.format(num=1).replace("US-1 · Story 1", "Story without an id"),
+    )
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[
+            {"organization-name": "absa-group", "repository-name": "gone", "us-paths": [str(tmp_path / "gone")]},
+            _entry(tmp_path / "repo_b"),
+        ],
+    )
+    monkeypatch.setenv("INPUT_ALLOW_PARTIAL", "true")
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    assert [w.code for w in result.warnings] == ["SOURCE_UNAVAILABLE", "MISSING_ENTITY_ID"]
+    assert result.warnings[0].context == "input='doc-source-repositories' entry=0 repository='absa-group/gone'"
+
+
+def test_allow_partial_still_fails_when_every_source_failed(tmp_path, mocker, monkeypatch):
+    # Arrange
+    mocker.patch(
+        "doc_source.collector.ActionInputs.get_doc_source_repositories",
+        return_value=[
+            {"organization-name": "absa-group", "repository-name": "a", "us-paths": [str(tmp_path / "missing_a")]},
+            {"organization-name": "absa-group", "repository-name": "b", "us-paths": [str(tmp_path / "missing_b")]},
+        ],
+    )
+    monkeypatch.setenv("INPUT_ALLOW_PARTIAL", "true")
+
+    # Act
+    actual = GHDocSourceCollector(str(tmp_path / "output")).collect()
+
+    # Assert
+    assert actual is False
+    assert not (tmp_path / "output" / "doc-source").exists()
+
+
+def test_existing_but_empty_source_is_reported_empty_source(tmp_path, mocker):
+    # Arrange: every configured directory exists, and none holds a source file.
+    _configure(mocker, tmp_path / "repo")
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    assert result.user_stories == result.functionalities == result.features == []
+    assert [(w.code, w.context) for w in result.warnings] == [
+        ("EMPTY_SOURCE", "input='doc-source-repositories' entry=0 repository='absa-group/aul-ui'")
+    ]
+    assert result.metadata.stats.cardinality.sources_failed == 0

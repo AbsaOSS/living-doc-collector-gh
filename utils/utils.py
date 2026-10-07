@@ -23,6 +23,8 @@ import os
 import re
 from typing import Callable, Optional, Protocol, TypeVar
 
+from living_doc_utilities.contracts.codes import Code, ContractError
+
 from utils.exceptions import InvalidQueryFormatError
 
 logger = logging.getLogger(__name__)
@@ -31,49 +33,76 @@ logger = logging.getLogger(__name__)
 class LoadableConfig(Protocol):  # pylint: disable=too-few-public-methods
     """A mode's repository configuration, loaded from one entry of its `*-repositories` input."""
 
-    def load_from_json(self, repository_json: dict) -> bool:
-        """Load the configuration from one JSON entry; False when the entry is invalid."""
+    def load_from_json(self, repository_json: dict) -> None:
+        """Load the configuration from one JSON entry; raise ValueError naming the reason when it is malformed."""
 
 
 ConfigT = TypeVar("ConfigT", bound=LoadableConfig)
 
 
-def has_string_names(repository_json: dict) -> bool:
+def check_repository_names(repository_json: object) -> tuple[str, str]:
     """
-    Check that a repository entry's `organization-name` and `repository-name` are non-empty strings with no `/`;
-    the artifact's `metadata.source` lists them (`<organization>/<repository>`), so any other value would fail the
-    whole run.
+    Check that a repository entry is a JSON object whose `organization-name` and `repository-name` are non-empty
+    strings with no `/`; the artifact's `metadata.source` lists them (`<organization>/<repository>`).
 
     @param repository_json: One entry of a mode's `*-repositories` input.
-    @return: True when both names are non-empty strings with no `/`; otherwise the entry is logged as invalid.
+    @return: The organization name and the repository name.
+    @raise ValueError: When the entry is not an object, a name is missing, or a name is not such a string.
     """
+    if not isinstance(repository_json, dict):
+        raise ValueError(f"the entry must be a JSON object, got {repository_json!r}")
+    names = []
     for key in ("organization-name", "repository-name"):
+        if key not in repository_json:
+            raise ValueError(f"missing key `{key}`")
         value = repository_json[key]
         if not isinstance(value, str) or not value or "/" in value:
-            logger.error("The repository JSON input `%s` must be a non-empty string with no `/`, got %r.", key, value)
-            return False
-    return True
+            raise ValueError(f"`{key}` must be a non-empty string with no `/`, got {value!r}")
+        names.append(value)
+    return names[0], names[1]
+
+
+def get_path_list(repository_json: dict, key: str, required: bool = True) -> list[str]:
+    """
+    Read one path list of a repository entry.
+
+    @param repository_json: One entry of a mode's `*-repositories` input, already checked to be an object.
+    @param key: The path list's key, e.g. `paths`.
+    @param required: When False, a missing key reads as an empty list.
+    @return: The configured paths.
+    @raise ValueError: When a required key is missing, or the value is not a list of strings.
+    """
+    if key not in repository_json:
+        if required:
+            raise ValueError(f"missing key `{key}`")
+        return []
+    value = repository_json[key]
+    if not isinstance(value, list) or not all(isinstance(path, str) for path in value):
+        raise ValueError(f"`{key}` must be a list of path strings, got {value!r}")
+    return value
 
 
 def load_repository_configs(
-    repository_jsons: list[dict], config_factory: Callable[[], ConfigT], mode: str
-) -> tuple[list[ConfigT], int]:
+    repository_jsons: list[dict], config_factory: Callable[[], ConfigT], input_name: str
+) -> list[ConfigT]:
     """
-    Load a mode's configured repositories; an entry that fails to load is logged and skipped.
+    Load a mode's configured repositories. A malformed entry is a configuration error, so the run fails at start.
 
     @param repository_jsons: The entries of the mode's `*-repositories` input.
     @param config_factory: Creates an empty configuration of the mode.
-    @param mode: The mode's name, for the log.
-    @return: The loaded configurations and the count of entries that failed to load.
+    @param input_name: The mode's `*-repositories` input, for the error.
+    @return: The loaded configurations, one per entry, in input order.
+    @raise ContractError: `INVALID_CONFIGURATION` naming the input, the entry and the reason.
     """
     repositories: list[ConfigT] = []
-    for repository_json in repository_jsons:
+    for index, repository_json in enumerate(repository_jsons):
         config = config_factory()
-        if config.load_from_json(repository_json):
-            repositories.append(config)
-        else:
-            logger.error("Failed to load %s repository from JSON: %s.", mode, repository_json)
-    return repositories, len(repository_jsons) - len(repositories)
+        try:
+            config.load_from_json(repository_json)
+        except ValueError as e:
+            raise ContractError(Code.INVALID_CONFIGURATION, f"`{input_name}` entry {index} is malformed: {e}.") from e
+        repositories.append(config)
+    return repositories
 
 
 def sanitize_filename(filename: str) -> str:

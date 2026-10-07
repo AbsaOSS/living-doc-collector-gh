@@ -102,11 +102,11 @@ Repo specifics
   - Prefer `README.md` for user-facing usage and examples, the mode docs (`doc_source/README.md`, `ui_tests/README.md`; `doc_issues/README.md` while the mode is PLANNED) for mode-specific behavior, and `DEVELOPER.md` for local-dev workflow.
 - Contract-sensitive outputs
   - Action output key `output-path` (set via `set_action_output`, exposed by `action.yml`).
-  - Per-mode output sub-paths in `utils/constants.py` (`DOC_ISSUES_OUTPUT_PATH`, `DOC_SOURCE_OUTPUT_PATH`, `UI_TESTS_OUTPUT_PATH`).
+  - Per-mode output sub-paths in `utils/constants.py` (`DOC_SOURCE_OUTPUT_PATH`, `UI_TESTS_OUTPUT_PATH`, under the `output-path` input).
   - Exit codes — `0` success, `1` any failure; no `2`–`5` taxonomy.
   - The `"Liv-Doc collector for GitHub - ..."` step log strings asserted in `tests/test_main.py`.
   - Schema-versioned JSON structure emitted per mode.
 - High-risk areas
   - `INPUT_*` and repository-JSON parsing in `action_inputs.py` — malformed input and missing permission scenarios.
-  - GitHub API usage — the REST token check in `action_inputs._validate()`.
+  - GitHub addresses — built only in `utils/github_urls.py`; v0.1.0 makes no network request.
   - GitHub Actions I/O — `INPUT_*` env var inputs and `output-path` writes.

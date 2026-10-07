@@ -24,6 +24,7 @@ Feature living documentation from locally checked-out repositories and writes a
 import logging
 import os
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Optional
 
@@ -48,10 +49,12 @@ from utils.artifact import (
     build_metadata,
     build_source_ref,
     collect_artifact,
+    collect_sources,
     relative_path,
+    source_context,
     with_path,
 )
-from utils.constants import DOC_SOURCE_OUTPUT_PATH
+from utils.constants import DOC_SOURCE_OUTPUT_PATH, DOC_SOURCE_REPOSITORIES, input_name
 from utils.feature_file_discovery import discover_feature_files, discover_ts_files
 from utils.utils import load_repository_configs
 
@@ -78,6 +81,10 @@ class _Collected:
     cross_references: list[tuple[str, PageRef, str]] = field(default_factory=list)
     warnings: list[ContractWarning] = field(default_factory=list)
     entities_skipped: int = 0
+
+    def answered(self) -> int:
+        """Every entity header read so far - kept, skipped, or a cross-reference page - for `EMPTY_SOURCE`."""
+        return len(self.entities) + self.entities_skipped + len(self.cross_references)
 
 
 def _has_living_doc_header(text: str) -> bool:
@@ -119,28 +126,32 @@ class GHDocSourceCollector:
 
     def build_result(self) -> DocSourceResult:
         """
-        Parse every configured file and assemble the `doc-source-v1.0.0` result. Status derivation and
-        relation checks run over every entity of the run the contract accepts.
+        Collect each configured repository on its own (R13), then assemble the `doc-source-v1.0.0` result.
+        Status derivation and relation checks run over every entity of the run the contract accepts.
 
         @return: The contract result; `write_artifact` fills its stats.
+        @raise ContractError: `INVALID_CONFIGURATION` for an invalid input, `SOURCE_UNAVAILABLE` when the mode fails.
         """
-        configs, sources_failed = self._load_repositories()
+        configs = self._load_repositories()
+        project_id = ActionInputs.get_project_id()
+        server = ActionInputs.get_github_server_url()
+        repositories = [SourceRepository(c.organization_name, c.repository_name, server) for c in configs]
         collected = _Collected()
-        for config in configs:
-            repository = SourceRepository(config.organization_name, config.repository_name)
-            for file_path in discover_feature_files(config.paths):
-                self._collect_feature_file(collected, repository, file_path, config.paths, "DocumentedUserStory")
-            for file_path in discover_feature_files(config.func_paths):
-                self._collect_feature_file(
-                    collected, repository, file_path, config.func_paths, "DocumentedFunctionality"
+        source_warnings, failed = collect_sources(
+            [
+                (
+                    source_context(input_name(DOC_SOURCE_REPOSITORIES), index, repository),
+                    partial(self._collect_source, collected, repository, config),
                 )
-            for file_path in discover_ts_files(config.pages_paths):
-                self._collect_page_object(collected, repository, file_path, config.pages_paths)
+                for index, (config, repository) in enumerate(zip(configs, repositories, strict=True))
+            ],
+            ActionInputs.is_allow_partial_enabled(),
+        )
 
         self._attach_cross_references(collected)
         derived, entities, status_warnings = self._derive_accepted(collected)
         relation_warnings = check_relations(derived)
-        warnings = collected.warnings + status_warnings + relation_warnings
+        warnings = source_warnings + collected.warnings + status_warnings + relation_warnings
 
         roots: dict[DocType, list[Entity]] = {
             "DocumentedUserStory": [],
@@ -152,10 +163,12 @@ class GHDocSourceCollector:
 
         return DocSourceResult(
             metadata=build_metadata(
-                [SourceRepository(c.organization_name, c.repository_name) for c in configs],
+                project_id,
+                # Only the repositories the artifact documents; a failed source stays a warning.
+                [repository for index, repository in enumerate(repositories) if index not in failed],
                 Cardinality(
-                    sources_configured=len(configs) + sources_failed,
-                    sources_failed=sources_failed,
+                    sources_configured=len(configs),
+                    sources_failed=len(failed),
                     unresolved_refs=sum(1 for w in warnings if w.code == Code.UNRESOLVED_RELATION.name),
                     entities_skipped=collected.entities_skipped,
                 ),
@@ -167,9 +180,31 @@ class GHDocSourceCollector:
         )
 
     @staticmethod
-    def _load_repositories() -> tuple[list[ConfigRepository], int]:
-        """Load configured repositories from action inputs; return them with the count that failed to load."""
-        return load_repository_configs(ActionInputs.get_doc_source_repositories(), ConfigRepository, "doc-source")
+    def _load_repositories() -> list[ConfigRepository]:
+        """Load configured repositories from action inputs; a malformed entry raises `INVALID_CONFIGURATION`."""
+        return load_repository_configs(
+            ActionInputs.get_doc_source_repositories(), ConfigRepository, input_name(DOC_SOURCE_REPOSITORIES)
+        )
+
+    def _collect_source(self, collected: _Collected, repository: SourceRepository, config: ConfigRepository) -> int:
+        """
+        Collect one configured repository into `collected`. Every configured path is discovered first, so a source
+        with a missing path fails before it adds anything.
+
+        @return: The count of entity headers the source answered with, kept or skipped.
+        @raise ContractError: `SOURCE_UNAVAILABLE` when a configured path is missing.
+        """
+        us_files = discover_feature_files(config.paths)
+        func_files = discover_feature_files(config.func_paths)
+        page_files = discover_ts_files(config.pages_paths)
+        answered_before = collected.answered()
+        for file_path in us_files:
+            self._collect_feature_file(collected, repository, file_path, config.paths, "DocumentedUserStory")
+        for file_path in func_files:
+            self._collect_feature_file(collected, repository, file_path, config.func_paths, "DocumentedFunctionality")
+        for file_path in page_files:
+            self._collect_page_object(collected, repository, file_path, config.pages_paths)
+        return collected.answered() - answered_before
 
     @staticmethod
     def _derive_accepted(

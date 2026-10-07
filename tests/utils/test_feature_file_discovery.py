@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import pytest
+from living_doc_utilities.contracts.codes import Code, ContractError
+
 from utils.feature_file_discovery import discover_feature_files, discover_ts_files
 
 
@@ -42,12 +45,28 @@ def test_no_match(tmp_path, caplog):
     assert any("No .feature files found under" in message for message in caplog.messages)
 
 
-def test_missing_local_path(tmp_path):
+def test_missing_local_path_fails_the_source(tmp_path):
+    # Arrange: the first path exists, so the missing second one must still fail.
+    missing = tmp_path / "missing"
+
     # Act
-    result = discover_feature_files([str(tmp_path / "missing")])
+    with pytest.raises(ContractError) as error:
+        discover_feature_files([str(tmp_path), str(missing)])
 
     # Assert
-    assert result == []
+    assert error.value.code == Code.SOURCE_UNAVAILABLE
+    assert error.value.message == f"Configured path `{missing}` does not exist or is not a directory."
+
+
+def test_local_path_that_is_a_file_fails_the_source(tmp_path):
+    # Arrange
+    file_path = tmp_path / "a.feature"
+    file_path.write_text("Feature: A", encoding="utf-8")
+
+    # Act & Assert
+    with pytest.raises(ContractError) as error:
+        discover_feature_files([str(file_path)])
+    assert error.value.code == Code.SOURCE_UNAVAILABLE
 
 
 def test_tutorial_directories_excluded(tmp_path):
@@ -159,12 +178,17 @@ def test_ts_no_match(tmp_path, caplog):
     assert any("No .ts files found under" in message for message in caplog.messages)
 
 
-def test_ts_missing_local_path(tmp_path):
+def test_ts_missing_local_path_fails_the_source(tmp_path):
+    # Arrange
+    missing = tmp_path / "missing"
+
     # Act
-    result = discover_ts_files([str(tmp_path / "missing")])
+    with pytest.raises(ContractError) as error:
+        discover_ts_files([str(missing)])
 
     # Assert
-    assert result == []
+    assert error.value.code == Code.SOURCE_UNAVAILABLE
+    assert error.value.message == f"Configured path `{missing}` does not exist or is not a directory."
 
 
 def test_ts_directory_match_excluded(tmp_path):
