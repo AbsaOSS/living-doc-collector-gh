@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -65,6 +66,17 @@ def test_head_commit_returns_the_checkout_s_head_sha(tmp_path, git_checkout):
     # Act & Assert
     assert head_commit(tmp_path / "repo") == sha
     assert len(sha) == 40
+
+
+def test_head_commit_follows_a_submodule_s_relative_gitdir_file(tmp_path, git_checkout):
+    # Arrange: a submodule's `.git` is a file pointing at the parent's `.git/modules/<name>` by a relative path.
+    sha = git_checkout(tmp_path / "parent" / "sub")
+    (tmp_path / "parent" / "modules").mkdir()
+    shutil.move(tmp_path / "parent" / "sub" / ".git", tmp_path / "parent" / "modules" / "sub")
+    (tmp_path / "parent" / "sub" / ".git").write_text("gitdir: ../modules/sub\n", encoding="utf-8")
+
+    # Act & Assert
+    assert head_commit(tmp_path / "parent" / "sub") == sha
 
 
 def test_head_commit_is_none_for_a_git_directory_git_cannot_resolve(tmp_path):

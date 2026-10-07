@@ -100,9 +100,10 @@ def head_commit(repo_root: Path) -> Optional[str]:
     @return: The commit SHA, or None when git cannot resolve one (no commit yet, not a git repository, no `git`).
     """
     try:
-        # `--git-dir`, not `-C`: a broken `.git` must not fall back to an enclosing repository's commit.
+        # `--git-dir`, not `-C`: a broken `.git` must not fall back to an enclosing repository's commit. `/`-separated:
+        # on Windows, git cannot follow a submodule's relative `gitdir:` from a `\`-separated `--git-dir`.
         completed = subprocess.run(
-            ["git", f"--git-dir={repo_root / '.git'}", "rev-parse", "--verify", "HEAD"],
+            ["git", f"--git-dir={(repo_root / '.git').as_posix()}", "rev-parse", "--verify", "HEAD"],
             capture_output=True,
             check=True,
             text=True,

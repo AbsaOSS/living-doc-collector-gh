@@ -527,8 +527,9 @@ def test_a_failed_mode_fails_the_run_and_no_mode_writes(e2e, monkeypatch, caplog
 
 
 @pytest.mark.parametrize("mode", ["doc-source", "ui-tests"])
-def test_allow_partial_writes_the_sources_that_answered_and_succeeds(e2e, monkeypatch, caplog, mode):
-    # Arrange
+def test_allow_partial_writes_the_sources_that_answered_and_succeeds(e2e, monkeypatch, caplog, git_checkout, mode):
+    # Arrange: the answering source is a checkout, so its records carry a URL and raise no warning of their own.
+    git_checkout(e2e / "src" / "a")
     missing = _two_sources_second_missing(monkeypatch, e2e / "src", mode)
     output_root = e2e / "output"
     monkeypatch.setenv("INPUT_OUTPUT_PATH", str(output_root))
@@ -541,11 +542,10 @@ def test_allow_partial_writes_the_sources_that_answered_and_succeeds(e2e, monkey
     # Assert
     artifact = _read(output_root, mode)
     assert _MODES[mode]["record_ids"](artifact) == _MODES[mode]["first_source_ids"]
-    unavailable = [w for w in artifact.warnings if w.code == "SOURCE_UNAVAILABLE"]
-    assert [(w.context, w.message) for w in unavailable] == [
-        (context, f"Configured path `{missing}` does not exist or is not a directory.")
+    # Exactly one warning: the failed source's `SOURCE_UNAVAILABLE`.
+    assert [(w.code, w.context, w.message) for w in artifact.warnings] == [
+        ("SOURCE_UNAVAILABLE", context, f"Configured path `{missing}` does not exist or is not a directory.")
     ]
-    assert artifact.warnings[0] == unavailable[0]
     assert artifact.metadata.stats.cardinality.sources_configured == 2
     assert artifact.metadata.stats.cardinality.sources_failed == 1
     # The failed source's repository is not documented, so the metadata does not name it.
