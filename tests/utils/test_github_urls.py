@@ -31,8 +31,9 @@ def test_server_url_defaults_to_github_com():
         ("https://ghe.example", "https://ghe.example"),
         ("https://ghe.example/", "https://ghe.example"),
         ("http://ghe.example:8080/github/", "http://ghe.example:8080/github"),
+        (" https://ghe.example/ \n", "https://ghe.example"),
     ],
-    ids=["override", "trailing-slash", "http-port-and-prefix"],
+    ids=["override", "trailing-slash", "http-port-and-prefix", "surrounding-whitespace"],
 )
 def test_server_url_returns_the_override_without_a_trailing_slash(override, expected):
     # Act & Assert

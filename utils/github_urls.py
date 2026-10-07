@@ -29,15 +29,17 @@ def server_url(override: str) -> str:
     The GitHub server the configured repositories live on.
 
     @param override: The `github-server-url` input, e.g. a GitHub Enterprise Server URL; empty for the default.
-    @return: The override without a trailing `/`, or `https://github.com` when it is empty.
-    @raise ValueError: When the override is not an http(s) URL.
+    @return: The override without surrounding whitespace or a trailing `/`, or `https://github.com` when it is
+        empty.
+    @raise ValueError: When the override is not an http(s) URL, a whitespace-only one included.
     """
     if not override:
         return DEFAULT_SERVER_URL
-    parsed = urlparse(override)
+    trimmed = override.strip()
+    parsed = urlparse(trimmed)
     if parsed.scheme not in ("http", "https") or not parsed.netloc:
         raise ValueError(f"must be an http(s) URL, got {override!r}")
-    return override.rstrip("/")
+    return trimmed.rstrip("/")
 
 
 def blob_url(server: str, org: str, repo: str, sha: str, rel_path: str) -> str:
