@@ -70,6 +70,12 @@ def test_dev_requirements_include_the_runtime_set_and_the_tools_moved_out_of_it(
         ("living-doc-utilities[github]==0.6.0", "living-doc-utilities"),
         ("-r requirements.txt", ""),
         ("", ""),
+        # PEP 503: a run of `-`, `_` or `.` is one `-`, so every spelling pip treats as one distribution
+        # folds to one name - otherwise a dotted spelling walks past a deny list keyed on the hyphenated one.
+        ("pytest.cov==7.1.0", "pytest-cov"),
+        ("pytest..cov==7.1.0", "pytest-cov"),
+        ("types.requests==2.33.0", "types-requests"),
+        ("mypy.extensions==1.1.0", "mypy-extensions"),
     ],
 )
 def test_requirement_name_reads_the_distribution_a_line_names(line, expected):
@@ -90,6 +96,9 @@ def test_requirement_name_reads_the_distribution_a_line_names(line, expected):
         # alternative to the pinned ones must not slip past either.
         "pyright==1.1.0",
         "hypothesis==6.0.0",
+        # A dotted spelling of a denied distribution: pip installs the same wheel, so the gate must too.
+        "pytest.cov==7.1.0",
+        "mypy.extensions==1.1.0",
     ],
 )
 def test_a_development_tool_in_the_runtime_file_is_reported(tmp_path, line):

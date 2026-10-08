@@ -34,11 +34,6 @@ on:
       - '.github/workflows/integration_test.yml'
   workflow_dispatch:
 
-# Least privilege: every job here runs repository code through `uses: ./` and no mode makes a GitHub API
-# call, so none of them needs more than read access.
-permissions:
-  contents: read
-
 jobs:
   integration-test:
     runs-on: ubuntu-latest

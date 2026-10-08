@@ -48,9 +48,7 @@ def test_the_version_floor_matches_the_one_the_project_requires():
 @pytest.mark.parametrize("leak", ["GITHUB_ENV", "GITHUB_PATH"])
 def test_the_action_writes_nothing_into_the_callers_environment(leak):
     # Assert: every input is passed in the run step's own `env:`; nothing is exported to the job.
-    code = [
-        line.split("#", 1)[0] for line in ACTION_YML.read_text(encoding="utf-8").splitlines()
-    ]
+    code = [line.split("#", 1)[0] for line in ACTION_YML.read_text(encoding="utf-8").splitlines()]
     assert not [line for line in code if leak in line]
 
 

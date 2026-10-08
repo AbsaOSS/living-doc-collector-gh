@@ -70,9 +70,14 @@ _REQUIREMENT_RE = re.compile(
 )
 
 
+# PEP 503: a run of `-`, `_` or `.` is one `-`, so `pytest.cov`, `pytest_cov` and `pytest-cov` are the same
+# distribution to pip - and must be the same name to the deny list.
+_SEPARATOR_RUN_RE = re.compile(r"[-_.]+")
+
+
 def _normalize(name: str) -> str:
-    """The distribution name lowercased with `_` folded to `-` (PEP 503)."""
-    return name.lower().replace("_", "-")
+    """The distribution name lowercased, with every run of `-`, `_` or `.` folded to one `-` (PEP 503)."""
+    return _SEPARATOR_RUN_RE.sub("-", name).lower()
 
 
 def requirement_name(line: str) -> str:
