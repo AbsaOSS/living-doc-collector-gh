@@ -66,6 +66,9 @@ jobs:
         with:
           tag-name: ${{ github.event.inputs.tag-name }}
           from-tag-name: ${{ github.event.inputs.from-tag-name }}
+          # This repository's PR bodies head the section `## Release Notes`, with no colon, so the action's
+          # default `[Rr]elease [Nn]otes:` matches nothing and the draft would take no line from any PR.
+          release-notes-title: '## [Rr]elease [Nn]otes'
           chapters: |
             - {"title": "Entries to skip 🚫", "label": "duplicate"}
             - {"title": "Entries to skip 🚫", "label": "invalid"}

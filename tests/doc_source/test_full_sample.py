@@ -197,3 +197,23 @@ def test_full_sample_derives_state_and_resolves_every_relation(artifact):
     assert [(w.code, w.context) for w in artifact.warnings] == [
         ("FEATURE_WITHOUT_FUNCTIONALITY", "entity_id='FEAT-902'")
     ]
+
+
+@pytest.mark.parametrize(
+    ("entity_id", "ac_id", "keyword", "values"),
+    [
+        ("US-901", "US-901-06", "user_role", ["admin", "viewer", "auditor"]),
+        ("FUNC-901", "FUNC-901-01", "button_label", ["Save", "Submit"]),
+    ],
+)
+def test_a_keyword_criterion_fills_aspect_with_its_declared_values(artifact, entity_id, ac_id, keyword, values):
+    # Arrange: a `- <name>: <values>` bullet whose name the description carries as `{<name>}` declares the
+    # criterion's variants - the other spelling of `Aspect:` (`DEC-76`).
+    by_id = {e.entity_id: e for e in [*artifact.user_stories, *artifact.functionalities]}
+
+    # Act
+    criterion = next(c for c in by_id[entity_id].acceptance_criteria if c.id == ac_id)
+
+    # Assert: the values fill `aspect`, and `placeholder_values` keeps the keyword's folded name.
+    assert criterion.aspect == values
+    assert criterion.placeholder_values == {keyword: values}

@@ -31,6 +31,7 @@ from utils.artifact import (
     head_commit,
     relative_path,
     source_context,
+    with_entity_paths,
     with_path,
 )
 
@@ -169,7 +170,7 @@ def test_build_source_ref_outside_git_has_no_url_and_a_scan_root_relative_native
     # Assert
     assert source_ref.url == ""
     assert source_ref.native_id == "x/a.feature"
-    assert [(w.code, w.context) for w in warnings] == [("NO_SOURCE_URL", "path='x/a.feature'")]
+    assert [(w.code, w.path, w.context) for w in warnings] == [("NO_SOURCE_URL", "x/a.feature", None)]
     assert "outside a git checkout" in warnings[0].message
 
 
@@ -183,10 +184,11 @@ def test_build_source_ref_in_a_checkout_with_no_resolvable_head_has_no_url(tmp_p
         SourceRepository("org", "repo"), file_path, [str(tmp_path / "repo" / "scan")], "s"
     )
 
-    # Assert
+    # Assert: `native_id` is repo-root-relative, but the warning's typed `path` is scan-root-relative by
+    # contract - so one physical file is reported under one path by every emitter.
     assert source_ref.url == ""
     assert source_ref.native_id == "scan/a.feature"
-    assert [(w.code, w.context) for w in warnings] == [("NO_SOURCE_URL", "path='scan/a.feature'")]
+    assert [(w.code, w.path, w.context) for w in warnings] == [("NO_SOURCE_URL", "a.feature", None)]
     assert "no resolvable HEAD commit" in warnings[0].message
 
 
@@ -209,18 +211,59 @@ def test_relative_path_falls_back_to_the_file_name(tmp_path):
 # with_path
 
 
-def test_with_path_prefixes_the_context_or_sets_it():
+def test_with_path_sets_the_typed_path_and_keeps_the_parser_s_context():
     # Arrange
     warnings = [
-        ContractWarning(code="MALFORMED_AC", message="m", context="line_no=3"),
+        ContractWarning(code="MALFORMED_AC", message="m", context="line_no=3", ac_id="US-1-01", line_no=3),
         ContractWarning(code="MALFORMED_AC", message="m"),
     ]
 
-    # Act
-    located = with_path(warnings, "a.feature")
+    # Act: a path with a directory component, so a regression that kept only the file name would show up -
+    # two files of the same name under different sub-directories must stay distinguishable.
+    located = with_path(warnings, "us/nested/a.feature")
 
-    # Assert
-    assert [w.context for w in located] == ["path='a.feature' line_no=3", "path='a.feature'"]
+    # Assert: `DEC-77` - the file is the typed field, never a prefix rewritten into the free text.
+    assert [w.path for w in located] == ["us/nested/a.feature", "us/nested/a.feature"]
+    assert [w.context for w in located] == ["line_no=3", None]
+    assert [(w.ac_id, w.line_no) for w in located] == [("US-1-01", 3), (None, None)]
+
+
+# with_entity_paths
+
+
+def test_with_entity_paths_locates_only_the_listed_codes():
+    # Arrange: one single-file code with a known entity, one with an entity absent from the run's sources,
+    # and one cross-entity code that must stay unlocated even though its entity's file is known.
+    warnings = [
+        ContractWarning(code="MISSING_STATUS", message="m", entity_id="US-1"),
+        ContractWarning(code="MISSING_STATUS", message="m", entity_id="US-9"),
+        ContractWarning(code="FEATURE_WITHOUT_FUNCTIONALITY", message="m", entity_id="FEAT-1"),
+    ]
+
+    # Act
+    located = with_entity_paths(
+        warnings,
+        {"US-1": "us/nested/story.feature", "FEAT-1": "pages/Feature1Page.ts"},
+        frozenset({"MISSING_STATUS"}),
+    )
+
+    # Assert: `DEC-77` - a fact about one header is located, a cross-entity fact is not.
+    assert [(w.code, w.entity_id, w.path) for w in located] == [
+        ("MISSING_STATUS", "US-1", "us/nested/story.feature"),
+        ("MISSING_STATUS", "US-9", None),
+        ("FEATURE_WITHOUT_FUNCTIONALITY", "FEAT-1", None),
+    ]
+
+
+def test_with_entity_paths_keeps_a_path_an_emitter_already_knew():
+    # Arrange
+    warnings = [ContractWarning(code="MISSING_STATUS", message="m", entity_id="US-1", path="own.feature")]
+
+    # Act
+    located = with_entity_paths(warnings, {"US-1": "other.feature"}, frozenset({"MISSING_STATUS"}))
+
+    # Assert: the emitter is the better source; the lookup only fills what is unset.
+    assert [w.path for w in located] == ["own.feature"]
 
 
 # source_context
@@ -279,9 +322,7 @@ def test_collect_sources_by_default_tries_every_source_then_fails_the_mode(mocke
     assert error.value.message == "1 of 2 configured sources failed."
     mock_log_error.assert_called_once()
     logged = mock_log_error.call_args.args[1]
-    assert str(logged) == (
-        "[SOURCE_UNAVAILABLE] Configured path `/x` does not exist or is not a directory. (entry=0)"
-    )
+    assert str(logged) == ("[SOURCE_UNAVAILABLE] Configured path `/x` does not exist or is not a directory. (entry=0)")
 
 
 def test_collect_sources_with_allow_partial_turns_each_failed_source_into_a_warning(mocker):

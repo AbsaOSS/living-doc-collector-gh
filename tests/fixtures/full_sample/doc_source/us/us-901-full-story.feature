@@ -19,7 +19,6 @@
 #     - A fully authored criterion carries every extension.
 #     - Aspect: desktop, mobile
 #     - Rationale: Every extension field needs one authored value.
-#     - User role: admin, viewer
 #     preconditions:
 #       - The story is active.
 #     not_in_scope:
@@ -36,6 +35,10 @@
 #
 #   AC:US-901-05 (v1.0.0 - deprecated - removal planned v2.0.0)
 #     - A deprecated criterion with its planned removal version.
+#
+#   AC:US-901-06 (v1.0.0 - active)
+#     - The story is readable for every {user role}.
+#     - User role: admin, viewer, auditor
 # =============================================================================
 
 @US_ID:US-901

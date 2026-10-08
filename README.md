@@ -36,7 +36,14 @@ The Collector supports multiple mining modes, each with its own functionality. A
 Before we begin, ensure you have fulfilled the following prerequisites:
 - Every repository a mode reads is checked out (`actions/checkout`) earlier in the job. The `doc-source` and
   `ui-tests` modes read those local checkouts only: they call no GitHub API and need no token.
-- Python version 3.10 or higher.
+- Requires Python ≥ 3.10 on `PATH`, found as `python3` (or `python`, if there is no `python3`). The action
+  brings its own virtual environment: it creates one under `$RUNNER_TEMP`, installs its requirements there
+  and runs with that interpreter, so the caller needs no `actions/setup-python` and the job's own
+  interpreter, `PATH` and installed packages are left untouched. A `PATH` whose `python3` is older than
+  3.10 fails the step with a one-line error, even if some other name on `PATH` would satisfy the floor.
+- Runs on Linux and macOS runners. Every GitHub-hosted Linux and macOS runner already ships a suitable
+  `python3`; on a self-hosted one without it, add `actions/setup-python` before this step. Windows runners
+  are not supported: the step resolves the venv with POSIX layout (`bin/`, not `Scripts/`).
 
 ### Adding the Action to Your Workflow
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 """
-`utilities`' golden source-code entities (tests/fixtures/golden/, copied at v0.5.0) run through the full
+`utilities`' golden source-code entities (tests/fixtures/golden/, copied at v0.6.0) run through the full
 `doc-source` collector come out unchanged except `source_ref`: each entity in `doc-source.json` equals what
 the canonical parsers plus `derive_statuses` produce for the same files.
 """
@@ -110,9 +110,14 @@ def test_feat_001_has_derived_state(doc_source_json):
 
 def test_golden_run_reports_only_the_canon_s_expected_warnings(doc_source_json):
     # Assert: FEAT-003 depends on the API Feature FEAT-002, which a source-code project cannot document yet.
-    assert [(w["code"], w["context"]) for w in doc_source_json["warnings"]] == [
-        ("FEATURE_WITHOUT_FUNCTIONALITY", "entity_id='FEAT-003'"),
-        ("UNRESOLVED_RELATION", "entity_id='FEAT-003' target='FEAT-002'"),
+    # Both are entity-level, so each names its entity in the typed field (`DEC-77`), not only in the text;
+    # neither is about one file or one criterion, so `path`, `ac_id` and `line_no` stay unset.
+    assert [
+        (w["code"], w["context"], w["entity_id"], w["ac_id"], w["line_no"], w["path"])
+        for w in doc_source_json["warnings"]
+    ] == [
+        ("FEATURE_WITHOUT_FUNCTIONALITY", "entity_id='FEAT-003'", "FEAT-003", None, None, None),
+        ("UNRESOLVED_RELATION", "entity_id='FEAT-003' target='FEAT-002'", "FEAT-003", None, None, None),
     ]
 
 

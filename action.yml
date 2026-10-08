@@ -71,35 +71,25 @@ runs:
   using: 'composite'
   steps:
 
-    - name: Install Python dependencies
-      run: |
-        pip install -r ${{ github.action_path }}/requirements.txt
+    # The action brings its own virtual environment: it never installs into the runner's interpreter and
+    # never touches the caller's `PATH`, `PYTHONPATH` or environment. The venv lives under `$RUNNER_TEMP`
+    # and is reused, so two steps of this action in one job install once.
+    - name: Check Python and create the collector's venv
+      id: venv
       shell: bash
-
-    - name: Update PYTHONPATH
       run: |
-        ACTION_ROOT="${{ github.action_path }}"
-        export PYTHONPATH="${PYTHONPATH}:${ACTION_ROOT}/living-doc-generator"
-      shell: bash
-
-    - name: Prepare environment based on mining regimes
-      run: |
-        # Set base env variables common for all regimes
-        echo "INPUT_DOC_ISSUES=${{ inputs.doc-issues }}" >> $GITHUB_ENV
-        echo "INPUT_VERBOSE_LOGGING=${{ inputs.verbose-logging }}" >> $GITHUB_ENV
-
-        # Add source-mode env variables
-        echo "INPUT_DOC_SOURCE=${{ inputs.doc-source }}" >> $GITHUB_ENV
-        echo "INPUT_UI_TESTS=${{ inputs.ui-tests }}" >> $GITHUB_ENV
-
-        if [[ "${{ inputs.doc-source }}" == "true" ]]; then
-          echo "INPUT_DOC_SOURCE_REPOSITORIES=$(echo '${{ inputs.doc-source-repositories }}' | jq -c .)" >> $GITHUB_ENV
+        # The install must land in the venv and nowhere else. These redirect pip's target directory or
+        # prepend to `sys.path`, so a caller that exports them would otherwise leave the venv empty or
+        # shadow its packages. Unset (not set empty: pip reads its own vars as config values).
+        unset PIP_TARGET PIP_PREFIX PIP_USER PYTHONPATH
+        PY="$(command -v python3 || command -v python || true)"
+        if [ -z "$PY" ] || ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
+          echo "::error::living-doc-collector-gh needs Python >= 3.10 on PATH. Add actions/setup-python before this step."; exit 1
         fi
-
-        if [[ "${{ inputs.ui-tests }}" == "true" ]]; then
-          echo "INPUT_UI_TESTS_REPOSITORIES=$(echo '${{ inputs.ui-tests-repositories }}' | jq -c .)" >> $GITHUB_ENV
-        fi
-      shell: bash
+        VENV="$RUNNER_TEMP/living-doc-collector-gh-venv"
+        [ -x "$VENV/bin/python" ] || "$PY" -m venv "$VENV" || { echo "::error::'$PY -m venv' failed; install the venv module."; exit 1; }
+        "$VENV/bin/pip" install -r "${{ github.action_path }}/requirements.txt"
+        echo "python=$VENV/bin/python" >> "$GITHUB_OUTPUT"
 
     - name: Run Living Documentation Collector for GitHub
       id: liv-doc-collector
@@ -108,14 +98,19 @@ runs:
         INPUT_OUTPUT_PATH: ${{ inputs.output-path }}
         INPUT_ALLOW_PARTIAL: ${{ inputs.allow-partial }}
         INPUT_GITHUB_SERVER_URL: ${{ inputs.github-server-url }}
-        INPUT_DOC_ISSUES: ${{ env.INPUT_DOC_ISSUES }}
-        INPUT_DOC_SOURCE: ${{ env.INPUT_DOC_SOURCE }}
-        INPUT_UI_TESTS: ${{ env.INPUT_UI_TESTS }}
+        INPUT_DOC_ISSUES: ${{ inputs.doc-issues }}
+        INPUT_DOC_SOURCE: ${{ inputs.doc-source }}
+        INPUT_UI_TESTS: ${{ inputs.ui-tests }}
 
-        INPUT_VERBOSE_LOGGING: ${{ env.INPUT_VERBOSE_LOGGING }}
+        INPUT_VERBOSE_LOGGING: ${{ inputs.verbose-logging }}
 
-        INPUT_DOC_SOURCE_REPOSITORIES: ${{ env.INPUT_DOC_SOURCE_REPOSITORIES }}
-        INPUT_UI_TESTS_REPOSITORIES: ${{ env.INPUT_UI_TESTS_REPOSITORIES }}
+        # Passed verbatim: `action_inputs._get_repositories` reads them with `json.loads`, which tolerates
+        # any whitespace, and a step `env:` value carries newlines as they are.
+        INPUT_DOC_SOURCE_REPOSITORIES: ${{ inputs.doc-source-repositories }}
+        INPUT_UI_TESTS_REPOSITORIES: ${{ inputs.ui-tests-repositories }}
       run: |
-        python ${{ github.action_path }}/main.py
+        # `-E`: a venv isolates site-packages, not the environment. A caller's `PYTHONPATH` still precedes
+        # the venv on `sys.path`, so a package vendored there would shadow the pinned one; `-E` makes the
+        # interpreter ignore the whole `PYTHON*` set. `INPUT_*` above is unaffected.
+        "${{ steps.venv.outputs.python }}" -E "${{ github.action_path }}/main.py"
       shell: bash

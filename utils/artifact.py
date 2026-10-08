@@ -163,7 +163,10 @@ def build_source_ref(
             ContractWarning(
                 code=Code.NO_SOURCE_URL.name,
                 message=f"Source file is {reason}, so no URL can be derived.",
-                context=f"path={native_id!r}",
+                # The file is the typed `path` (`DEC-77`); nothing else is free text here. `path` is
+                # scan-root-relative by contract, so it is never `native_id`, which is repo-root-relative
+                # whenever a repository root was found.
+                path=relative_path(file_path, scan_roots),
             )
         )
     else:
@@ -181,17 +184,40 @@ def build_source_ref(
 
 def with_path(warnings: list[ContractWarning], path: str) -> list[ContractWarning]:
     """
-    Prefix each warning's context with the source file it was raised for.
+    Fill the source file each warning was raised for into its typed `path` field (`DEC-77`).
+
+    `authoring` never knows the file, so a collector fills it; `context` keeps whatever the parser wrote.
 
     @param warnings: Warnings a parser returned for one file.
     @param path: The file's path relative to its scan root.
-    @return: The warnings, each with `path=...` leading its context.
+    @return: The warnings, each with `path` set.
     """
-    located = []
-    for warning in warnings:
-        context = f"path={path!r}" if not warning.context else f"path={path!r} {warning.context}"
-        located.append(warning.model_copy(update={"context": context}))
-    return located
+    return [warning.model_copy(update={"path": path}) for warning in warnings]
+
+
+def with_entity_paths(
+    warnings: list[ContractWarning], paths: dict[str, str], codes: frozenset[str]
+) -> list[ContractWarning]:
+    """
+    Fill the typed `path` of every warning that states a fact about one entity's own source file (`DEC-77`).
+
+    `derive_statuses` works over the entities of the whole run and never knows their files, so a collector
+    fills them in afterwards, looking each one up by `entity_id`. Only the listed codes are located: a
+    cross-entity warning is not about one file and keeps `path` unset.
+
+    @param warnings: Warnings `authoring` returned for the run.
+    @param paths: Each entity's source path relative to its scan root, by `entity_id`.
+    @param codes: The warning codes that are facts about one entity's own file.
+    @return: The warnings, each listed code's `path` set when the entity's file is known.
+    """
+    return [
+        (
+            warning.model_copy(update={"path": paths[warning.entity_id]})
+            if warning.code in codes and warning.path is None and warning.entity_id in paths
+            else warning
+        )
+        for warning in warnings
+    ]
 
 
 def source_context(input_name: str, index: int, repository: SourceRepository) -> str:

@@ -221,7 +221,9 @@ class GHUITestsCollector:
                     ContractWarning(
                         code=Code.AUTHORING_ERROR.name,
                         message="Scenario id is already collected from another file; this scenario is skipped.",
-                        context=f"path={rel_path!r} scenario_id={scenario_id!r}",
+                        # No field carries a scenario id, so it stays in `context` (`DEC-77`).
+                        context=f"scenario_id={scenario_id!r}",
+                        path=rel_path,
                     )
                 )
                 continue

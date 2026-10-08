@@ -7,7 +7,10 @@ requires-python = ">=3.10"
 [tool.black]
 line-length = 120
 target-version = ['py310']
-force-exclude = '''test'''
+# Mirrors the Makefile's `KEPT_ASIDE`. Anchored and `/`-delimited on purpose: an unanchored `test` matches
+# `ui_tests/` and the whole `tests/` tree as substrings, which silently dropped 27 of the 41 files
+# `make format-check` passes in - production code included.
+force-exclude = '''^/(doc_issues|tests/doc_issues)/|^/(utils/github_project_queries|tests/utils/test_github_project_queries)\.py$'''
 
 [tool.ruff]
 target-version = "py310"

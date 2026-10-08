@@ -18,7 +18,8 @@ If you need to build the action locally, follow these steps for project setup:
 ### Prepare the Environment
 
 The supported Python floor is **3.10** (`requires-python = ">=3.10"` in `pyproject.toml`).
-The published action image runs on 3.14.
+The action pins no interpreter: it builds its venv from whatever Python ≥ 3.10 is on the caller's `PATH`,
+so runtime code must work on 3.10. The CI matrix covers 3.10 through 3.14.
 
 ```shell
 python3 --version
@@ -29,8 +30,22 @@ python3 --version
 ```shell
 python3 -m venv .venv
 source .venv/bin/activate
-make install          # or: pip install -r requirements.txt
+make install          # or: pip install -r requirements-dev.txt
 ```
+
+### The Two Requirements Files
+
+| File | What it holds | Who installs it |
+|---|---|---|
+| `requirements.txt` | Runtime only: what `main.py` and the active modules import (`living-doc-utilities`, `pydantic`, and `tomli` below Python 3.11) | `action.yml`, into the venv it creates under `$RUNNER_TEMP` on every run |
+| `requirements-dev.txt` | `-r requirements.txt` plus the quality gate and test tools (Black, Pylint, mypy, ruff, pytest and its plugins) and the dependencies only the kept-aside `doc_issues/` imports (`PyGithub`, `requests`) | `make install`, `test.yml` and `integration_test.yml` |
+
+The action installs `requirements.txt` on every run of every caller, so a test, lint or type tool named
+there would be downloaded on every run. `make qa` fails when one is (`make runtime-requirements`, which
+runs `tools/check_runtime_requirements.py`); add such a pin to `requirements-dev.txt` instead.
+
+Dependabot covers both files from its single `pip` entry in `.github/dependabot.yml`: the `pip` ecosystem
+scans the configured `directory` for every requirements file in it.
 
 ---
 ## Quality Gate (Makefile)
@@ -47,16 +62,17 @@ Individual targets:
 
 | Target | What it does |
 |---|---|
-| `make install` | Install runtime and dev dependencies from `requirements.txt` |
-| `make format` | Reformat tracked Python files with Black |
+| `make install` | Install the dev dependencies from `requirements-dev.txt` (which pulls in `requirements.txt`) |
+| `make format` | Reformat tracked Python files (ruff autofix, then Black) |
 | `make format-check` | Check Black formatting without writing changes |
-| `make lint` | Run Pylint and enforce the minimum score (`PYLINT_MIN`, default `9.5`) |
+| `make lint` | Run ruff, then Pylint, and enforce the minimum score (`PYLINT_MIN`, default `9.5`) |
 | `make types` | Run the mypy type checker |
 | `make test` | Run the unit test suite (integration tests excluded) |
 | `make coverage` | Run the unit suite with the coverage gate (`COV_MIN`, default `80`) |
 | `make no-vendored-schemas` | R12 check 1: fail on any committed contract schema file |
 | `make retired-names` | Fail on any reference to a pre-0.5.0 artifact name or key |
-| `make qa` | `format-check` + `lint` + `types` + `no-vendored-schemas` + `retired-names` + `coverage` |
+| `make runtime-requirements` | Fail when `requirements.txt` names a test, lint or type tool |
+| `make qa` | `format-check` + `lint` + `types` + `no-vendored-schemas` + `retired-names` + `runtime-requirements` + `coverage` |
 | `make help` | List available targets |
 
 `doc-issues` is PLANNED after v0.1.0: `doc_issues/`, the modules only it uses
@@ -397,11 +413,22 @@ Or in GitHub UI:
 ### Step 4: Automated Processing
 
 The `release_draft.yml` workflow automatically:
-1. Validates the tag format
-2. Verifies `pyproject.toml` matches the requested version
+1. Validates the tag format and that the tag does not already exist
+2. Collects the release notes from the merged pull requests
 3. Creates the git tag
-4. Generates release notes from commit history
-5. Creates a draft release
+4. Creates a draft release
+
+The workflow does **not** check `pyproject.toml` against the tag, so the Step 1 version bump is on you: a
+forgotten bump ships a release whose artifacts all carry the previous `metadata.producer.version`.
+
+#### Where the Release Notes Come From
+
+Each merged pull request contributes the bullet lines written directly under its `## Release Notes`
+heading, one line each. `release_draft.yml` passes
+`release-notes-title: '## [Rr]elease [Nn]otes'` to `AbsaOSS/generate-release-notes`, because that action's
+default pattern (`[Rr]elease [Nn]otes:`) expects a colon this repository's PR headings do not carry - left
+at the default, the draft would take no line from any pull request. A PR labelled `no RN`, `duplicate`,
+`invalid` or `wontfix` contributes nothing (`skip-release-notes-labels`).
 
 ### Step 5: Finalize and Publish
 

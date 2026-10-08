@@ -18,8 +18,7 @@
 # acceptance_criteria:
 #
 #   AC:FUNC-901-01 (v1.0.0 - active)
-#     - Pressing the button runs the action.
-#     - Aspect: keyboard
+#     - Pressing the {button label} runs the action.
 #     - Rationale: The action needs one criterion.
 #     - Button label: Save, Submit
 #     preconditions:

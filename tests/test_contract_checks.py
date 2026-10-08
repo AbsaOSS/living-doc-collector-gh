@@ -34,7 +34,12 @@ from ui_tests.collector import GHUITestsCollector
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # `doc-issues` PLANNED after v0.1.0, kept aside unchanged for the port.
-_KEPT_ASIDE = ("doc_issues/", "tests/doc_issues/", "utils/github_project_queries.py", "tests/utils/test_github_project_queries.py")
+_KEPT_ASIDE = (
+    "doc_issues/",
+    "tests/doc_issues/",
+    "utils/github_project_queries.py",
+    "tests/utils/test_github_project_queries.py",
+)
 
 _LEGACY_MODULES = ("living_doc_utilities.model", "living_doc_utilities.factory", "living_doc_utilities.exporter")
 
@@ -74,7 +79,8 @@ def test_no_active_module_imports_the_legacy_model_or_kept_aside_code():
         path: sorted(
             module
             for module in _imported_modules(path)
-            if module.startswith(_LEGACY_MODULES) or module.split(".")[0] == "doc_issues"
+            if module.startswith(_LEGACY_MODULES)
+            or module.split(".")[0] == "doc_issues"
             or module == "utils.github_project_queries"
         )
         for path in _active_python_files()
