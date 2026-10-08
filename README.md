@@ -41,8 +41,11 @@ Before we begin, ensure you have fulfilled the following prerequisites:
   and runs with that interpreter, so the caller needs no `actions/setup-python` and the job's own
   interpreter, `PATH` and installed packages are left untouched. A `PATH` whose `python3` is older than
   3.10 fails the step with a one-line error, even if some other name on `PATH` would satisfy the floor.
-  Every GitHub-hosted runner already ships a suitable `python3`; on a self-hosted runner without one, add
-  `actions/setup-python` before this step.
+- Runs on **Linux runners** (`ubuntu-*`) — the only platform CI covers. Every GitHub-hosted Linux runner
+  already ships a suitable `python3`; on a self-hosted one without it, add `actions/setup-python` before
+  this step. Windows runners are **not supported**: the step resolves the venv with the POSIX `bin/`
+  layout, not `Scripts/`, so it fails there — see [`SPEC.md`](SPEC.md#windows-runner-support). macOS
+  runners use the same POSIX layout and are expected to work, but no job exercises them.
 
 ### Adding the Action to Your Workflow
 

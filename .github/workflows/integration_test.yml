@@ -34,6 +34,11 @@ on:
       - '.github/workflows/integration_test.yml'
   workflow_dispatch:
 
+# Least privilege: every job here runs repository code through `uses: ./` and no mode makes a GitHub API
+# call, so none of them needs more than read access.
+permissions:
+  contents: read
+
 jobs:
   integration-test:
     runs-on: ubuntu-latest
@@ -184,6 +189,71 @@ jobs:
           } | tee "${RUNNER_TEMP}/after.txt"
           diff "${RUNNER_TEMP}/before.txt" "${RUNNER_TEMP}/after.txt"
           echo '::notice::both steps succeeded, the venv was reused, and the runner interpreter is unchanged.'
+
+  # The venv is keyed to the interpreter that built it. A job that switches `actions/setup-python` between
+  # two invocations must get a rebuilt venv, never the previous interpreter's - that is what the
+  # `sys.base_prefix` comparison in `action.yml` is for, and what the job above cannot see, because both of
+  # its invocations run on the same Python. Asserted on the venv's own interpreter rather than on a
+  # `pyvenv.cfg` mtime: a reused venv would still report 3.12, so the version is the rebuild itself.
+  action-venv-rebuilt-when-python-changes:
+    runs-on: ubuntu-latest
+    name: Action Venv - Rebuilt When Python Changes
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+
+      - name: Run the action on 3.12
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          output-path: ${{ github.workspace }}/output/on-312
+          doc-source: 'true'
+          doc-source-repositories: |
+            [{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh",
+              "us-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_us"],
+              "func-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_func"],
+              "pages-paths": ["${{ github.workspace }}/tests/fixtures/golden/pageobject"]}]
+          ui-tests: 'false'
+
+      - name: The venv was built from 3.12
+        run: |
+          set -euo pipefail
+          "${RUNNER_TEMP}/living-doc-collector-gh-venv/bin/python" \
+            -c 'import sys; assert sys.version_info[:2] == (3, 12), sys.version'
+
+      - name: Switch the interpreter on PATH to 3.11
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.11'
+
+      - name: Run the action on 3.11
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          output-path: ${{ github.workspace }}/output/on-311
+          doc-source: 'true'
+          doc-source-repositories: |
+            [{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh",
+              "us-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_us"],
+              "func-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_func"],
+              "pages-paths": ["${{ github.workspace }}/tests/fixtures/golden/pageobject"]}]
+          ui-tests: 'false'
+
+      - name: The venv was rebuilt from the interpreter now on PATH
+        run: |
+          set -euo pipefail
+          # Were the venv reused, the collector would have run on the 3.12 left behind by the first step.
+          "${RUNNER_TEMP}/living-doc-collector-gh-venv/bin/python" \
+            -c 'import sys; assert sys.version_info[:2] == (3, 11), sys.version'
+          test -f "${{ github.workspace }}/output/on-311/doc-source/doc-source.json"
+          echo '::notice::switching the interpreter rebuilt the venv instead of reusing the 3.12 one.'
 
   # Python older than the 3.10 floor fails the action with one actionable error, before it creates any venv.
   action-rejects-python-39:
