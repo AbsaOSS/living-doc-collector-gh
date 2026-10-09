@@ -91,11 +91,12 @@ Repo specifics
   - Format: `make format` (check-only: `make format-check`)
   - Lint: `make lint` (Pylint score ≥ 9.5)
   - Types: `make types`
+  - Contract checks: `make no-vendored-schemas retired-names runtime-requirements`
   - Coverage: `make coverage` (`--cov-fail-under=80`)
 - Workflow set
   - `test.yml` (fleet shape: `detect` path filter, static checks, contract checks and the test matrix, all gated by `QA Gate`), `link-check.yml` (lychee, behind a `detect` / `noop` path filter), `aquasec-night-scan.yml`, `release_draft.yml`, `check_pr_release_notes.yml`, `dependabot.yml` (auto-merge), `integration_test.yml`.
   - Must pin every `uses:` to a full commit SHA with a trailing `# vX.Y.Z` comment, and Must keep one SHA per action across all workflow files.
 - Dependencies
-  - Must assume the runner installs from `requirements.txt`; `action.yml` installs it in the `Install Python dependencies` step.
+  - Must keep `requirements.txt` runtime-only (`make runtime-requirements` enforces it) and put every test, lint or type pin in `requirements-dev.txt`; `action.yml` installs `requirements.txt` into the venv it creates under `$RUNNER_TEMP` in its `Check Python and create the collector's venv` step, and `make install` / the workflows install `requirements-dev.txt`.
 - Contract-sensitive outputs
   - Action output key `output-path`; exit codes `0` / `1`.

@@ -83,7 +83,7 @@ Contract-sensitive outputs:
 
 ## Language and style
 
-- Must target Python 3.10+ (the ecosystem floor; the published action image uses 3.14).
+- Must target Python 3.10+ (the ecosystem floor; the action runs on whatever Python ≥ 3.10 is on the caller's `PATH`, and the CI matrix covers 3.10–3.14).
 - Must add type hints for new public functions and classes.
 - Must keep imports at module top — no imports inside functions or methods.
 - Must guard any 3.11+ standard-library use behind a `sys.version_info` fallback, as `utils/constants.py` does for `tomllib` / `tomli`.
@@ -125,8 +125,8 @@ Contract-sensitive outputs:
 
 ## Tooling and quality gates
 
-- Must run `make qa` before finishing a code change — it runs `format-check` → `lint` → `types` → `no-vendored-schemas` → `retired-names` → `coverage` and fails on the first failing gate.
-- Must use the individual targets while iterating — `make format`, `make format-check`, `make lint`, `make types`, `make test`, `make coverage`.
+- Must run `make qa` before finishing a code change — it runs `format-check` → `lint` → `types` → `no-vendored-schemas` → `retired-names` → `runtime-requirements` → `coverage` and fails on the first failing gate.
+- Must use the individual targets while iterating — `make format`, `make format-check`, `make lint`, `make types`, `make runtime-requirements`, `make test`, `make coverage`.
 - Must keep `make lint` clean — it runs ruff (`E` / `F` / `I` / `B` over tracked `*.py`, config in `pyproject.toml`) then Pylint, and Pylint must score 9.5 or higher.
 - Must keep `make format-check` (Black, line length 120, config in `pyproject.toml`) clean, and Prefer `make format` (ruff autofix + Black) to fix import order and formatting in one step.
 - Must keep `make types` (mypy, config in `pyproject.toml`) clean, and Prefer fixing types over adding ignores.
@@ -135,7 +135,7 @@ Contract-sensitive outputs:
 
 ## Common pitfalls
 
-- Must verify a new dependency supports Python 3.10 before adding it, and Must keep `requirements.txt` and `action.yml` in step when inputs or dependencies change.
+- Must verify a new dependency supports Python 3.10 before adding it, and Must keep `requirements.txt` and `action.yml` in step when inputs or dependencies change. Must put a test, lint or type pin in `requirements-dev.txt`, never in `requirements.txt`, which the action installs on every run.
 - Must remove unused imports and variables in the same change, and Avoid leaving dead code.
 - Avoid changing externally visible strings, the `output-path` key, per-mode output sub-paths, or exit codes unless the task calls for it.
 - Must keep new source-mode behaviour behind the `feature_file_discovery` utility rather than re-implementing file walking per mode.

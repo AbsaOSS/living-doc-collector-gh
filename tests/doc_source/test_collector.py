@@ -58,6 +58,31 @@ FUNC_FEATURE_TEMPLATE = """# ===================================================
 Feature: Functionality {num}
 """
 
+# `DEC-71`: the canon allows one variant declaration per criterion. AC:US-5-01 declares its variants twice -
+# once as `Aspect:`, once as the `{colour}` keyword - so the criterion is dropped; AC:US-5-02 is kept.
+US_TWO_VARIANT_DECLARATIONS_FEATURE = """# =============================================================================
+# LIVING DOC — US-5 · Story 5
+# =============================================================================
+# status:         active
+# business_value:
+#   - Value for story 5.
+#
+# acceptance_criteria:
+#
+#   AC:US-5-01 (v1.0.0 - active)
+#     - A criterion naming every {colour}, declared twice.
+#     - Aspect: red, green
+#     - Colour: red, green
+#
+#   AC:US-5-02 (v1.0.0 - active)
+#     - A criterion naming every {colour}, declared once.
+#     - Colour: red, green
+# =============================================================================
+
+@US_ID:US-5
+Feature: Story 5
+"""
+
 TS_PAGE_OBJECT_TEMPLATE = """/* =============================================================================
  * LIVING DOC — FEAT-{num} · Feature {num}
  * =============================================================================
@@ -107,9 +132,7 @@ def _entry(repo_dir, repository_name="aul-ui"):
 
 
 def _configure(mocker, repo_dir):
-    mocker.patch(
-        "doc_source.collector.ActionInputs.get_doc_source_repositories", return_value=[_entry(repo_dir)]
-    )
+    mocker.patch("doc_source.collector.ActionInputs.get_doc_source_repositories", return_value=[_entry(repo_dir)])
 
 
 def _write_entity_set(repo_dir, num=1):
@@ -258,7 +281,8 @@ def test_entity_without_parseable_id_is_skipped_and_reported(tmp_path, mocker):
     assert result.metadata.stats.cardinality.entities_skipped == 1
     missing = [w for w in result.warnings if w.code == "MISSING_ENTITY_ID"]
     assert len(missing) == 1
-    assert missing[0].context.startswith("path='no_id.feature' ")
+    assert (missing[0].path, missing[0].line_no) == ("no_id.feature", 2)
+    assert missing[0].entity_id is None
     assert "title='Story without an id'" in missing[0].context
     assert not [w for w in result.warnings if w.code == "EMPTY_SOURCE"]  # a skipped entity is still an answer
 
@@ -321,12 +345,17 @@ def test_source_ref_in_a_checkout_with_no_resolvable_commit_reports_no_source_ur
     # Act
     result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
 
-    # Assert
+    # Assert: `native_id` is repo-root-relative; the warnings' typed `path` is scan-root-relative by contract,
+    # and each names the entity the file authors (`DEC-77`).
     story_ref = result.user_stories[0].source_ref
     assert story_ref.url == ""
     assert story_ref.native_id == "us/story_1.feature"
-    no_url = [w.context for w in result.warnings if w.code == "NO_SOURCE_URL"]
-    assert sorted(no_url) == ["path='func/func_1.feature'", "path='pages/Feature1Page.ts'", "path='us/story_1.feature'"]
+    no_url = [(w.path, w.entity_id) for w in result.warnings if w.code == "NO_SOURCE_URL"]
+    assert sorted(no_url) == [
+        ("Feature1Page.ts", "FEAT-1"),
+        ("func_1.feature", "FUNC-1"),
+        ("story_1.feature", "US-1"),
+    ]
 
 
 def test_invalid_github_server_url_fails_the_build(tmp_path, mocker, monkeypatch):
@@ -388,7 +417,8 @@ def test_cross_reference_page_without_its_feature_is_reported(tmp_path, mocker):
     # Assert
     assert result.features == []
     unresolved = [w for w in result.warnings if w.code == "UNRESOLVED_RELATION"]
-    assert [w.context for w in unresolved] == ["path='Feature7DetailsPage.ts' target='FEAT-7'"]
+    # `path` is the typed field; the relation's target has none, so it stays free text (`DEC-77`).
+    assert [(w.path, w.context) for w in unresolved] == [("Feature7DetailsPage.ts", "target='FEAT-7'")]
     assert result.metadata.stats.cardinality.unresolved_refs == 1
     assert not [w for w in result.warnings if w.code == "EMPTY_SOURCE"]  # a cross-reference page is an answer
 
@@ -443,7 +473,7 @@ def test_living_doc_banner_after_another_comment_is_reported_not_skipped_silentl
     # Assert
     assert result.features == []
     assert result.warnings != []
-    assert all("path='Feature1Page.ts'" in (w.context or "") for w in result.warnings)
+    assert all(w.path == "Feature1Page.ts" for w in result.warnings)
     assert result.metadata.stats.cardinality.entities_skipped == 1
 
 
@@ -518,6 +548,27 @@ def test_invalid_repository_configuration_fails_collect_with_no_output_file(tmp_
     assert not (tmp_path / "output" / "doc-source").exists()
 
 
+def test_criterion_declaring_both_aspect_and_a_keyword_is_dropped_and_reported(tmp_path, mocker):
+    # Arrange: `DEC-71` - one variant declaration per criterion; AC:US-5-01 carries `Aspect:` and a keyword.
+    repo_dir = tmp_path / "repo"
+    _write(repo_dir / "us" / "story_5.feature", US_TWO_VARIANT_DECLARATIONS_FEATURE)
+    _configure(mocker, repo_dir)
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert: the malformed criterion is absent; the one with a single declaration is kept.
+    criteria = result.user_stories[0].acceptance_criteria
+    assert [(c.id, c.aspect) for c in criteria] == [("US-5-02", ["red", "green"])]
+
+    # Assert: the run reports it with every field the emitter knows (`DEC-77`); the header line stays free text.
+    malformed = [w for w in result.warnings if w.code == "MALFORMED_AC"]
+    assert [(w.path, w.entity_id, w.ac_id, w.line_no) for w in malformed] == [
+        ("story_5.feature", "US-5", "US-5-01", 10)
+    ]
+    assert "declares its variants more than once (Aspect, colour)" in malformed[0].message
+
+
 def test_entity_the_contract_rejects_is_skipped_and_the_run_continues(tmp_path, mocker):
     # Arrange
     _write_entity_set(tmp_path / "repo")
@@ -535,7 +586,7 @@ def test_entity_the_contract_rejects_is_skipped_and_the_run_continues(tmp_path, 
     assert artifact.metadata.stats.cardinality.entities_skipped == 1
     rejected = [w for w in artifact.warnings if w.code == "AUTHORING_ERROR"]
     assert len(rejected) == 1
-    assert rejected[0].context == "path='story_2.feature' entity_id='US-2'"
+    assert (rejected[0].path, rejected[0].entity_id, rejected[0].context) == ("story_2.feature", "US-2", None)
     assert "US-9-01" in rejected[0].message
 
 
@@ -553,8 +604,29 @@ def test_duplicate_entity_id_keeps_the_first_file_and_reports_the_second(tmp_pat
     assert [(e.entity_id, e.source_ref.native_id) for e in result.user_stories] == [("US-1", "a_story.feature")]
     assert result.metadata.stats.cardinality.entities_skipped == 1
     duplicates = [w for w in result.warnings if w.code == "AUTHORING_ERROR"]
-    assert [w.context for w in duplicates] == ["path='b_story.feature' entity_id='US-1'"]
+    assert [(w.path, w.entity_id, w.context) for w in duplicates] == [("b_story.feature", "US-1", None)]
     assert "'a_story.feature'" in duplicates[0].message
+
+
+def test_a_status_warning_about_one_header_carries_that_file_in_the_typed_path(tmp_path, mocker):
+    # Arrange: `DEC-77`. US-1 authors no `status:`, so `derive_statuses` reports MISSING_STATUS - a fact about
+    # this one header, so the file it is about belongs in the typed `path`. FEATURE_WITHOUT_FUNCTIONALITY holds
+    # of FEAT-2 only in relation to the rest of the run, so it is not about one file and stays unlocated.
+    _write(
+        tmp_path / "repo" / "us" / "nested" / "no_status.feature",
+        US_FEATURE_TEMPLATE.format(num=1).replace("# status:         active\n", ""),
+    )
+    _write(tmp_path / "repo" / "pages" / "Feature2Page.ts", TS_PAGE_OBJECT_TEMPLATE.format(num=2))
+    _configure(mocker, tmp_path / "repo")
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    missing = [w for w in result.warnings if w.code == "MISSING_STATUS"]
+    assert [(w.path, w.entity_id) for w in missing] == [("nested/no_status.feature", "US-1")]
+    unlocated = [w for w in result.warnings if w.code == "FEATURE_WITHOUT_FUNCTIONALITY"]
+    assert [(w.path, w.entity_id) for w in unlocated] == [(None, "FEAT-2")]
 
 
 def test_reference_to_a_rejected_entity_is_reported_unresolved(tmp_path, mocker):

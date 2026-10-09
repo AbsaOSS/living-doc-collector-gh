@@ -61,6 +61,7 @@ def test_load_repository_configs_names_the_input_the_zero_based_entry_and_the_re
     assert error.value.code == Code.INVALID_CONFIGURATION
     assert error.value.message == "`ui-tests-repositories` entry 1 is malformed: missing key `paths`."
 
+
 # sanitize_filename
 
 

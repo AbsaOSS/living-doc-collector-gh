@@ -93,9 +93,7 @@ def test_run_doc_issues_mode_fails_at_start_as_planned(mocker):
     assert exit_info.value.code == 1
     mock_logger.error.assert_called_once()
     fmt, error = mock_logger.error.call_args.args
-    assert fmt % error == (
-        "[INVALID_CONFIGURATION] `doc-issues` mode is planned and not available in this version"
-    )
+    assert fmt % error == ("[INVALID_CONFIGURATION] `doc-issues` mode is planned and not available in this version")
     mock_validate.assert_not_called()
     mock_doc_source_collector.assert_not_called()
     mock_ui_tests_collector.assert_not_called()
@@ -208,7 +206,6 @@ def test_run_one_mode_failed_removes_the_output_of_the_mode_that_succeeded(mocke
         any_order=False,
     )
     mock_exit.assert_called_once_with(1)
-
 
 
 # end to end: `run()` over local checkouts, every input set as the action sets it

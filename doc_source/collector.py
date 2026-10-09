@@ -52,6 +52,7 @@ from utils.artifact import (
     collect_sources,
     relative_path,
     source_context,
+    with_entity_paths,
     with_path,
 )
 from utils.constants import DOC_SOURCE_OUTPUT_PATH, DOC_SOURCE_REPOSITORIES, input_name
@@ -68,6 +69,11 @@ PAGE_OBJECT_NATIVE_TYPE = "page-object"
 
 # The banner title's fixed lead (`LIVING DOC — <id> · <title>`): a `.ts` file that never names it is code.
 _LIVING_DOC_MARKER = "LIVING DOC"
+
+# `derive_statuses` codes that state a fact about one entity's own header, so the file they are about is the
+# entity's own and belongs in the typed `path` (`DEC-77`). `FEATURE_WITHOUT_FUNCTIONALITY` is deliberately
+# absent: it holds of a Feature only in relation to the other entities of the run, so it is not about one file.
+_SINGLE_FILE_STATUS_CODES = frozenset({Code.MISSING_STATUS.name, Code.STATUS_AC_MISMATCH.name})
 
 
 @dataclass
@@ -234,12 +240,18 @@ class GHDocSourceCollector:
                         ContractWarning(
                             code=Code.AUTHORING_ERROR.name,
                             message=f"Entity fails contract validation and is skipped: {reason}",
-                            context=f"path={rel_path!r} entity_id={parsed.entity_id!r}",
+                            path=rel_path,
+                            entity_id=parsed.entity_id,
                         )
                     )
                     rejected.add(parsed.entity_id)
             if not rejected:
-                return derived, entities, rejections + status_warnings
+                located = with_entity_paths(
+                    status_warnings,
+                    {entity_id: path for entity_id, (_, path) in collected.sources.items()},
+                    _SINGLE_FILE_STATUS_CODES,
+                )
+                return derived, entities, rejections + located
             collected.entities_skipped += len(rejected)
             parsed_entities = [e for e in parsed_entities if e.entity_id not in rejected]
 
@@ -266,13 +278,16 @@ class GHDocSourceCollector:
                 ContractWarning(
                     code=Code.AUTHORING_ERROR.name,
                     message=f"Entity id is already collected from {first_source!r}; this file is skipped.",
-                    context=f"path={rel_path!r} entity_id={entity.entity_id!r}",
+                    path=rel_path,
+                    entity_id=entity.entity_id,
                 )
             )
             collected.entities_skipped += 1
             return
         source_ref, ref_warnings = build_source_ref(repository, file_path, scan_roots, native_type)
-        collected.warnings.extend(ref_warnings)
+        # `build_source_ref` works on a file and never learns the entity; the id is known here, so it is filled
+        # into the typed field rather than left unset (`DEC-77`).
+        collected.warnings.extend(w.model_copy(update={"entity_id": entity.entity_id}) for w in ref_warnings)
         collected.entities.append(entity)
         collected.sources[entity.entity_id] = (source_ref, rel_path)
 
@@ -324,7 +339,9 @@ class GHDocSourceCollector:
                     ContractWarning(
                         code=Code.UNRESOLVED_RELATION.name,
                         message="'parent-feat' points outside the collected entity set; the page is dropped.",
-                        context=f"path={rel_path!r} target={parent_feat!r}",
+                        # No field carries the relation's target, so it stays in `context` (`DEC-77`).
+                        context=f"target={parent_feat!r}",
+                        path=rel_path,
                     )
                 )
                 continue

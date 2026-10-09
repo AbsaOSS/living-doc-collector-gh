@@ -71,35 +71,47 @@ runs:
   using: 'composite'
   steps:
 
-    - name: Install Python dependencies
-      run: |
-        pip install -r ${{ github.action_path }}/requirements.txt
+    # The action brings its own virtual environment: it never installs into the runner's interpreter and
+    # never touches the caller's `PATH`, `PYTHONPATH` or environment. The venv lives under `$RUNNER_TEMP`
+    # and is reused, so two steps of this action in one job install once.
+    # Linux runners (`ubuntu-latest` and the like) are the target, so the venv's POSIX `bin/` layout is
+    # assumed throughout; Windows is a local-development platform here, not one this action runs on.
+    - name: Check Python and create the collector's venv
+      id: venv
       shell: bash
-
-    - name: Update PYTHONPATH
       run: |
-        ACTION_ROOT="${{ github.action_path }}"
-        export PYTHONPATH="${PYTHONPATH}:${ACTION_ROOT}/living-doc-generator"
-      shell: bash
-
-    - name: Prepare environment based on mining regimes
-      run: |
-        # Set base env variables common for all regimes
-        echo "INPUT_DOC_ISSUES=${{ inputs.doc-issues }}" >> $GITHUB_ENV
-        echo "INPUT_VERBOSE_LOGGING=${{ inputs.verbose-logging }}" >> $GITHUB_ENV
-
-        # Add source-mode env variables
-        echo "INPUT_DOC_SOURCE=${{ inputs.doc-source }}" >> $GITHUB_ENV
-        echo "INPUT_UI_TESTS=${{ inputs.ui-tests }}" >> $GITHUB_ENV
-
-        if [[ "${{ inputs.doc-source }}" == "true" ]]; then
-          echo "INPUT_DOC_SOURCE_REPOSITORIES=$(echo '${{ inputs.doc-source-repositories }}' | jq -c .)" >> $GITHUB_ENV
+        # The install must land in the venv and nowhere else. These redirect pip's target directory or
+        # prepend to `sys.path`, so a caller that exports them would otherwise leave the venv empty or
+        # shadow its packages. Unset (not set empty: pip reads its own vars as config values).
+        unset PIP_TARGET PIP_PREFIX PIP_USER PYTHONPATH
+        PY="$(command -v python3 || command -v python || true)"
+        if [ -z "$PY" ] || ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
+          echo "::error::living-doc-collector-gh needs Python >= 3.10 on PATH. Add actions/setup-python before this step."; exit 1
         fi
-
-        if [[ "${{ inputs.ui-tests }}" == "true" ]]; then
-          echo "INPUT_UI_TESTS_REPOSITORIES=$(echo '${{ inputs.ui-tests-repositories }}' | jq -c .)" >> $GITHUB_ENV
+        VENV="$RUNNER_TEMP/living-doc-collector-gh-venv"
+        # Reuse the venv only when it was built from the interpreter now on `PATH`. A job that switches
+        # `actions/setup-python` between two invocations would otherwise validate the new Python and then
+        # run the collector on the previous one's venv. `base_prefix` identifies the interpreter a venv was
+        # created from; for a plain interpreter it is its own prefix.
+        IDENTITY='import sys; print(sys.base_prefix, sys.version_info[:3])'
+        WANT="$("$PY" -c "$IDENTITY")"
+        HAVE=""
+        if [ -x "$VENV/bin/python" ]; then
+          HAVE="$("$VENV/bin/python" -c "$IDENTITY" 2>/dev/null || true)"
         fi
-      shell: bash
+        if [ "$HAVE" != "$WANT" ]; then
+          rm -rf "$VENV"
+          "$PY" -m venv "$VENV" || { echo "::error::'$PY -m venv' failed; install the venv module."; exit 1; }
+        fi
+        "$VENV/bin/pip" install -r "${{ github.action_path }}/requirements.txt"
+        # `pip` also reads its own config files (`/etc/pip.conf`, `~/.config/pip/pip.conf`), which the
+        # `unset` above cannot reach: a runner that sets `target` or `prefix` there redirects the packages
+        # out of the venv, and `pip` still exits 0. The collector would then fail in the next step, on an
+        # import, as if the package were at fault. One import through the venv's own interpreter - which
+        # sees nothing but the venv, `PYTHONPATH` being unset - reports it here instead, where it happened.
+        "$VENV/bin/python" -c 'import living_doc_utilities, pydantic' || {
+          echo "::error::the collector's requirements did not land in $VENV; check the runner's pip configuration for a 'target' or 'prefix' setting that redirects them."; exit 1; }
+        echo "python=$VENV/bin/python" >> "$GITHUB_OUTPUT"
 
     - name: Run Living Documentation Collector for GitHub
       id: liv-doc-collector
@@ -108,14 +120,19 @@ runs:
         INPUT_OUTPUT_PATH: ${{ inputs.output-path }}
         INPUT_ALLOW_PARTIAL: ${{ inputs.allow-partial }}
         INPUT_GITHUB_SERVER_URL: ${{ inputs.github-server-url }}
-        INPUT_DOC_ISSUES: ${{ env.INPUT_DOC_ISSUES }}
-        INPUT_DOC_SOURCE: ${{ env.INPUT_DOC_SOURCE }}
-        INPUT_UI_TESTS: ${{ env.INPUT_UI_TESTS }}
+        INPUT_DOC_ISSUES: ${{ inputs.doc-issues }}
+        INPUT_DOC_SOURCE: ${{ inputs.doc-source }}
+        INPUT_UI_TESTS: ${{ inputs.ui-tests }}
 
-        INPUT_VERBOSE_LOGGING: ${{ env.INPUT_VERBOSE_LOGGING }}
+        INPUT_VERBOSE_LOGGING: ${{ inputs.verbose-logging }}
 
-        INPUT_DOC_SOURCE_REPOSITORIES: ${{ env.INPUT_DOC_SOURCE_REPOSITORIES }}
-        INPUT_UI_TESTS_REPOSITORIES: ${{ env.INPUT_UI_TESTS_REPOSITORIES }}
+        # Passed verbatim: `action_inputs._get_repositories` reads them with `json.loads`, which tolerates
+        # any whitespace, and a step `env:` value carries newlines as they are.
+        INPUT_DOC_SOURCE_REPOSITORIES: ${{ inputs.doc-source-repositories }}
+        INPUT_UI_TESTS_REPOSITORIES: ${{ inputs.ui-tests-repositories }}
       run: |
-        python ${{ github.action_path }}/main.py
+        # `-E`: a venv isolates site-packages, not the environment. A caller's `PYTHONPATH` still precedes
+        # the venv on `sys.path`, so a package vendored there would shadow the pinned one; `-E` makes the
+        # interpreter ignore the whole `PYTHON*` set. `INPUT_*` above is unaffected.
+        "${{ steps.venv.outputs.python }}" -E "${{ github.action_path }}/main.py"
       shell: bash

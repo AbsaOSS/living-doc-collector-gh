@@ -59,6 +59,14 @@ MALFORMED_TAG_FEATURE = """Feature: Malformed
         Given a step
 """
 
+# A malformed tag whose criterion id *is* valid: the keyword carries no `:<value>`, so the tag does not parse,
+# but `ac_id` is known and belongs in the typed field.
+MALFORMED_TAG_VALID_AC_ID_FEATURE = """Feature: Malformed
+    @AC:US-1-01/aspect
+    Scenario: Malformed tag
+        Given a step
+"""
+
 
 def _write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -219,7 +227,9 @@ def test_source_ref_outside_a_git_checkout_reports_no_source_url(tmp_path, mocke
 
     # Assert: one source_ref per file, so one warning for the file's three scenarios.
     assert {s.source_ref.url for s in result.scenarios} == {""}
-    assert [(w.code, w.context) for w in result.warnings] == [("NO_SOURCE_URL", "path='features/create.feature'")]
+    assert [(w.code, w.path, w.context) for w in result.warnings] == [
+        ("NO_SOURCE_URL", "features/create.feature", None)
+    ]
 
 
 def test_source_ref_in_a_checkout_with_no_resolvable_commit_reports_no_source_url(tmp_path, mocker):
@@ -235,7 +245,9 @@ def test_source_ref_in_a_checkout_with_no_resolvable_commit_reports_no_source_ur
     # Assert
     assert result.scenarios[0].source_ref.url == ""
     assert result.scenarios[0].scenario_id == "absa-group/aul-ui/features/create.feature/first-scenario"
-    assert [(w.code, w.context) for w in result.warnings] == [("NO_SOURCE_URL", "path='features/create.feature'")]
+    assert [(w.code, w.path, w.context) for w in result.warnings] == [
+        ("NO_SOURCE_URL", "features/create.feature", None)
+    ]
 
 
 def test_invalid_github_server_url_fails_the_build(tmp_path, mocker, monkeypatch):
@@ -269,9 +281,19 @@ def test_tutorial_file_and_tutorial_scenario_are_not_mined(tmp_path, mocker):
     assert [s.title for s in result.scenarios] == ["Real test"]
 
 
-def test_malformed_ac_tag_is_reported_with_the_file_path(tmp_path, mocker):
+@pytest.mark.parametrize(
+    ("text", "tag", "expected_ac_id"),
+    [
+        # The tag's id is not a criterion id, so `ac_id` stays unset.
+        (MALFORMED_TAG_FEATURE, "@AC:not-an-id", None),
+        # The tag's id is a valid criterion id, so `ac_id` carries it even though the tag does not parse.
+        (MALFORMED_TAG_VALID_AC_ID_FEATURE, "@AC:US-1-01/aspect", "US-1-01"),
+    ],
+    ids=["invalid-ac-id", "valid-ac-id"],
+)
+def test_malformed_ac_tag_is_reported_with_the_file_path(tmp_path, mocker, text, tag, expected_ac_id):
     # Arrange
-    _write(tmp_path / "repo" / "malformed.feature", MALFORMED_TAG_FEATURE)
+    _write(tmp_path / "repo" / "malformed.feature", text)
     _configure(mocker, tmp_path / "repo")
 
     # Act
@@ -280,7 +302,13 @@ def test_malformed_ac_tag_is_reported_with_the_file_path(tmp_path, mocker):
     # Assert
     malformed = [w for w in result.warnings if w.code == "MALFORMED_AC"]
     assert len(malformed) == 1
-    assert malformed[0].context.startswith("path='malformed.feature' ")
+    # `DEC-77`: the file, the tag's line and - wherever the tag names one - the criterion are typed fields.
+    assert (malformed[0].path, malformed[0].line_no, malformed[0].ac_id) == (
+        "malformed.feature",
+        2,
+        expected_ac_id,
+    )
+    assert malformed[0].context == f"tag={tag!r} line_no=2"
 
 
 def test_unreadable_file_is_skipped(tmp_path, mocker):
@@ -351,7 +379,9 @@ def test_invalid_repository_configuration_fails_collect_with_no_output_file(tmp_
 
 def test_file_without_a_kept_scenario_raises_no_source_url_warning(tmp_path, mocker):
     # Arrange: a file outside a git checkout with only a `@tutorial` scenario, and one with no scenario at all.
-    _write(tmp_path / "repo" / "tour.feature", "Feature: Tour\n    @tutorial\n    Scenario: Step\n        Given a step\n")
+    _write(
+        tmp_path / "repo" / "tour.feature", "Feature: Tour\n    @tutorial\n    Scenario: Step\n        Given a step\n"
+    )
     _write(tmp_path / "repo" / "empty.feature", "Feature: Empty\n")
     _configure(mocker, tmp_path / "repo")
 
@@ -457,8 +487,9 @@ def test_file_reached_through_two_repository_entries_keeps_its_scenarios_once(tm
 
     # Assert
     assert [s.scenario_id for s in result.scenarios] == ["absa-group/aul-ui/features/login.feature/login"]
-    assert [(w.code, w.context) for w in result.warnings] == [
-        ("AUTHORING_ERROR", "path='login.feature' scenario_id='absa-group/aul-ui/features/login.feature/login'")
+    # `path` is the typed field; no field carries a scenario id, so it stays free text (`DEC-77`).
+    assert [(w.code, w.path, w.context) for w in result.warnings] == [
+        ("AUTHORING_ERROR", "login.feature", "scenario_id='absa-group/aul-ui/features/login.feature/login'")
     ]
 
 

@@ -123,9 +123,25 @@ def test_full_sample_scenarios(artifact):
     assert [s.title for s in artifact.scenarios] == [
         "Every extension is read on desktop",
         "Every extension is read on <device>",
+        "The story is readable for an admin",
+        "The story is readable for every role",
     ]
     assert [(link.id, link.aspect) for link in artifact.scenarios[0].acceptance_criteria] == [
         ("US-901-01", "desktop"),
         ("US-901-02", None),
     ]
     assert artifact.warnings == []
+
+
+def test_a_keyword_tag_links_one_declared_value_and_a_bare_tag_the_whole_criterion(artifact):
+    # Arrange: AC:US-901-06 of the paired `doc-source` fixture declares its variants with the keyword
+    # `user role:`, so `@AC:US-901-06/user-role:admin` is the other spelling of `/aspect:admin` (`DEC-76`).
+    by_title = {s.title: s for s in artifact.scenarios}
+
+    # Assert: the keyword's value fills `aspect`; the keyword's own name is not stored on the link.
+    keyword_links = by_title["The story is readable for an admin"].acceptance_criteria
+    assert [(link.id, link.aspect) for link in keyword_links] == [("US-901-06", "admin")]
+
+    # Assert: a bare tag on an AC that declares variants links the whole criterion, every declared value.
+    bare_links = by_title["The story is readable for every role"].acceptance_criteria
+    assert [(link.id, link.aspect) for link in bare_links] == [("US-901-06", None)]

@@ -1,15 +1,6 @@
+# Runtime dependencies only - what `main.py` and the active modules import. The action installs this
+# file into its own venv (see `action.yml`). Development and test tools live in `requirements-dev.txt`;
+# `make qa` fails when a test, lint or type tool appears here (`tools/check_runtime_requirements.py`).
+living-doc-utilities==0.6.0
 pydantic==2.13.5
-tomli==2.4.1
-mypy==2.3.1
-mypy-extensions==1.1.0
-requests==2.34.2
-typing_extensions==4.16.0
-PyGithub==2.10.0
-pylint==4.1.1
-ruff==0.16.9
-black==26.5.1
-pytest==9.1.1
-pytest-cov==7.1.0
-pytest-mock==3.16.0
-types-requests==2.33.0.20260906
-living-doc-utilities[github]==0.5.0
+tomli==2.4.1; python_version < "3.11"

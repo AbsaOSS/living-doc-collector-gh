@@ -1,0 +1,21 @@
+# Development and test dependencies: the runtime set plus everything only the quality gate and the test
+# suite need. The action never installs this file.
+-r requirements.txt
+
+# Lint, format and type tools (`make format-check lint types`).
+black==26.5.1
+mypy==2.3.1
+mypy-extensions==1.1.0
+pylint==4.1.1
+ruff==0.16.9
+types-requests==2.33.0.20260906
+
+# Test runner (`make test coverage`).
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-mock==3.16.0
+
+# Only `doc_issues/` imports these - PLANNED after v0.1.0, kept aside out of the build. Its tests are not
+# collected either (`pyproject.toml` ignores `tests/doc_issues`); the pins are kept for the port.
+PyGithub==2.10.0
+requests==2.34.2

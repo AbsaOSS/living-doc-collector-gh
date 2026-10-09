@@ -29,9 +29,15 @@ on:
       - 'pyproject.toml'
       - 'tests/fixtures/**'
       - 'requirements.txt'
+      - 'requirements-dev.txt'
       - 'action.yml'
       - '.github/workflows/integration_test.yml'
   workflow_dispatch:
+
+# Least privilege: every job here runs repository code through `uses: ./` and no mode makes a GitHub API
+# call, so none of them needs more than read access.
+permissions:
+  contents: read
 
 jobs:
   integration-test:
@@ -48,10 +54,10 @@ jobs:
         with:
           python-version: '3.14'
           cache: 'pip'
+          cache-dependency-path: 'requirements*.txt'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: make install
 
       # No token: both modes read the local checkout and make no GitHub API call.
       - name: Run collector on the committed fixtures
@@ -103,3 +109,185 @@ jobs:
           name: integration-test-output
           path: ./output/collector-gh/
           retention-days: 7
+
+  # The action brings its own venv (`DEC-24`): it installs nothing into the runner's interpreter and leaves
+  # the caller's `PATH` and packages untouched. Two steps of the action in one job share and reuse the venv.
+  action-venv-isolation:
+    runs-on: ubuntu-latest
+    name: Action Venv - Isolation and Reuse
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      # 3.12, not the action image's 3.14: pydantic 1.x, the conflicting pin below, publishes wheels for it.
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+
+      # A pydantic the collector cannot run on: were the action using this interpreter it would fail, and
+      # were it installing into this interpreter, this version would be gone by the last step.
+      - name: Install a conflicting pydantic into the runner's interpreter
+        run: |
+          set -euo pipefail
+          pip install 'pydantic<2'
+          {
+            which python
+            python --version
+            python -c 'import pydantic; print(pydantic.VERSION)'
+          } | tee "${RUNNER_TEMP}/before.txt"
+
+      - name: Run the action (first step)
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          output-path: ${{ github.workspace }}/output/first
+          doc-source: 'true'
+          doc-source-repositories: |
+            [{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh",
+              "us-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_us"],
+              "func-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_func"],
+              "pages-paths": ["${{ github.workspace }}/tests/fixtures/golden/pageobject"]}]
+          ui-tests: 'false'
+
+      # `pyvenv.cfg`'s mtime, not a stray marker file: `python -m venv` without `--clear` leaves pre-existing
+      # files in the target directory alone, so a marker survives a full re-create and proves nothing. The
+      # config is rewritten (mode `w`) on every create, so an unchanged mtime can only mean the venv was reused.
+      - name: Stamp the venv
+        run: stat -c %Y "${RUNNER_TEMP}/living-doc-collector-gh-venv/pyvenv.cfg" > "${RUNNER_TEMP}/venv-cfg-mtime.txt"
+
+      - name: Run the action (second step)
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          output-path: ${{ github.workspace }}/output/second
+          doc-source: 'false'
+          ui-tests: 'true'
+          ui-tests-repositories: |
+            [{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh",
+              "paths": ["${{ github.workspace }}/tests/fixtures/full_sample/ui_tests"]}]
+
+      - name: Both steps wrote their artifact, the venv was reused, the caller's environment is unchanged
+        run: |
+          set -euo pipefail
+          test -f "${{ github.workspace }}/output/first/doc-source/doc-source.json"
+          test -f "${{ github.workspace }}/output/second/ui-tests/ui-tests.json"
+          # Each step wrote only the mode it enabled. A disabled mode that still produced an artifact would
+          # mean the first step's inputs leaked into the second - which is what dropping `$GITHUB_ENV` fixed,
+          # and what comparing interpreters below cannot see.
+          test ! -e "${{ github.workspace }}/output/second/doc-source"
+          test ! -e "${{ github.workspace }}/output/first/ui-tests"
+          # `pyvenv.cfg` was not rewritten, so the second step reused the venv instead of recreating it.
+          test "$(stat -c %Y "${RUNNER_TEMP}/living-doc-collector-gh-venv/pyvenv.cfg")" \
+            = "$(cat "${RUNNER_TEMP}/venv-cfg-mtime.txt")"
+          {
+            which python
+            python --version
+            python -c 'import pydantic; print(pydantic.VERSION)'
+          } | tee "${RUNNER_TEMP}/after.txt"
+          diff "${RUNNER_TEMP}/before.txt" "${RUNNER_TEMP}/after.txt"
+          echo '::notice::both steps succeeded, the venv was reused, and the runner interpreter is unchanged.'
+
+  # The venv is keyed to the interpreter that built it. A job that switches `actions/setup-python` between
+  # two invocations must get a rebuilt venv, never the previous interpreter's - that is what the
+  # `sys.base_prefix` comparison in `action.yml` is for, and what the job above cannot see, because both of
+  # its invocations run on the same Python. Asserted on the venv's own interpreter rather than on a
+  # `pyvenv.cfg` mtime: a reused venv would still report 3.12, so the version is the rebuild itself.
+  action-venv-rebuilt-when-python-changes:
+    runs-on: ubuntu-latest
+    name: Action Venv - Rebuilt When Python Changes
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+
+      - name: Run the action on 3.12
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          output-path: ${{ github.workspace }}/output/on-312
+          doc-source: 'true'
+          doc-source-repositories: |
+            [{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh",
+              "us-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_us"],
+              "func-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_func"],
+              "pages-paths": ["${{ github.workspace }}/tests/fixtures/golden/pageobject"]}]
+          ui-tests: 'false'
+
+      - name: The venv was built from 3.12
+        run: |
+          set -euo pipefail
+          "${RUNNER_TEMP}/living-doc-collector-gh-venv/bin/python" \
+            -c 'import sys; assert sys.version_info[:2] == (3, 12), sys.version'
+
+      - name: Switch the interpreter on PATH to 3.11
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.11'
+
+      - name: Run the action on 3.11
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          output-path: ${{ github.workspace }}/output/on-311
+          doc-source: 'true'
+          doc-source-repositories: |
+            [{"organization-name": "AbsaOSS", "repository-name": "living-doc-collector-gh",
+              "us-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_us"],
+              "func-paths": ["${{ github.workspace }}/tests/fixtures/golden/gherkin/liv_doc_func"],
+              "pages-paths": ["${{ github.workspace }}/tests/fixtures/golden/pageobject"]}]
+          ui-tests: 'false'
+
+      - name: The venv was rebuilt from the interpreter now on PATH
+        run: |
+          set -euo pipefail
+          # Were the venv reused, the collector would have run on the 3.12 left behind by the first step.
+          "${RUNNER_TEMP}/living-doc-collector-gh-venv/bin/python" \
+            -c 'import sys; assert sys.version_info[:2] == (3, 11), sys.version'
+          test -f "${{ github.workspace }}/output/on-311/doc-source/doc-source.json"
+          echo '::notice::switching the interpreter rebuilt the venv instead of reusing the 3.12 one.'
+
+  # Python older than the 3.10 floor fails the action with one actionable error, before it creates any venv.
+  action-rejects-python-39:
+    runs-on: ubuntu-latest
+    name: Action Venv - Python 3.9 Is Rejected
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.9'
+
+      - name: Run the action, which must fail
+        id: run-on-39
+        continue-on-error: true
+        uses: ./
+        with:
+          project-id: living-doc-collector-gh
+          doc-source: 'false'
+          ui-tests: 'false'
+
+      - name: The action failed on the version check, before creating a venv
+        run: |
+          set -euo pipefail
+          # `PATH`'s Python really is the one the floor rejects: without this the job would also pass if
+          # `setup-python` resolved something newer and the action failed for an unrelated reason.
+          python3 -c 'import sys; assert sys.version_info[:2] == (3, 9), sys.version'
+          if [[ "${{ steps.run-on-39.outcome }}" != "failure" ]]; then
+            echo "::error::the action must fail when PATH's Python is older than 3.10."; exit 1
+          fi
+          if [[ -d "${RUNNER_TEMP}/living-doc-collector-gh-venv" ]]; then
+            echo "::error::the action must fail the version check before it creates a venv."; exit 1
+          fi
