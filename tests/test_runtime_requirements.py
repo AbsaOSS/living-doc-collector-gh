@@ -18,6 +18,7 @@ The split between the two requirements files: `requirements.txt` is what the act
 on every run, so it carries no test, lint or type tool; `requirements-dev.txt` adds those on top of it.
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -46,8 +47,12 @@ def test_runtime_requirements_are_only_what_the_active_code_imports():
     # Assert: the pinned runtime set - `utilities` 0.6.0 with no extra, pydantic, and tomli before 3.11.
     assert _names(RUNTIME_REQUIREMENTS) == ["living-doc-utilities", "pydantic", "tomli"]
     lines = RUNTIME_REQUIREMENTS.read_text().splitlines()
+    # The `utilities` version is this repository's own pin, so it is asserted exactly: a bump there is a
+    # deliberate step with a corpus re-copy behind it, never a dependency update. `tomli` only has to carry
+    # its marker, so its patch version is matched loosely - pinning it would fail the weekly dependency bump
+    # (auto-merged, `.github/dependabot.yml`) over a file that is still entirely correct.
     assert "living-doc-utilities==0.6.0" in lines
-    assert 'tomli==2.4.1; python_version < "3.11"' in lines
+    assert [line for line in lines if re.fullmatch(r'tomli==\S+; python_version < "3\.11"', line)]
 
 
 def test_dev_requirements_include_the_runtime_set_and_the_tools_moved_out_of_it():
