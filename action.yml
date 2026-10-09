@@ -104,6 +104,13 @@ runs:
           "$PY" -m venv "$VENV" || { echo "::error::'$PY -m venv' failed; install the venv module."; exit 1; }
         fi
         "$VENV/bin/pip" install -r "${{ github.action_path }}/requirements.txt"
+        # `pip` also reads its own config files (`/etc/pip.conf`, `~/.config/pip/pip.conf`), which the
+        # `unset` above cannot reach: a runner that sets `target` or `prefix` there redirects the packages
+        # out of the venv, and `pip` still exits 0. The collector would then fail in the next step, on an
+        # import, as if the package were at fault. One import through the venv's own interpreter - which
+        # sees nothing but the venv, `PYTHONPATH` being unset - reports it here instead, where it happened.
+        "$VENV/bin/python" -c 'import living_doc_utilities, pydantic' || {
+          echo "::error::the collector's requirements did not land in $VENV; check the runner's pip configuration for a 'target' or 'prefix' setting that redirects them."; exit 1; }
         echo "python=$VENV/bin/python" >> "$GITHUB_OUTPUT"
 
     - name: Run Living Documentation Collector for GitHub

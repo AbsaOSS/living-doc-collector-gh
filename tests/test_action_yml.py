@@ -57,3 +57,13 @@ def test_the_action_installs_into_its_own_venv_and_never_the_runners_interpreter
     code = [line.split("#", 1)[0].strip() for line in ACTION_YML.read_text(encoding="utf-8").splitlines()]
     installs = [line for line in code if "pip" in line and "install" in line]
     assert installs == ['"$VENV/bin/pip" install -r "${{ github.action_path }}/requirements.txt"']
+
+
+def test_the_action_proves_the_requirements_landed_in_the_venv():
+    # Assert: the install is followed by an import through the venv's own interpreter. A runner `pip.conf`
+    # that redirects the packages (`target`/`prefix`, which no `unset` can reach) leaves `pip install`
+    # green and the venv empty, so without this the first symptom is an import error one step later.
+    code = [line.split("#", 1)[0].strip() for line in ACTION_YML.read_text(encoding="utf-8").splitlines()]
+    assert [
+        line for line in code if '"$VENV/bin/python" -c' in line and "import living_doc_utilities" in line
+    ], "the venv install is unverified: nothing imports the requirements through `$VENV/bin/python`"
