@@ -3,4 +3,4 @@
 # `make qa` fails when a test, lint or type tool appears here (`tools/check_runtime_requirements.py`).
 living-doc-utilities==0.6.0
 pydantic==2.13.5
-tomli==2.4.1; python_version < "3.11"
+tomli==2.5.0; python_version < "3.11"
