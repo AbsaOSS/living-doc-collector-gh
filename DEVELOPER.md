@@ -266,7 +266,7 @@ A run, in order:
    warnings by code - each code's count and its first ten occurrences.
 
 It exits non-zero when a check, the install, the collector or a validation fails. For an issue or a report, keep the
-whole output: `./local-integration.sh 2>&1 | tee local-integration.log`.
+whole output: `set -o pipefail; ./local-integration.sh 2>&1 | tee local-integration.log`.
 
 ---
 ## Run Pylint Check Locally

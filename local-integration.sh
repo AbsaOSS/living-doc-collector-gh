@@ -118,6 +118,11 @@ for key in $REQUIRED; do
   var="CFG_$key"
   [ -n "${!var}" ] || die "$key is not set in $ENV_FILE"
 done
+# Mirrors living_doc_utilities.contracts.envelope.PROJECT_ID_PATTERN, so a bad PROJECT_ID fails here - at --check -
+# rather than later, as the collector's own ContractError. Matched with LC_ALL=C: under some locales, bash's
+# bracket ranges collate case-insensitively, so `[a-z]` can otherwise match an uppercase letter too.
+(LC_ALL=C; [[ "$CFG_PROJECT_ID" =~ ^[a-z0-9][a-z0-9-]*$ ]]) \
+  || die "PROJECT_ID '$CFG_PROJECT_ID' does not match ^[a-z0-9][a-z0-9-]*\$ (lowercase alphanumeric and hyphen, starting alphanumeric)"
 CFG_OUT_DIR="${CFG_OUT_DIR:-./output}"
 
 # A configured path: `~/` is the home directory, and a relative one resolves against this repository's root.
@@ -148,11 +153,14 @@ TARGET="$(resolve "$CFG_TARGET_CHECKOUT")"
 [ -d "$TARGET" ] || die "TARGET_CHECKOUT not found: $TARGET"
 TARGET="$(cd "$TARGET" && pwd)"
 git -C "$TARGET" rev-parse --verify --quiet HEAD >/dev/null || die "TARGET_CHECKOUT is not a git checkout: $TARGET"
+# Resolved once, symlinks and all, so a mode path entry's own resolved directory can be checked against it below -
+# a `../` or a symlinked subdirectory must not be able to point collection outside the checkout.
+TARGET_REAL="$(cd "$TARGET" && pwd -P)"
 
 # One `<repository key>=<absolute directory>` line per comma-separated entry of a mode path setting, each entry
 # relative to the checkout; the form `tools.local_integration repositories` reads. Prints nothing when unset.
 mode_paths() {  # mode_paths CONFIG_KEY REPOSITORY_KEY
-  local var="CFG_$1" entries entry
+  local var="CFG_$1" entries entry resolved
   [ -n "${!var}" ] || return 0
   IFS=',' read -r -a entries <<< "${!var}"
   for entry in "${entries[@]}"; do
@@ -160,6 +168,13 @@ mode_paths() {  # mode_paths CONFIG_KEY REPOSITORY_KEY
     entry="${entry%"${entry##*[![:space:]]}"}"
     [ -n "$entry" ] || die "$1 has an empty entry"
     [ -d "$TARGET/$entry" ] || die "$1 entry '$entry' not found in TARGET_CHECKOUT: $TARGET/$entry"
+    # A `../` entry or a symlinked subdirectory can point at a real directory outside TARGET_CHECKOUT even though
+    # the `-d` check above passed; resolve it and reject anything that lands outside.
+    resolved="$(cd "$TARGET/$entry" && pwd -P)"
+    case "$resolved" in
+      "$TARGET_REAL" | "$TARGET_REAL"/*) ;;
+      *) die "$1 entry '$entry' resolves outside TARGET_CHECKOUT: $resolved" ;;
+    esac
     printf '%s=%s\n' "$2" "$(native_dir "$TARGET/$entry")"
   done
 }
