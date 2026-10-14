@@ -21,7 +21,7 @@ Tooling and quality gates → Common pitfalls → Learned rules.
 GitHub Projects, Issues, and locally checked-out repositories for living-documentation
 content and writes machine-readable JSON for the downstream `living-doc-*` generators.
 
-- Must treat execution as a GitHub Action on a GitHub-hosted runner as the supported path; the `run_script.sh` / `python3 main.py` flow is a development and debugging affordance only.
+- Must treat execution as a GitHub Action on a GitHub-hosted runner as the supported path; `local-integration.sh` and the `run_script.sh` / `python3 main.py` flow are development, debugging and operator-check affordances only, and Must not reference `local-integration.sh` from a workflow.
 - Must read action inputs from `INPUT_*` environment variables and nowhere else.
 - Must keep the whole collect pipeline AI-free — deterministic Python only, no LLM call anywhere in that path.
 - Prefer keeping environment access at the module boundary — `action_inputs.py` and `main.run()` — and Must keep the collectors and parsers free of environment reads.
