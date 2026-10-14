@@ -3,6 +3,7 @@
 - [Project Setup](#project-setup)
 - [Quality Gate (Makefile)](#quality-gate-makefile)
 - [Run the Action Locally](#run-the-action-locally)
+- [Local Integration Run](#local-integration-run)
 - [Run Pylint Check Locally](#run-pylint-check-locally)
 - [Run Black Tool Locally](#run-black-tool-locally)
 - [Run mypy Tool Locally](#run-mypy-tool-locally)
@@ -86,7 +87,10 @@ what the corresponding `make` target runs under the hood.
 ## Run the Action Locally
 
 The `doc-source` and `ui-tests` modes read local checkouts only: a local run makes no network request and needs
-no token. If you need to run the scripts locally, follow these steps:
+no token. This is the hand-written debugging run, in the development venv; to run the collector over a real
+checkout in a repeatable way, with a validated and reported result, use the
+[Local Integration Run](#local-integration-run) instead. If you need to run the scripts locally, follow these
+steps:
 
 ### Create the Shell Script
 
@@ -104,11 +108,14 @@ Add the shebang line at the top of the sh script file.
 Set the configuration environment variables in the shell script following the structure below.
 The collector supports mining in multiple modes, so you can use just the environment variables you need.
 `INPUT_PROJECT_ID` is required; the artifacts land under `INPUT_OUTPUT_PATH` (default `./output/collector-gh`).
+`main.py` ends by writing the `output-path` action output to the file `GITHUB_OUTPUT` names, which only a runner
+provides: set it (`/dev/null` discards the line), or the run fails on its last step with a `KeyError`.
 ```
 # Essential environment variables for GitHub Action functionality
 export INPUT_PROJECT_ID=aul
 export INPUT_OUTPUT_PATH=./output/collector-gh
 export INPUT_VERBOSE_LOGGING=true
+export GITHUB_OUTPUT=/dev/null
 ```
 
 Each mode is enabled by its switch and given its repository list as JSON. The `doc-issues` mode is
@@ -157,6 +164,7 @@ The whole script should look like this example:
 # Essential environment variables for GitHub Action functionality
 export INPUT_PROJECT_ID=aul
 export INPUT_VERBOSE_LOGGING=true
+export GITHUB_OUTPUT=/dev/null
 
 # Environment variables for 'doc-source' mode functionality
 export INPUT_DOC_SOURCE=true
@@ -183,6 +191,82 @@ chmod +x run_script.sh
 ```shell
 ./run_script.sh
 ```
+
+---
+## Local Integration Run
+
+`local-integration.sh` runs the real collector over a real checkout, on the machine that has that checkout - a
+private repository included, which no workflow of this repository can reach. It runs both modes in a venv of its
+own, re-reads every artifact with `read_artifact`, and prints what ran and what came out, so one run can be set
+against the next. No workflow runs it. Like any local run, it is a development and operator-check affordance, not a
+second supported deployment target.
+
+### What You Prepare
+
+The script checks the Python version and nothing else of the environment. The rest is yours:
+
+- **Python ≥ 3.10**, with its `venv` module and whatever system libraries it needs. The script uses `PYTHON` from
+  `.env.local` when set, else `python3`, else `python` from `PATH` - the order `action.yml` uses. On Git Bash for
+  Windows, `python3` may be the Microsoft Store alias, which does not run: set `PYTHON=python`.
+- **`git`** on `PATH`, and a checkout of the target repository.
+- **Network and pip configuration** that lets `pip install -r requirements.txt` succeed: `pip.conf`,
+  `PIP_INDEX_URL`, `PIP_FIND_LINKS`, a proxy. The script leaves them as they are.
+- **A POSIX shell**: bash 3.2 or later - Linux, macOS, or Git Bash on Windows.
+
+No token. Both modes read the local checkout and call no API, so the script reads no credential: it unsets
+`GITHUB_TOKEN`, `GH_TOKEN` and every inherited `INPUT_*` before it starts anything, and `.env.local` is read as data,
+never sourced, so a token left in it is ignored and its line reported by number - never by its text.
+
+### Configure It
+
+```shell
+cp .env.local.example .env.local      # .env.local is git-ignored
+```
+
+As committed, the example targets the public [`AbsaOSS/living-doc-testbed`](https://github.com/AbsaOSS/living-doc-testbed)
+project `projects/core/`, checked out beside this repository; with that checkout in place it runs unchanged.
+
+| Key | Required | What it sets |
+|---|---|---|
+| `PROJECT_ID` | yes | `project-id`, written to every artifact's `metadata.source.project_id` |
+| `TARGET_CHECKOUT` | yes | the target's local checkout; relative to this repository's root, `~/` for home |
+| `ORGANIZATION_NAME`, `REPOSITORY_NAME` | yes | the target's GitHub organization and name, for `source_ref.url` and `metadata.source` |
+| `DOC_SOURCE_US_PATHS` | yes | `doc-source` `us-paths` |
+| `DOC_SOURCE_FUNC_PATHS`, `DOC_SOURCE_PAGES_PATHS` | no | `doc-source` `func-paths` and `pages-paths` |
+| `UI_TESTS_PATHS` | yes | `ui-tests` `paths` |
+| `GITHUB_SERVER_URL` | no | `github-server-url`, for GitHub Enterprise Server permalinks; empty means `https://github.com` |
+| `OUT_DIR` | no | the output root, default `./output` (git-ignored); relative to this repository's root |
+| `PYTHON` | no | the interpreter the venv is built from |
+
+Each mode path is relative to `TARGET_CHECKOUT`; several are separated by commas. One `KEY=value` per line, a line
+starting with `#` is a comment, and values are taken literally.
+
+### Run It
+
+```shell
+./local-integration.sh --check   # Python, git, the configuration and every path; creates no venv, runs nothing
+./local-integration.sh           # the run
+```
+
+A run, in order:
+
+1. **Checks** what `--check` checks. A missing variable or path, or a Python below 3.10, stops it with one line that
+   names it.
+2. **Builds its venv**, `.venv-local-integration/` (git-ignored), separate from the development `.venv`, and installs
+   `requirements.txt` into it with `pip install -r` and nothing else - so a runtime requirement missing from that file
+   fails here, as it would on a runner. It follows `action.yml`'s rules: `PIP_TARGET`, `PIP_PREFIX`, `PIP_USER` and
+   `PYTHONPATH` unset, an import check after the install, and `main.py` run with `-E`. The venv is reused only when
+   the same interpreter built it from the same `requirements.txt`.
+3. **Prints what runs**: the collector commit, the installed `living-doc-utilities` version, the Python version and
+   the target commit. A commit is marked when tracked files differ from it.
+4. **Runs `doc-source`, then `ui-tests`**, each as its own `main.py` run into `$OUT_DIR/collector-gh/<mode>/`, having
+   cleared both mode directories first. Each command is echoed before it runs.
+5. **Validates and reports** each artifact (`tools/local_integration.py`): re-read with `read_artifact`, then its
+   contract, the time its run took, its size, the `metadata.stats` counts (cardinality and field occupancy) and its
+   warnings by code - each code's count and its first ten occurrences.
+
+It exits non-zero when a check, the install, the collector or a validation fails. For an issue or a report, keep the
+whole output: `set -o pipefail; ./local-integration.sh 2>&1 | tee local-integration.log`.
 
 ---
 ## Run Pylint Check Locally

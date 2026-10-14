@@ -7,7 +7,7 @@ A GitHub Action that extracts living-documentation content from locally checked-
 
 ## Overview
 
-> **Expected usage: GitHub Actions first.** The supported way to run this action is as a step in a GitHub Actions workflow, chained with the other `living-doc-*` actions. Running it locally — the `run_script.sh` / `python3 main.py` pattern documented in `DEVELOPER.md` — is a development and debugging affordance only, not a second supported deployment target.
+> **Expected usage: GitHub Actions first.** The supported way to run this action is as a step in a GitHub Actions workflow, chained with the other `living-doc-*` actions. Running it locally — an operator's [`local-integration.sh`](DEVELOPER.md#local-integration-run) run over a real checkout, or the `run_script.sh` / `python3 main.py` pattern, both documented in `DEVELOPER.md` — is a development, debugging and operator-check affordance only, not a second supported deployment target.
 
 > **The Living Documentation pipeline runs AI-free.** Every step — collect → normalize → generate — is deterministic tooling (Python, JSON Schema validation, Jinja2/Markdown templates) with no LLM call anywhere in that path. [`AbsaOSS/agentic-toolkit`](https://github.com/AbsaOSS/agentic-toolkit) can accelerate the upstream *authoring* of GitHub Issues and `.feature` files, but it is never a runtime dependency of this pipeline: a human writing the same input by hand is a fully supported, identical path.
 
