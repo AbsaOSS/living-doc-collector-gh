@@ -27,6 +27,7 @@ from tests.docs.pages import APPROVED_PAGES, CodeBlock, action_yml, code_blocks,
 
 ACTION = "AbsaOSS/living-doc-collector-gh"
 _USES_RE = re.compile(rf"uses:\s*(?P<quote>['\"]?){re.escape(ACTION)}@(?P<ref>[^'\"\s]+)(?P=quote)")
+_RELEASE_TAG_RE = re.compile(r"v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)")
 
 
 def _examples(info: str) -> list:
@@ -96,7 +97,10 @@ def test_the_pages_carry_examples():
 
 
 def _release_refs_are_valid(refs: set[str]) -> bool:
-    return len(refs) == 1 and "v0.1.0" not in refs
+    if len(refs) != 1:
+        return False
+    ref = next(iter(refs))
+    return ref != "v0.1.0" and _RELEASE_TAG_RE.fullmatch(ref) is not None
 
 
 def test_every_example_names_one_release_of_this_action():
@@ -108,6 +112,22 @@ def test_every_example_names_one_release_of_this_action():
 def test_planted_old_release_is_rejected() -> None:
     """The documentation check rejects the old v0.1.0 action reference."""
     assert not _release_refs_are_valid({"v0.1.0"})
+
+
+@pytest.mark.parametrize("ref", ["main", "v0.2", "v0.2.0-rc.1"])
+def test_non_release_refs_are_rejected(ref: str) -> None:
+    """Branches and references outside the stable release-tag format are not releases."""
+    assert not _release_refs_are_valid({ref})
+
+
+def test_semver_release_ref_is_accepted() -> None:
+    """A stable release tag with major, minor, and patch components is accepted."""
+    assert _release_refs_are_valid({"v0.2.0"})
+
+
+def test_multiple_release_refs_are_rejected() -> None:
+    """Every documentation example must continue to use the same release."""
+    assert not _release_refs_are_valid({"v0.2.0", "v0.2.1"})
 
 
 def test_planted_quoted_old_release_is_rejected() -> None:
