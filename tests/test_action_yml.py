@@ -25,6 +25,7 @@ readable from a later workflow step, so the message itself is pinned here - othe
 from pathlib import Path
 
 import pytest
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTION_YML = REPO_ROOT / "action.yml"
@@ -35,7 +36,7 @@ PYTHON_FLOOR_ERROR = (
 
 
 def test_an_unsupported_python_fails_with_the_documented_one_line_error():
-    # Assert: the exact string README's Prerequisites section promises.
+    # Assert: the exact string docs/action.md's Prerequisites section promises.
     assert PYTHON_FLOOR_ERROR in ACTION_YML.read_text(encoding="utf-8")
 
 
@@ -57,6 +58,14 @@ def test_the_action_installs_into_its_own_venv_and_never_the_runners_interpreter
     code = [line.split("#", 1)[0].strip() for line in ACTION_YML.read_text(encoding="utf-8").splitlines()]
     installs = [line for line in code if "pip" in line and "install" in line]
     assert installs == ['"$VENV/bin/pip" install -r "${{ github.action_path }}/requirements.txt"']
+
+
+@pytest.mark.parametrize("switch", ["doc-issues", "doc-source", "ui-tests"])
+def test_every_mode_switch_is_optional_and_off_by_default(switch):
+    # Assert: a caller enables only the modes it needs; a switch it leaves out is `false`, never a missing input.
+    spec = yaml.safe_load(ACTION_YML.read_text(encoding="utf-8"))["inputs"][switch]
+    assert spec["required"] is False
+    assert spec["default"] == "false"
 
 
 def test_the_action_proves_the_requirements_landed_in_the_venv():

@@ -2,7 +2,7 @@
 
 Productivity helpers for roadmap/spec-driven work in `living-doc-collector-gh`. This is the
 **reference copy** for the `living-doc-*` ecosystem — other repos copy it and adapt the
-repo-specific parts (the mock/fixture table, the doc paths) in their Phase 0 `-2` task.
+repo-specific parts (the mock/fixture table, the doc paths) when they adopt it.
 
 These helpers are **acceleration, not dependency**. Every task they describe can be done by
 hand, just slower. Nothing in CI or the release path requires them.

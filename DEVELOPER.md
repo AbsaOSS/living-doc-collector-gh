@@ -1,221 +1,116 @@
-# Living Documentation Collector - for Developers
+# Living Documentation Collector for GitHub: developer guide
 
-- [Project Setup](#project-setup)
-- [Quality Gate (Makefile)](#quality-gate-makefile)
-- [Run the Action Locally](#run-the-action-locally)
+## Purpose
+
+Anyone who changes this repository reads this page. It covers setup, the quality gates, the two local runs,
+versioning, the release, and the rules for writing documentation.
+
+Read before: [README](README.md)
+
+## Contents
+
+- [Setup](#setup)
+- [Gates](#gates)
+- [Debug run](#debug-run)
 - [Local Integration Run](#local-integration-run)
-- [Run Pylint Check Locally](#run-pylint-check-locally)
-- [Run Black Tool Locally](#run-black-tool-locally)
-- [Run mypy Tool Locally](#run-mypy-tool-locally)
-- [Run Unit Test](#run-unit-test)
-- [Code Coverage](#code-coverage)
 - [Versioning](#versioning)
-- [Releasing](#releasing)
+- [Release](#release)
+- [Writing documentation](#writing-documentation)
 
-## Project Setup
+## Setup
 
-If you need to build the action locally, follow these steps for project setup:
+1. Use Python 3.10 or later: `python3 --version`.
+2. Create and activate a virtual environment: `python3 -m venv .venv`, then `source .venv/bin/activate`.
+3. Run `make install`: `pip install -r requirements-dev.txt`, which pulls in `requirements.txt` → `Makefile::install`
 
-### Prepare the Environment
-
-The supported Python floor is **3.10** (`requires-python = ">=3.10"` in `pyproject.toml`).
-The action pins no interpreter: it builds its venv from whatever Python ≥ 3.10 is on the caller's `PATH`,
-so runtime code must work on 3.10. The CI matrix covers 3.10 through 3.14.
-
-```shell
-python3 --version
-```
-
-### Set Up Python Environment
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-make install          # or: pip install -r requirements-dev.txt
-```
-
-### The Two Requirements Files
+- The supported floor is 3.10, and runtime code must work on it → `pyproject.toml::requires-python`
+  - Why: the action pins no interpreter; it builds its venv from whatever Python ≥ 3.10 is on the caller's `PATH`.
+- CI tests Python 3.10 through 3.14 → `.github/workflows/test.yml::3.14`
 
 | File | What it holds | Who installs it |
 |---|---|---|
 | `requirements.txt` | Runtime only: what `main.py` and the active modules import (`living-doc-utilities`, `pydantic`, and `tomli` below Python 3.11) | `action.yml`, into the venv it creates under `$RUNNER_TEMP` on every run |
-| `requirements-dev.txt` | `-r requirements.txt` plus the quality gate and test tools (Black, Pylint, mypy, ruff, pytest and its plugins) and the dependencies only the kept-aside `doc_issues/` imports (`PyGithub`, `requests`) | `make install`, `test.yml` and `integration_test.yml` |
+| `requirements-dev.txt` | `-r requirements.txt`, the gate and test tools, `PyYAML` for the documentation checks, and `PyGithub` and `requests` for the kept-aside `doc_issues/` | `make install`, `test.yml` and `integration_test.yml` |
 
-The action installs `requirements.txt` on every run of every caller, so a test, lint or type tool named
-there would be downloaded on every run. `make qa` fails when one is (`make runtime-requirements`, which
-runs `tools/check_runtime_requirements.py`); add such a pin to `requirements-dev.txt` instead.
+- A test, lint or type tool in `requirements.txt` would download on every run of every caller; `make qa` fails on one → `tools/check_runtime_requirements.py::DENIED_NAMES`
+- Dependabot covers both files from its single `pip` entry: it scans the configured `directory` for every requirements file → `.github/dependabot.yml::pip`
 
-Dependabot covers both files from its single `pip` entry in `.github/dependabot.yml`: the `pip` ecosystem
-scans the configured `directory` for every requirements file in it.
+## Gates
 
----
-## Quality Gate (Makefile)
+`make qa` runs `format-check`, `lint`, `types`, `no-vendored-schemas`, `retired-names`, `runtime-requirements` and
+`coverage`, and stops at the first failure → `Makefile::qa`. Run it before opening a pull request.
 
-The `Makefile` is the single source of truth for quality checks — the
-`test.yml` workflow calls the same targets, so local runs and
-CI never drift. Run the full gate before opening a pull request:
+<!-- over limit: one row per target; the columns are what each gate needs and cannot be shortened -->
+| Target | Runs | Gate | One file |
+|---|---|---|---|
+| `make format` | ruff autofix, then Black, rewriting files | line length 120 | `black doc_source/collector.py` |
+| `make format-check` | Black in check mode | clean | `black --check doc_source/collector.py` |
+| `make lint` | ruff, then Pylint; Pylint skips `tests/` | Pylint ≥ 9.5 / 10 (`PYLINT_MIN`) | `pylint doc_source/collector.py` |
+| `make types` | mypy over the project; `tests/` is excluded | clean | `mypy doc_source/collector.py --check-untyped-defs` |
+| `make test` | pytest over `tests/`, `tests/integration` excluded | pass | `pytest tests/utils/test_utils.py::test_sanitize_filename` |
+| `make coverage` | pytest with coverage; `tests/` is not measured | ≥ 80 % (`COV_MIN`) | `pytest --ignore=tests/integration --cov=. tests/ --cov-fail-under=80 --cov-report=html`, then open `htmlcov/index.html` |
+| `make no-vendored-schemas` | `living-doc-utilities`' vendored-schema check (R12 check 1) | no committed contract schema file | not scoped |
+| `make retired-names` | a `git grep` for the names and keys of the pre-0.5.0 artifacts | no hit | not scoped |
+| `make runtime-requirements` | `tools/check_runtime_requirements.py` | no test, lint or type tool in `requirements.txt` | not scoped |
+
+- `test.yml` calls the same targets, so local runs and CI never drift → `.github/workflows/test.yml::coverage`
+- Black, ruff and Pylint take their files from `git ls-files`, so a new file is checked once it is tracked → `Makefile::PY_FILES`
+- Black, ruff and mypy read their settings from `pyproject.toml`; Pylint reads `.pylintrc` → `.pylintrc::ignore-paths`
+- `make install` installs the development dependencies; `make help` lists every target → `Makefile::help`
+- `doc-issues` is PLANNED: `doc_issues/`, the modules only it uses and their tests are kept aside unchanged for the port. Every gate excludes them → `Makefile::KEPT_ASIDE`
+  - Each exclusion is one commented line in `Makefile`, `pyproject.toml` or `.pylintrc`.
+- Each mode's full-sample test runs the collector over `tests/fixtures/full_sample/<mode>/`. It fails when a contract field outside its `NOT_PRODUCED` list stays empty → `tests/doc_source/test_full_sample.py::test_every_contract_field_outside_not_produced_is_occupied`
+- New modules must meet the project-wide 80 % coverage gate → `Makefile::COV_MIN`
+- The documentation checks are pytest tests, so `make test` and `make coverage` run them → [Checks](#checks)
+
+## Debug run
+
+The hand-written run of `main.py` in the development venv, for a debugger or one changed input. To run over a
+real checkout in a repeatable way, with a validated and reported result, use the [Local Integration Run](#local-integration-run).
 
 ```shell
-make qa
-```
-
-Individual targets:
-
-| Target | What it does |
-|---|---|
-| `make install` | Install the dev dependencies from `requirements-dev.txt` (which pulls in `requirements.txt`) |
-| `make format` | Reformat tracked Python files (ruff autofix, then Black) |
-| `make format-check` | Check Black formatting without writing changes |
-| `make lint` | Run ruff, then Pylint, and enforce the minimum score (`PYLINT_MIN`, default `9.5`) |
-| `make types` | Run the mypy type checker |
-| `make test` | Run the unit test suite (integration tests excluded) |
-| `make coverage` | Run the unit suite with the coverage gate (`COV_MIN`, default `80`) |
-| `make no-vendored-schemas` | R12 check 1: fail on any committed contract schema file |
-| `make retired-names` | Fail on any reference to a pre-0.5.0 artifact name or key |
-| `make runtime-requirements` | Fail when `requirements.txt` names a test, lint or type tool |
-| `make qa` | `format-check` + `lint` + `types` + `no-vendored-schemas` + `retired-names` + `runtime-requirements` + `coverage` |
-| `make help` | List available targets |
-
-`doc-issues` is PLANNED after v0.1.0: `doc_issues/`, the modules only it uses
-(`utils/github_project_queries.py`) and their tests are kept aside unchanged for the port. Every gate
-above excludes them; each exclusion is one commented line in `Makefile`, `pyproject.toml` or `.pylintrc`.
-
-The sections below explain each tool in more detail; the raw commands they show are
-what the corresponding `make` target runs under the hood.
-
----
-## Run the Action Locally
-
-The `doc-source` and `ui-tests` modes read local checkouts only: a local run makes no network request and needs
-no token. This is the hand-written debugging run, in the development venv; to run the collector over a real
-checkout in a repeatable way, with a validated and reported result, use the
-[Local Integration Run](#local-integration-run) instead. If you need to run the scripts locally, follow these
-steps:
-
-### Create the Shell Script
-
-Create the shell file in the root directory. We will use `run_script.sh`.
-```shell
-touch run_script.sh
-```
-Add the shebang line at the top of the sh script file.
-```
-#!/bin/sh
-```
-
-### Set the Environment Variables
-
-Set the configuration environment variables in the shell script following the structure below.
-The collector supports mining in multiple modes, so you can use just the environment variables you need.
-`INPUT_PROJECT_ID` is required; the artifacts land under `INPUT_OUTPUT_PATH` (default `./output/collector-gh`).
-`main.py` ends by writing the `output-path` action output to the file `GITHUB_OUTPUT` names, which only a runner
-provides: set it (`/dev/null` discards the line), or the run fails on its last step with a `KeyError`.
-```
-# Essential environment variables for GitHub Action functionality
-export INPUT_PROJECT_ID=aul
-export INPUT_OUTPUT_PATH=./output/collector-gh
+export INPUT_PROJECT_ID=aul                       # required
+export INPUT_OUTPUT_PATH=./output/collector-gh    # the default
 export INPUT_VERBOSE_LOGGING=true
-export GITHUB_OUTPUT=/dev/null
-```
-
-Each mode is enabled by its switch and given its repository list as JSON. The `doc-issues` mode is
-PLANNED: `INPUT_DOC_ISSUES=true` fails the run at start.
-
-```
-# Environment variables for 'doc-source' mode functionality
+export GITHUB_OUTPUT=/dev/null                    # main.py writes the output-path line here
 export INPUT_DOC_SOURCE=true
-export INPUT_DOC_SOURCE_REPOSITORIES='[
-  {
-    "organization-name": "absa-group",
-    "repository-name": "aul-ui",
-    "us-paths":   ["/abs/path/aul-ui/playwright/features/liv_doc_us"],
-    "func-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_func"],
-    "pages-paths":["/abs/path/aul-ui/playwright/pages"]
-  }
-]'
-
-# Environment variables for 'ui-tests' mode functionality
+export INPUT_DOC_SOURCE_REPOSITORIES='[{"organization-name": "absa-group", "repository-name": "aul-ui",
+  "us-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_us"],
+  "func-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_func"],
+  "pages-paths": ["/abs/path/aul-ui/playwright/pages"]}]'
 export INPUT_UI_TESTS=true
-export INPUT_UI_TESTS_REPOSITORIES='[
-  {
-    "organization-name": "absa-group",
-    "repository-name": "aul-ui",
-    "paths": ["/abs/path/aul-ui/playwright/features"]
-  }
-]'
-```
-
-Parsing is `living-doc-utilities`' (`authoring`); the collectors only discover files and assemble the
-contract result, which `write_artifact` validates before writing. Each mode's full-sample test
-(`tests/<mode>/test_full_sample.py`) runs the collector over `tests/fixtures/full_sample/<mode>/` and
-fails when a contract field outside its `NOT_PRODUCED` list stays empty. New modules must meet the
-project-wide 80 % coverage gate (`make coverage`).
-
-### Running the script locally
-
-For running the GitHub action locally, incorporate these commands into the shell script and save it.
-```
-python3 main.py
-```
-The whole script should look like this example:
-```
-#!/bin/sh
-
-# Essential environment variables for GitHub Action functionality
-export INPUT_PROJECT_ID=aul
-export INPUT_VERBOSE_LOGGING=true
-export GITHUB_OUTPUT=/dev/null
-
-# Environment variables for 'doc-source' mode functionality
-export INPUT_DOC_SOURCE=true
-export INPUT_DOC_SOURCE_REPOSITORIES='[
-  {
-    "organization-name": "absa-group",
-    "repository-name": "aul-ui",
-    "us-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_us"]
-  }
-]'
-
+export INPUT_UI_TESTS_REPOSITORIES='[{"organization-name": "absa-group", "repository-name": "aul-ui",
+  "paths": ["/abs/path/aul-ui/playwright/features"]}]'
 python3 main.py
 ```
 
-### Make the Script Executable
+- Each input is an `INPUT_<NAME>` variable, upper case with `_` for `-`, as `action.yml` passes it → `action.yml::INPUT_DOC_SOURCE_REPOSITORIES`
+- `GITHUB_OUTPUT` must be set, or the run fails on its last step with a `KeyError`; only a runner provides it → `main.py::run`
+- The modes read local checkouts only: a debug run makes no network request and needs no token → `action_inputs.py::ActionInputs`
+- `INPUT_DOC_ISSUES=true` fails the run at start → [Documentation Issues](doc_issues/README.md)
+- Parsing is `living-doc-utilities`' `authoring`; the collectors only discover files and assemble the contract result, which `write_artifact` validates before writing → `utils/artifact.py::store_artifact`
 
-From the terminal, at the root of this project, make the script executable:
-```shell
-chmod +x run_script.sh
-```
-
-### Run the Script
-
-```shell
-./run_script.sh
-```
-
----
 ## Local Integration Run
 
-`local-integration.sh` runs the real collector over a real checkout, on the machine that has that checkout - a
+`local-integration.sh` runs the real collector over a real checkout, on the machine that has that checkout, a
 private repository included, which no workflow of this repository can reach. It runs both modes in a venv of its
-own, re-reads every artifact with `read_artifact`, and prints what ran and what came out, so one run can be set
-against the next. No workflow runs it. Like any local run, it is a development and operator-check affordance, not a
-second supported deployment target.
+own, re-reads every artifact with `read_artifact`, and prints what ran and what came out. No workflow runs it; like
+any local run, it is a development and operator-check affordance, not a second supported deployment target.
 
 ### What You Prepare
 
-The script checks the Python version and nothing else of the environment. The rest is yours:
+The script checks the Python version and nothing else of the environment → `local-integration.sh::--check`. The rest is yours:
 
-- **Python ≥ 3.10**, with its `venv` module and whatever system libraries it needs. The script uses `PYTHON` from
-  `.env.local` when set, else `python3`, else `python` from `PATH` - the order `action.yml` uses. On Git Bash for
-  Windows, `python3` may be the Microsoft Store alias, which does not run: set `PYTHON=python`.
+- **Python ≥ 3.10**, with its `venv` module and whatever system libraries it needs. The script uses `PYTHON` from `.env.local` when set, else `python3`, else `python` from `PATH`, the order `action.yml` uses.
+  - On Git Bash for Windows, `python3` may be the Microsoft Store alias, which does not run: set `PYTHON=python`.
 - **`git`** on `PATH`, and a checkout of the target repository.
-- **Network and pip configuration** that lets `pip install -r requirements.txt` succeed: `pip.conf`,
-  `PIP_INDEX_URL`, `PIP_FIND_LINKS`, a proxy. The script leaves them as they are.
-- **A POSIX shell**: bash 3.2 or later - Linux, macOS, or Git Bash on Windows.
+- **Network and pip configuration** that lets `pip install -r requirements.txt` succeed: `pip.conf`, `PIP_INDEX_URL`, `PIP_FIND_LINKS`, a proxy. The script leaves them as they are.
+- **A POSIX shell**: bash 3.2 or later; Linux, macOS, or Git Bash on Windows.
 
-No token. Both modes read the local checkout and call no API, so the script reads no credential: it unsets
-`GITHUB_TOKEN`, `GH_TOKEN` and every inherited `INPUT_*` before it starts anything, and `.env.local` is read as data,
-never sourced, so a token left in it is ignored and its line reported by number - never by its text.
+No token: both modes read the local checkout and call no API, so the script reads no credential.
+
+- It unsets `GITHUB_TOKEN`, `GH_TOKEN` and every inherited `INPUT_*` before it starts anything → `local-integration.sh::GH_TOKEN`
+- `.env.local` is read as data, never sourced. A token left in it is ignored; the script reports its line by number, never its text.
 
 ### Configure It
 
@@ -238,8 +133,8 @@ project `projects/core/`, checked out beside this repository; with that checkout
 | `OUT_DIR` | no | the output root, default `./output` (git-ignored); relative to this repository's root |
 | `PYTHON` | no | the interpreter the venv is built from |
 
-Each mode path is relative to `TARGET_CHECKOUT`; several are separated by commas. One `KEY=value` per line, a line
-starting with `#` is a comment, and values are taken literally.
+- Each mode path is relative to `TARGET_CHECKOUT`; several are separated by commas.
+- One `KEY=value` per line; a line starting with `#` is a comment, and values are taken literally.
 
 ### Run It
 
@@ -250,272 +145,117 @@ starting with `#` is a comment, and values are taken literally.
 
 A run, in order:
 
-1. **Checks** what `--check` checks. A missing variable or path, or a Python below 3.10, stops it with one line that
-   names it.
-2. **Builds its venv**, `.venv-local-integration/` (git-ignored), separate from the development `.venv`, and installs
-   `requirements.txt` into it with `pip install -r` and nothing else - so a runtime requirement missing from that file
-   fails here, as it would on a runner. It follows `action.yml`'s rules: `PIP_TARGET`, `PIP_PREFIX`, `PIP_USER` and
-   `PYTHONPATH` unset, an import check after the install, and `main.py` run with `-E`. The venv is reused only when
-   the same interpreter built it from the same `requirements.txt`.
-3. **Prints what runs**: the collector commit, the installed `living-doc-utilities` version, the Python version and
-   the target commit. A commit is marked when tracked files differ from it.
-4. **Runs `doc-source`, then `ui-tests`**, each as its own `main.py` run into `$OUT_DIR/collector-gh/<mode>/`, having
-   cleared both mode directories first. Each command is echoed before it runs.
-5. **Validates and reports** each artifact (`tools/local_integration.py`): re-read with `read_artifact`, then its
-   contract, the time its run took, its size, the `metadata.stats` counts (cardinality and field occupancy) and its
-   warnings by code - each code's count and its first ten occurrences.
+1. **Checks** what `--check` checks. A missing variable or path, or a Python below 3.10, stops it with one line that names it.
+2. **Builds its venv**, `.venv-local-integration/` (git-ignored), separate from the development `.venv`. It installs only `requirements.txt` (`pip install -r`): a runtime requirement missing from that file fails here, as on a runner.
+   - It follows `action.yml`: `PIP_TARGET`, `PIP_PREFIX`, `PIP_USER` and `PYTHONPATH` unset, an import check after the install, and `main.py` run with `-E`.
+   - The venv is reused only when the same interpreter built it from the same `requirements.txt`.
+3. **Prints what runs**: the collector commit, the installed `living-doc-utilities` version, the Python version and the target commit. A commit is marked when tracked files differ from it.
+4. **Runs `doc-source`, then `ui-tests`**, each as its own `main.py` run into `$OUT_DIR/collector-gh/<mode>/`, having cleared both mode directories first. Each command is echoed before it runs.
+5. **Validates and reports** each artifact → `tools/local_integration.py::report`
+   - It re-reads the artifact with `read_artifact`, then prints its contract, run time, size and `metadata.stats` counts (cardinality and field occupancy).
+   - It prints the warnings by code: each code's count and its first ten occurrences.
 
-It exits non-zero when a check, the install, the collector or a validation fails. For an issue or a report, keep the
-whole output: `set -o pipefail; ./local-integration.sh 2>&1 | tee local-integration.log`.
+- It exits non-zero when a check, the install, the collector or a validation fails → `tools/local_integration.py::main`
+- For an issue or a report, keep the whole output: `set -o pipefail; ./local-integration.sh 2>&1 | tee local-integration.log`.
 
----
-## Run Pylint Check Locally
-
-This project uses the [Pylint](https://pypi.org/project/pylint/) tool for static code analysis.
-Pylint analyses your code without actually running it.
-It checks for errors, enforces coding standards, looks for code smells, etc.
-We do exclude the `tests/` file from the Pylint check.
-
-Pylint displays a global evaluation score for the code, rated out of a maximum score of 10.0.
-We are aiming to keep our code quality high above the score 9.5.
-
-Follow these steps to run Pylint check locally:
-
-- Perform the [setup of python venv](#set-up-python-environment).
-
-### Run Pylint
-
-Run Pylint on all files that are currently tracked by Git in the project.
-```shell
-pylint $(git ls-files '*.py')
-```
-
-To run Pylint on a specific file, follow the pattern `pylint <path_to_file>/<name_of_file>.py`.
-
-Example:
-```shell
-pylint doc_source/collector.py
-``` 
-
-### Expected Output
-
-This is an example of the expected console output after running the tool:
-```
-************* Module master
-master.py:30:0: C0116: Missing function or method docstring (missing-function-docstring)
-
-------------------------------------------------------------------
-Your code has been rated at 9.41/10 (previous run: 8.82/10, +0.59)
-```
-
----
-## Run Black Tool Locally
-
-This project uses the [Black](https://github.com/psf/black) tool for code formatting.
-Black aims for consistency, generality, readability and reducing git diffs.
-The coding style used can be viewed as a strict subset of PEP 8.
-
-The root project file `pyproject.toml` defines the Black tool configuration.
-In this project we are accept a line length of 120 characters.
-We also exclude the `tests/` files from black formatting.
-
-Follow these steps to format your code with Black locally:
-
-- Perform the [setup of python venv](#set-up-python-environment).
-
-### Run Black
-
-Run Black on all files that are currently tracked by Git in the project.
-```shell
-black $(git ls-files '*.py')
-```
-
-To run Black on a specific file, follow the pattern `black <path_to_file>/<name_of_file>.py`.
-
-Example:
-```shell
-black doc_source/collector.py
-``` 
-
-### Expected Output
-
-This is an example of the expected console output after running the tool:
-```
-All done! ✨ 🍰 ✨
-1 file reformatted.
-```
-
----
-
-## Run mypy Tool Locally
-
-This project uses the [my[py]](https://mypy.readthedocs.io/en/stable/) 
-tool which is a static type checker for Python.
-
-> Type checkers help ensure that you’re using variables and functions in your code correctly.
-> With mypy, add type hints (PEP 484) to your Python programs, 
-> and mypy will warn you when you use those types incorrectly.
-
-my[py] configuration is in `pyptoject.toml` file.
-
-Follow these steps to format your code with my[py] locally:
-
-### Run my[py]
-
-Run my[py] on all files in the project.
-```shell
-  mypy .
-```
-
-To run my[py] check on a specific file, follow the pattern `mypy <path_to_file>/<name_of_file>.py --check-untyped-defs`.
-
-Example:
-```shell
-   mypy doc_source/collector.py
-``` 
-
-### Expected Output
-
-This is an example of the expected console output after running the tool:
-```
-Success: no issues found in 1 source file
-```
-
----
-
-
-## Run Unit Test
-
-Unit tests are written using the Pytest framework. To run all the tests, use the following command:
-```shell
-pytest --ignore=tests/integration tests/
-```
-
-You can modify the directory to control the level of detail or granularity as per your needs.
-
-To run a specific test, run the command following the pattern below:
-```shell
-pytest tests/utils/test_utils.py::test_make_issue_key
-```
-
----
-## Code Coverage
-
-This project uses the [pytest-cov](https://pypi.org/project/pytest-cov/) plugin to generate test coverage reports.
-The objective of the project is to achieve a minimum score of 80 %. We do exclude the `tests/` file from the coverage report.
-
-To generate the coverage report, run the following command:
-```shell
-pytest --ignore=tests/integration --cov=. tests/ --cov-fail-under=80 --cov-report=html
-```
-
-See the coverage report on the path:
-
-```shell
-open htmlcov/index.html
-```
-
----
 ## Versioning
 
-The project version is defined in **`pyproject.toml`** under the `[project]` section and is the **single source of truth**.
-It follows **Semantic Versioning (MAJOR.MINOR.PATCH)**:
+- `version` under `[project]` in `pyproject.toml` is the single source of truth, read the same way locally and in GitHub Actions → `utils/constants.py::get_package_version`
+- It appears in every artifact as `metadata.producer.version` → `utils/artifact.py::build_metadata`
+- It follows Semantic Versioning, MAJOR.MINOR.PATCH:
+  - MAJOR: a breaking change to a schema or API contract.
+  - MINOR: a new feature or a non-breaking enhancement.
+  - PATCH: a bug fix or an internal improvement.
+- To check it locally: `python3 -c "from utils.constants import get_package_version; print(get_package_version())"`.
 
-- **MAJOR**: Breaking changes to schema or API contracts
-- **MINOR**: New features or non-breaking enhancements
-- **PATCH**: Bug fixes or internal improvements
+## Release
 
-### Version Source
+The release is semi-automated: the `release_draft.yml` workflow and the branch protection rules.
 
-The version is **always read from `pyproject.toml`** — both locally and in GitHub Actions.
-This ensures consistency between:
-- Local development
-- Package distribution
-- CI/CD workflows
-- Generated JSON output
+1. Set `version` in `pyproject.toml` on a branch such as `release/vX.Y.Z`, commit `chore: bump version to X.Y.Z`, and push it.
+2. Open a pull request, get the approvals branch protection requires, and merge it to `master`.
+3. Actions → **Draft Release** → **Run workflow**, with the tag name (e.g. `v1.0.1`) and, optionally, the previous tag for the changelog diff → `.github/workflows/release_draft.yml::from-tag-name`
+   - From the CLI: `gh workflow run release_draft.yml -f tag-name=vX.Y.Z -f from-tag-name=vX.Y.Z-1`.
+4. The workflow validates the tag format and that the tag is new. It collects the release notes from the merged pull requests, then creates the git tag and a draft release.
+5. Review the draft release, edit its title and description if needed, and click **Publish release**.
 
-The version appears in the JSON output under `metadata.producer.version`.
+- The workflow does not check `pyproject.toml` against the tag, so the step-1 bump is on you → `.github/workflows/release_draft.yml::tag-name`
+  - Why: a forgotten bump ships a release whose artifacts all carry the previous `metadata.producer.version`.
+- Each merged pull request contributes the bullet lines directly under its `## Release Notes` heading, one line each → `.github/workflows/release_draft.yml::release-notes-title`
+  - Why: `AbsaOSS/generate-release-notes` defaults to `[Rr]elease [Nn]otes:`, with a colon these headings do not carry.
+- A pull request labelled `no RN`, `duplicate`, `invalid` or `wontfix` contributes nothing → `.github/workflows/release_draft.yml::skip-release-notes-labels`
 
-### Local Development
+## Writing documentation
 
-To check the version locally:
+> **Provisional.** These rules are a pilot; the owner tunes them after this first rebuild, and a skill may replace
+> this section. This section is their only copy in the repository.
 
-```shell
-python3 -c "from utils.constants import get_package_version; print(get_package_version())"
-```
+### Depth
 
----
+Depth is where a page sits in the folder tree. Deeper means more detail.
 
-## Releasing
+| Depth | Pages | Rule |
+|---|---|---|
+| 1 | `README.md`; `DEVELOPER.md`, `CONTRIBUTING.md` and `SPEC.md` | `README.md` is the entry: overview, inputs and outputs at a glance, usage tip, "where next". The other three are solo: one page each, no child pages |
+| 2 | `docs/<topic>.md` | a hub: principle, decision list, routing to depth 3; it names and links facts, and defines none |
+| 2 leaf | `docs/<topic>.md` with no `docs/<topic>/` folder; a mode's `<mode>/README.md`, beside its code | a leaf may define, like a depth-3 page |
+| 3 | `docs/<topic>/<page>.md` | detail: fact lists, option lists, examples |
 
-The release process is semi-automated using the `release_draft.yml` workflow and branch protection rules.
+- One fact, one page: define a fact on the deepest page that needs it; shallower pages name it and link.
 
-### Step 1: Create a Pull Request with Version Bump
+### Every page
 
-Edit `pyproject.toml` and update the version:
+1. `# Title`.
+2. `## Purpose`: 1 to 3 sentences, who reads the page and what they get; then `Read before:` and `Next:` links where the page sits on a reading path.
+3. `## Contents`: links to every other `##` chapter of the page, and nothing else.
+4. Only the parts the page needs.
 
-```toml
-[project]
-name = "living-doc-collector-gh"
-version = "X.Y.Z"  # Update this (e.g., "1.0.1", "1.1.0", "2.0.0")
-```
+### Parts
 
-Commit and push to a feature branch:
+| Part | Form | Checked against |
+|---|---|---|
+| Principle | at most 5 short sentences: the core idea | review |
+| Decision list | one line per decision: `decision → path::symbol` where the code realises it | code |
+| Fact list | one line per fact the code relies on: `fact → path::symbol`, or a test | code |
+| Why | one indented `Why:` line under a rule, decision or fact, at most 20 words | review |
+| Option list | every available option with a one-line meaning; complete | the input, output, field or code list in code |
+| Example | at most 20 lines; run or parsed by a test | tests |
+| Prose | only in Purpose, Principle and one-line list lead-ins; a block is at most 4 lines | review |
+| Language | sentences of at most 20 words; active voice; one term per idea, the glossary's | review |
 
-```shell
-git checkout -b release/vX.Y.Z
-git add pyproject.toml
-git commit -m "chore: bump version to X.Y.Z"
-git push origin release/vX.Y.Z
-```
+### Limits
 
-### Step 2: Merge via Branch Protection
+- The limits (prose block 4 lines, sentence 20 words, example 20 lines) are targets, not hard caps.
+- Exceed one only with a reason, stated next to the block: `<!-- over limit: <reason> -->`.
+- Keep the overrun small; split the block when you can.
 
-- Create a Pull Request from your feature branch
-- Request required approvals (configured in branch protection rules)
-- Merge to `master` once approved
+### Anchors
 
-This ensures version changes are reviewed before release.
+- `path` is relative to the repository root: `utils/artifact.py::store_artifact`.
+- `symbol` is a module-level name, or a dotted one for a member: `ActionInputs._validate`.
+- A test is `tests/<path>.py::test_name`; a non-Python file names a text it contains: `Makefile::qa`.
+- Never use line numbers; they drift.
+- A rule another component must realise names that component instead of an anchor: `→ utilities`, `→ toolkit`.
+- On a depth-2 or depth-3 page, every top-level list item ends in `→` and an anchor, a component or a link.
+- Items under a lead-in that carries `→` inherit it, e.g. a lead-in `` What this mode fills → `…::build_result`: ``.
+- `README.md` is no PyPI description, so it links repository files relatively: `docs/action.md`.
 
-### Step 3: Trigger Release Draft Workflow
+### Examples
 
-Manually trigger `release_draft.yml` via GitHub Actions UI or CLI:
+- A `yaml` block must parse; every `with:` key it gives this action must be an `action.yml` input.
+- Every `uses:` of this action names the same release, so a release bump changes them all.
+- A `json` block must parse; a test runs every `python` block, each in a fresh namespace and a temporary directory.
+- A `shell` block is a command line, not an example; it is not run.
 
-```bash
-gh workflow run release_draft.yml \
-  -f tag-name=vX.Y.Z \
-  -f from-tag-name=vX.Y.Z-1
-```
+### Checks
 
-Or in GitHub UI:
-1. Go to **Actions** → **Draft Release**
-2. Click **Run workflow**
-3. Enter the tag name (e.g., `v1.0.1`)
-4. Enter the previous tag (optional, for changelog diff)
-5. Click **Run workflow**
+| Check | Where |
+|---|---|
+| page list and depths, `Purpose` then `Contents`, Contents links, no orphan page, README links relative | `tests/docs/test_page_structure.py` |
+| every `path::symbol` resolves; no line-number anchor; every depth-2 list item says where it is realised | `tests/docs/test_anchors.py` |
+| every example parses or runs; every `with:` key is an `action.yml` input; one release named | `tests/docs/test_examples.py` |
+| the input and output lists equal `action.yml`; every code a page names is in `ALL_CODES` | `tests/docs/test_option_lists.py` |
+| links and `#fragments` resolve | `.github/workflows/link-check.yml::lychee` |
+| a pull request that changes only pages or `action.yml` still runs these tests | `.github/workflows/test.yml::docs_changed` |
 
-### Step 4: Automated Processing
-
-The `release_draft.yml` workflow automatically:
-1. Validates the tag format and that the tag does not already exist
-2. Collects the release notes from the merged pull requests
-3. Creates the git tag
-4. Creates a draft release
-
-The workflow does **not** check `pyproject.toml` against the tag, so the Step 1 version bump is on you: a
-forgotten bump ships a release whose artifacts all carry the previous `metadata.producer.version`.
-
-#### Where the Release Notes Come From
-
-Each merged pull request contributes the bullet lines written directly under its `## Release Notes`
-heading, one line each. `release_draft.yml` passes
-`release-notes-title: '## [Rr]elease [Nn]otes'` to `AbsaOSS/generate-release-notes`, because that action's
-default pattern (`[Rr]elease [Nn]otes:`) expects a colon this repository's PR headings do not carry - left
-at the default, the draft would take no line from any pull request. A PR labelled `no RN`, `duplicate`,
-`invalid` or `wontfix` contributes nothing (`skip-release-notes-labels`).
-
-### Step 5: Finalize and Publish
-
-1. Review the generated draft release in GitHub
-2. Edit the title and description if needed
-3. Click **Publish release**
+To add a page: put it at its depth, add it to `tests/docs/pages.py::APPROVED_PAGES`, and link it from `README.md`.

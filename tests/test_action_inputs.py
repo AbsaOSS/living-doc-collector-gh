@@ -193,6 +193,24 @@ def test_is_doc_source_mode_enabled(mocker):
     assert ActionInputs.is_doc_source_mode_enabled() is True
 
 
+@pytest.mark.parametrize("value", [None, "", "false", "yes"], ids=["unset", "empty", "false", "not-true"])
+@pytest.mark.parametrize(
+    "variable, is_enabled",
+    [
+        ("INPUT_DOC_SOURCE", ActionInputs.is_doc_source_mode_enabled),
+        ("INPUT_UI_TESTS", ActionInputs.is_ui_tests_mode_enabled),
+    ],
+    ids=["doc-source", "ui-tests"],
+)
+def test_a_mode_switch_other_than_true_leaves_the_mode_off(monkeypatch, variable, is_enabled, value):
+    # Arrange: unset, or empty as a composite action passes an input the caller left out.
+    if value is not None:
+        monkeypatch.setenv(variable, value)
+
+    # Act & Assert
+    assert is_enabled() is False
+
+
 def test_get_doc_source_repositories(mocker):
     # Arrange
     repositories_json = [

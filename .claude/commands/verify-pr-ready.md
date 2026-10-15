@@ -39,8 +39,8 @@ reviewers (no anchoring).
 Work in `.review/$1/` (gitignored). If it already exists, read it and resume at the step
 the ledger's `## Rounds` section says comes next — do not restart.
 
-- `ac.md` — the task's acceptance criteria, numbered, copied verbatim from the Phase 0
-  task list / roadmap (or `$2`, or GitHub issue `#$1` via `gh issue view`).
+- `ac.md` — the task's acceptance criteria, numbered, copied verbatim from the task's brief
+  (or `$2`, or GitHub issue `#$1` via `gh issue view`).
 - `manifest.md` — the base tree, the snapshot tree, and every changed file grouped into
   review **areas**. Group by purpose (production code per mode, tests, fixtures/golden
   data, docs + `SPEC.md` lifecycle, CI/config/agent files). Prefer ≤ ~1500 changed lines

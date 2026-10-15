@@ -1,5 +1,5 @@
 ---
-description: Implement a Phase 0 / roadmap task end to end, from its spec to a PR-ready description.
+description: Implement a roadmap task end to end, from its spec to a PR-ready description.
 argument-hint: <task-id> (e.g. P0-CGH-2) [path-or-URL to the task list, if not the default]
 ---
 
@@ -11,8 +11,8 @@ Task-list source (optional override): `$2`
 
 ## 1. Read the task
 
-- Locate task `$1` in the Phase 0 task list (`living-doc/docs/specs/phase-0-tasklist.md`)
-  or the roadmap (`living-doc/docs/specs/roadmap.md`). If `$2` is given, read it there.
+- Locate task `$1` in its GitHub issue (`gh issue view`) or in the brief the owner hands over.
+  If `$2` is given, read it there.
 - Read the task's **prompt** and its **acceptance criteria** in full. Also read the
   linked GitHub issue if the task names one.
 - Write the acceptance criteria out as a numbered checklist you will verify against code
