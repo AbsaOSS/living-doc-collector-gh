@@ -69,9 +69,10 @@ What this mode fills in the contract → `ui_tests/collector.py::GHUITestsCollec
 - **`metadata.stats.cardinality`**: `sources_configured` and `sources_failed` as in [Errors](../docs/action.md#errors).
 - **`scenarios[]`**: one per `Scenario:` or `Scenario Outline:` → `ui_tests/collector.py::_is_tutorial_file`
   - Not mined: a scenario tagged `@tutorial`, and every scenario of a file whose feature-level tags include `@tutorial`.
-- **`scenario_id`**: `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the file's path is the one from its repository root, whichever scan root found it → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+- **`scenario_id`**: `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the file's path is repository-root-relative inside Git and scan-root-relative outside Git → `ui_tests/collector.py::GHUITestsCollector._collect_file`
   - A slug repeated within one file gets `-2`, `-3`, … appended; a title with no ASCII letter or digit gets the slug `scenario`.
-- **`source_ref`**: `system: GitHub`; `native_id` is the file's path from its repository root; `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed` → `utils/artifact.py::build_source_ref`
+- **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed` → `utils/artifact.py::build_source_ref`
+  - Outside a Git checkout, `url` is empty and `NO_SOURCE_URL` is emitted.
 
 ## Errors
 

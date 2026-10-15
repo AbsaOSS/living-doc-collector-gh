@@ -68,7 +68,9 @@ Each entry of `doc-source-repositories` is one source; a malformed entry fails t
 - Every configured path must exist; a missing one fails its whole source → `utils/feature_file_discovery.py::discover_feature_files`
 - Within a path, discovery is recursive → `utils/feature_file_discovery.py::discover_ts_files`
 - `.feature` files under a `tutorial*` or `tutorial_<group>` directory are skipped → `utils/feature_file_discovery.py::_is_under_tutorial_dir`
-- A `.ts` file under `pages-paths` that never names `LIVING DOC` in a header comment is code, not documentation: skipped silently → `doc_source/collector.py::_has_living_doc_header`
+- A `.ts` file under `pages-paths` with no `LIVING DOC` text anywhere is code, not documentation: skipped silently → `doc_source/collector.py::_has_living_doc_header`
+  - The marker check scans the whole file, not just the header comment.
+  - A body-string occurrence can enter parsing and produce a warning.
   - That includes a helper that opens with an eslint directive or a JSDoc block.
 - A `LIVING DOC` banner placed after another comment is still parsed, and reported → `doc_source/collector.py::_has_living_doc_header`
 
@@ -81,7 +83,8 @@ What this mode fills in the contract → `doc_source/collector.py::GHDocSourceCo
 
 - **`metadata.source.project_id`**: the `project-id` input.
 - **`metadata.stats.cardinality`**: `sources_configured` and `sources_failed` as in [Errors](../docs/action.md#errors); `entities_skipped` counts entities not emitted (no parseable entity id, an id already collected, or rejected by the contract); `unresolved_refs` counts `UNRESOLVED_RELATION` warnings.
-- **`source_ref`**: `system: GitHub`; `native_id` is the file's path from its repository root; `native_type` is `feature-file` or `page-object`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed` → `utils/artifact.py::build_source_ref`
+- **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `feature-file` or `page-object`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed` → `utils/artifact.py::build_source_ref`
+  - Outside a Git checkout, `url` is empty and `NO_SOURCE_URL` is emitted.
 - **`tags`** and **`timestamps`**: always empty; a source file carries no labels and no created, updated or closed time.
 - **`pages`**: a cross-reference PageObject header (`parent-feat:`) adds its page to its Feature → `doc_source/collector.py::GHDocSourceCollector._attach_cross_references`
 

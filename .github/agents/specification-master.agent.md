@@ -100,7 +100,7 @@ Repo specifics
 - Spec locations
   - Prefer `SPEC.md` for prospective (not-yet-built) behavior; follow `.claude/rules/docs-lifecycle.md` — an implemented section moves out of `SPEC.md` into the live docs in the same PR.
   - Prefer `docs/action.md` for the action's inputs, outputs, output layout, run-level errors and contracts, the mode pages (`doc_source/README.md`, `ui_tests/README.md`; `doc_issues/README.md`, the PLANNED page) for mode-specific behavior, `README.md` for the entry (overview, inputs and outputs at a glance, usage tip, "where next"), and `DEVELOPER.md` for local-dev workflow.
-  - Must write a page to `DEVELOPER.md`, "Writing documentation": its depth, `## Purpose` then `## Contents`, and a `path::symbol` per list item.
+  - Must follow the canonical `DEVELOPER.md` "Writing documentation" section when specifying documentation pages; do not duplicate its page-writing rules here.
 - Contract-sensitive outputs
   - Action output key `output-path` (set via `set_action_output`, exposed by `action.yml`).
   - Per-mode output sub-paths in `utils/constants.py` (`DOC_SOURCE_OUTPUT_PATH`, `UI_TESTS_OUTPUT_PATH`, under the `output-path` input).

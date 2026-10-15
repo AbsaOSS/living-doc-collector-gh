@@ -26,7 +26,7 @@ import yaml
 from tests.docs.pages import APPROVED_PAGES, CodeBlock, action_yml, code_blocks, read_page
 
 ACTION = "AbsaOSS/living-doc-collector-gh"
-_USES_RE = re.compile(rf"uses:\s*{re.escape(ACTION)}@(?P<ref>\S+)")
+_USES_RE = re.compile(rf"uses:\s*(?P<quote>['\"]?){re.escape(ACTION)}@(?P<ref>[^'\"\s]+)(?P=quote)")
 
 
 def _examples(info: str) -> list:
@@ -95,10 +95,31 @@ def test_the_pages_carry_examples():
     assert len(configuring) >= 5
 
 
+def _release_refs_are_valid(refs: set[str]) -> bool:
+    return len(refs) == 1 and "v0.1.0" not in refs
+
+
 def test_every_example_names_one_release_of_this_action():
     """Every `uses:` of this action on every page names the same release, so a release bump changes them all."""
     refs = {ref_m.group("ref") for page in APPROVED_PAGES for ref_m in _USES_RE.finditer(read_page(page))}
-    assert len(refs) == 1, f"the pages name several releases: {sorted(refs)}"
+    assert _release_refs_are_valid(refs), f"the pages name invalid releases: {sorted(refs)}"
+
+
+def test_planted_old_release_is_rejected() -> None:
+    """The documentation check rejects the old v0.1.0 action reference."""
+    assert not _release_refs_are_valid({"v0.1.0"})
+
+
+def test_planted_quoted_old_release_is_rejected() -> None:
+    """The documentation check extracts quoted YAML `uses:` refs before rejecting old releases."""
+    page = f'- uses: {ACTION}@v0.2.0\n- uses: "{ACTION}@v0.1.0"\n'
+    assert yaml.safe_load(page) == [
+        {"uses": f"{ACTION}@v0.2.0"},
+        {"uses": f"{ACTION}@v0.1.0"},
+    ]
+    refs = {match.group("ref") for match in _USES_RE.finditer(page)}
+    assert refs == {"v0.2.0", "v0.1.0"}
+    assert not _release_refs_are_valid(refs)
 
 
 def test_planted_undeclared_input_is_reported():

@@ -247,9 +247,12 @@ def _resolved_links(page: str, text: str) -> set[str]:
             if part == "..":
                 if parts:
                     parts.pop()
+                else:
+                    break
             elif part != ".":
                 parts.append(part)
-        resolved.add("/".join(parts))
+        else:
+            resolved.add("/".join(parts))
     return resolved
 
 

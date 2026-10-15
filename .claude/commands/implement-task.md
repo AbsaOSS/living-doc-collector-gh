@@ -1,5 +1,5 @@
 ---
-description: Implement a roadmap task end to end, from its spec to a PR-ready description.
+description: Implement a task end to end, from its acceptance criteria to a PR-ready description.
 argument-hint: <task-id> (e.g. P0-CGH-2) [path-or-URL to the task list, if not the default]
 ---
 
