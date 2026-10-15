@@ -32,6 +32,7 @@ _NAME_RE = re.compile(r"^[a-z]+(?:-[a-z]+)+$")
 _NO_DEFAULT = "—"
 # Upper-case names a page may tick that belong to another tool, not to this repository's code: pip's settings.
 EXTERNAL_NAMES = {"PIP_INDEX_URL", "PIP_FIND_LINKS"}
+DOCUMENTED_TEST_NAMES = {"NOT_PRODUCED"}
 
 
 def _cell(cell: str) -> str:
@@ -139,15 +140,15 @@ def _code_problems(page: str, text: str, known: set[str]) -> list[str]:
                 continue
             if chapter == "Errors":
                 problems.append(f"{page} § Errors: `{name}` is not a registered code")
-            elif name not in known and name not in EXTERNAL_NAMES:
+            elif name not in known and name not in EXTERNAL_NAMES and name not in DOCUMENTED_TEST_NAMES:
                 problems.append(f"{page}: `{name}` is neither a registered code nor a name in the repository's code")
     return problems
 
 
 def _names_in_code() -> set[str]:
-    """Upper-case names outside documentation tests, plus the external `ALL_CODES` registry."""
+    """Upper-case names in non-test, non-Markdown files, plus the external `ALL_CODES` registry."""
     listed = subprocess.run(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", ":!*.md", ":!tests/docs/**"],
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", ":!*.md", ":!tests/**"],
         cwd=REPO_ROOT,
         capture_output=True,
         check=True,
@@ -166,8 +167,8 @@ def _names_in_code() -> set[str]:
 def test_code_name_inventory_excludes_planted_test_names() -> None:
     names = _names_in_code()
     assert "SOURCE_UNAVAILABEL" not in names
+    assert "NOT_PRODUCED" not in names
     assert "ALL_CODES" in names
-    assert "NOT_PRODUCED" in names
 
 
 @pytest.mark.parametrize("page", sorted(APPROVED_PAGES))

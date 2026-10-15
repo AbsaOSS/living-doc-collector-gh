@@ -3,7 +3,7 @@ description: Implement a task end to end, from its acceptance criteria to a PR-r
 argument-hint: <task-id> (e.g. P0-CGH-2) [path-or-URL to the task list, if not the default]
 ---
 
-You are driving a single roadmap task to completion in `living-doc-collector-gh`.
+You are driving a single implementation task to completion in `living-doc-collector-gh`.
 Follow these steps **in this exact order**. Do not skip or reorder them.
 
 Task ID: `$1`
@@ -69,7 +69,8 @@ these sections, per `CONTRIBUTING.md`:
 
 - `## Overview` — what changed and why.
 - `## Release Notes` — at least one real user-facing bullet (no `TBD`).
-- `## Related` — `Closes #<issue>` for the task's issue.
+- `## Related` — use `Closes #<issue>` when the task is tied to a GitHub issue. If there is no issue,
+  identify the owner-provided brief or task-list source instead; do not invent an issue reference.
 
 Include a short "Acceptance criteria" checklist mapping each criterion to the `file:line`
 that satisfies it (from step 5).
