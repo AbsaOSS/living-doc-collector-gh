@@ -25,9 +25,9 @@ from tests.docs.pages import (
     REPO_ROOT,
     check_contents_links,
     check_no_orphans,
+    check_page_list,
     check_purpose_then_contents,
     headings,
-    page_depth,
     read_page,
     tracked_markdown,
 )
@@ -49,11 +49,19 @@ Who reads this page, and what they get.
 
 
 def test_page_list_matches_the_tracked_pages():
-    """Every tracked page is approved, every approved page exists, and its path gives its depth."""
-    assert tracked_markdown() - set(APPROVED_PAGES) == set(), "unapproved page(s); add them to APPROVED_PAGES"
-    for page, depth in APPROVED_PAGES.items():
-        assert (REPO_ROOT / page).is_file(), f"{page}: approved but missing"
-        assert page_depth(page) == depth, f"{page}: listed at depth {depth}, but its path gives {page_depth(page)}"
+    """Every tracked page is approved, every approved page is tracked, and its path gives its depth."""
+    assert check_page_list(tracked_markdown(), APPROVED_PAGES) == []
+
+
+def test_planted_page_list_violations_are_reported_naming_the_page():
+    """An unapproved page, an approved page git does not track, and a wrong depth each fail."""
+    approved = {"README.md": 1, "docs/action.md": 2, "docs/gone.md": 2, "SPEC.md": 2}
+    listed = {"README.md", "docs/action.md", "SPEC.md", "CHANGELOG.md"}
+    assert check_page_list(listed, approved) == [
+        "CHANGELOG.md: unapproved page; add it to APPROVED_PAGES",
+        "docs/gone.md: approved but not tracked",
+        "SPEC.md: listed at depth 2, but its path gives 1",
+    ]
 
 
 def test_depth_one_is_exactly_the_four_root_pages():
@@ -113,7 +121,8 @@ def test_planted_missing_purpose_is_reported_naming_the_page():
     """A page without `## Purpose` fails, and the message names the page."""
     page = _GOOD_PAGE.replace("## Purpose\n\nWho reads this page, and what they get.\n\n", "")
     assert check_purpose_then_contents("docs/x.md", page) == [
-        "docs/x.md: the first two '##' headings must be 'Purpose', 'Contents'; found ['Contents', 'Facts']"
+        "docs/x.md: the page must open with '# <title>', '## Purpose', '## Contents'; "
+        "found ['# Title', '## Contents', '## Facts']"
     ]
 
 
@@ -121,8 +130,35 @@ def test_planted_wrong_order_is_reported_naming_the_page():
     """`Contents` before `Purpose` fails."""
     page = "# Title\n\n## Contents\n\n- [Purpose](#purpose)\n\n## Purpose\n\nText.\n"
     assert check_purpose_then_contents("docs/x.md", page) == [
-        "docs/x.md: the first two '##' headings must be 'Purpose', 'Contents'; found ['Contents', 'Purpose']"
+        "docs/x.md: the page must open with '# <title>', '## Purpose', '## Contents'; "
+        "found ['# Title', '## Contents', '## Purpose']"
     ]
+
+
+def test_planted_heading_before_purpose_is_reported():
+    """A `###` section between the title and `## Purpose` means the page does not open with its Purpose."""
+    page = _GOOD_PAGE.replace("## Purpose", "Intro.\n\n### Quick start\n\nText.\n\n## Purpose")
+    assert check_purpose_then_contents("docs/x.md", page) == [
+        "docs/x.md: the page must open with '# <title>', '## Purpose', '## Contents'; "
+        "found ['# Title', '### Quick start', '## Purpose']"
+    ]
+
+
+def test_planted_missing_title_is_reported():
+    """A page that starts at `## Purpose`, with no `#` title, fails."""
+    page = _GOOD_PAGE.replace("# Title\n\n", "")
+    assert check_purpose_then_contents("docs/x.md", page) == [
+        "docs/x.md: the page must open with '# <title>', '## Purpose', '## Contents'; "
+        "found ['## Purpose', '## Contents', '## Facts']"
+    ]
+
+
+def test_badges_and_a_comment_between_title_and_purpose_are_allowed():
+    """Badge lines and an HTML comment are no heading, so the page still opens with its Purpose."""
+    page = _GOOD_PAGE.replace(
+        "## Purpose", "![Status](https://img.shields.io/badge/x-y-blue)\n\n<!-- ## Draft -->\n\n## Purpose"
+    )
+    assert check_purpose_then_contents("docs/x.md", page) == []
 
 
 def test_planted_dead_contents_link_is_reported_naming_the_page():
@@ -146,6 +182,35 @@ def test_a_second_chapter_with_the_same_title_needs_its_own_contents_entry():
     """GitHub gives a repeated `## Facts` the fragment `#facts-1`; `Contents` must link that too, not just `#facts`."""
     page = "# Title\n\n## Purpose\n\nText.\n\n## Contents\n\n- [Facts](#facts)\n\n## Facts\n\n- a\n\n## Facts\n\n- b\n"
     assert check_contents_links("docs/x.md", page) == ["docs/x.md: chapter '## Facts' is missing from 'Contents'"]
+
+
+def test_a_subsection_takes_part_in_the_fragment_numbering():
+    """GitHub numbers repeated fragments across every heading level: after a `### Usage`, the chapter `## Usage` is
+    `#usage-1`, and `#usage` lands on the subsection."""
+    page = (
+        "# Title\n\n## Purpose\n\nText.\n\n## Contents\n\n- [Activation](#activation)\n- [Usage](#usage)\n\n"
+        "## Activation\n\n### Usage\n\nText.\n\n## Usage\n\nText.\n"
+    )
+    assert check_contents_links("docs/x.md", page) == [
+        "docs/x.md: 'Contents' links to '#usage', which is no '##' chapter of the page",
+        "docs/x.md: chapter '## Usage' is missing from 'Contents'",
+    ]
+    assert check_contents_links("docs/x.md", page.replace("](#usage)", "](#usage-1)")) == []
+
+
+def test_a_commented_out_heading_is_not_a_chapter():
+    """A `##` line inside a multi-line HTML comment renders as nothing, so `Contents` need not link it."""
+    page = _GOOD_PAGE + "\n<!--\n## Old\n\nRetired text.\n-->\n"
+    assert check_contents_links("docs/x.md", page) == []
+
+
+def test_a_comment_marker_inside_a_code_span_is_text():
+    """`` `<!--` `` and a later `` `-->` `` are code on GitHub, not a comment, so the headings between them stay."""
+    page = _GOOD_PAGE.replace("Who reads this page", "Write `<!--` to open one. Who reads this page") + (
+        "\n## More\n\nClose it with `-->`.\n"
+    )
+    assert check_purpose_then_contents("docs/x.md", page) == []
+    assert check_contents_links("docs/x.md", page) == ["docs/x.md: chapter '## More' is missing from 'Contents'"]
 
 
 def test_emphasis_in_a_heading_is_dropped_from_its_fragment():
@@ -176,3 +241,21 @@ def test_a_link_inside_a_fenced_code_block_does_not_count_as_navigation():
     """A repository-shaped link inside an illustrative code example is not a real link into the tree."""
     pages = {"README.md": "```text\n[Action](docs/action.md)\n```\n", "docs/action.md": ""}
     assert check_no_orphans(pages) == ["docs/action.md: orphan page; link it from README.md"]
+
+
+@pytest.mark.parametrize(
+    "readme",
+    ["<!-- [Action](docs/action.md) -->\n", "`[Action](docs/action.md)`\n"],
+    ids=["html-comment", "code-span"],
+)
+def test_a_commented_out_or_code_span_link_does_not_count_as_navigation(readme):
+    """GitHub renders no link inside an HTML comment or a code span, so the page stays an orphan."""
+    assert check_no_orphans({"README.md": readme, "docs/action.md": ""}) == [
+        "docs/action.md: orphan page; link it from README.md"
+    ]
+
+
+def test_a_code_span_wrapped_across_lines_leaves_a_later_link_alone():
+    """A code span may cross a line break; its backticks pair with each other, not with a later one."""
+    readme = "Run `make\nqa` first, then read the [action reference](docs/action.md) and `x`.\n"
+    assert check_no_orphans({"README.md": readme, "docs/action.md": ""}) == []

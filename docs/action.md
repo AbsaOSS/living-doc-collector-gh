@@ -25,6 +25,8 @@ Read before: [README](../README.md) · Next: [Documentation Source mode](../doc_
 - A `python3` older than 3.10 fails the step with a one-line error, even if another name on `PATH` would do → `tests/test_action_yml.py::test_an_unsupported_python_fails_with_the_documented_one_line_error`
 - The action brings its own venv: it creates one under `$RUNNER_TEMP`, installs its requirements there, and runs with that interpreter → `tests/test_action_yml.py::test_the_action_installs_into_its_own_venv_and_never_the_runners_interpreter`
   - So the caller needs no `actions/setup-python`; the job's interpreter, `PATH` and packages stay untouched.
+- The runner reaches a package index: on its first run in a job, the venv step installs the pinned requirements with `pip` → `action.yml::requirements.txt`
+  - PyPI by default, or the mirror the runner's `pip.conf` or `PIP_INDEX_URL` sets.
 - It runs on Linux runners (`ubuntu-*`), the only platform CI covers; every GitHub-hosted one ships a suitable `python3` → `.github/workflows/integration_test.yml::ubuntu-latest`
   - On a self-hosted runner without `python3`, add `actions/setup-python` before this step.
 - Windows runners are not supported: the venv step assumes the POSIX `bin/` layout, not `Scripts/`, so it fails there → [Windows runner support](../SPEC.md#windows-runner-support)
@@ -51,8 +53,9 @@ Every input `action.yml` declares, in its order; a test keeps this table equal t
 | `ui-tests` | no | `false` | `true` runs the UI Tests mode |
 | `ui-tests-repositories` | no | `[]` | The UI Tests mode's sources, a JSON array ([repository entry](../ui_tests/README.md#repository-entry)) |
 
-- A mode runs only when its switch is `true`; any other value, an empty one included, leaves it off → `action_inputs.py::ActionInputs.is_doc_source_mode_enabled`
-- Every input is checked before any work; a bad one is `INVALID_CONFIGURATION` ([Errors](#errors)) → `action_inputs.py::ActionInputs._validate`
+- A switch is on only when it is `true`, in any case; any other value, an empty one included, leaves it off and is not reported → `action_inputs.py::ActionInputs.is_allow_partial_enabled`
+  - The switches: `doc-source`, `ui-tests`, `doc-issues`, `allow-partial`, `verbose-logging`.
+- `project-id`, `github-server-url` and an enabled mode's `*-repositories` are checked before any work; a bad one is `INVALID_CONFIGURATION` ([Errors](#errors)) → `action_inputs.py::ActionInputs._validate`
 - A disabled mode's repositories are never read, so a malformed one cannot fail the run → `action_inputs.py::ActionInputs._validate`
 - An enabled mode with an empty repository list logs a warning and writes an artifact with no records → `action_inputs.py::_check_repositories`
 
@@ -100,7 +103,7 @@ Each enabled mode writes one artifact under the root → `main.py::run`
 - A mode creates its directory and replaces it on every run, so any previous content there is removed → `utils/artifact.py::clear_output_dir`
 - A mode clears only its own `<output-path>/<mode>/`; nothing else under `output-path` is touched → `utils/artifact.py::collect_artifact`
   - Why: two collectors, or two runs with different `output-path`, in one tree never touch each other's files.
-- The layout rule is `living-doc-utilities`' → [pipeline rules](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md), § Collector output layout
+- The layout rule is `living-doc-utilities`', in § Collector output layout of the pipeline rules → [pipeline rules](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md)
 
 ## Errors
 
@@ -115,7 +118,7 @@ Each configured repository entry is one **source**, collected on its own → `ut
 | `project-id` missing or malformed; `github-server-url` not an http(s) URL; an enabled mode's `*-repositories` input not a JSON array, or an entry with a missing key or an invalid value | `INVALID_CONFIGURATION` (error) | The run fails at start, before any work: the log names the input, the entry and the reason; no file is written; exit `1` | `action_inputs.py::ActionInputs._validate` |
 | `doc-issues: true` | `INVALID_CONFIGURATION` (error) | The run fails at start ([Documentation Issues](../doc_issues/README.md)); exit `1` | `main.py::DOC_ISSUES_PLANNED_MESSAGE` |
 | A configured path of a source does not exist | `SOURCE_UNAVAILABLE` (error) | Default: every source is still tried, then the mode fails; the log names each failed source; the run writes no file; exit `1`. With `allow-partial: true`: one warning per failed source, and the mode writes without it; it still fails if every source failed | `utils/artifact.py::collect_sources` |
-| A source answers with zero entities | `EMPTY_SOURCE` (warning) | Reported in `warnings[]`; the run succeeds | `utils/artifact.py::collect_sources` |
+| A source yields nothing: no entity header (`doc-source`) or scenario (`ui-tests`) is read from it, kept or skipped | `EMPTY_SOURCE` (warning) | Reported in `warnings[]`; the run succeeds | `utils/artifact.py::collect_sources` |
 | A source file is outside a git checkout, or its checkout has no resolvable commit | `NO_SOURCE_URL` (warning) | `source_ref.url` is `""` | `utils/artifact.py::build_source_ref` |
 
 - A failed mode fails the whole run → `main.py::run`

@@ -256,6 +256,6 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 | every example parses or runs; every `with:` key is an `action.yml` input; one release named | `tests/docs/test_examples.py` |
 | the input and output lists equal `action.yml`; every code a page names is in `ALL_CODES` | `tests/docs/test_option_lists.py` |
 | links and `#fragments` resolve | `.github/workflows/link-check.yml::lychee` |
-| a pull request that changes only pages or `action.yml` still runs these tests | `.github/workflows/test.yml::docs_changed` |
+| a pull request that changes only a page, `action.yml` or a file a page anchors still runs these tests | `.github/workflows/test.yml::docs_changed`, `tests/docs/test_ci_filter.py` |
 
 To add a page: put it at its depth, add it to `tests/docs/pages.py::APPROVED_PAGES`, and link it from `README.md`.

@@ -52,8 +52,8 @@ Inputs — `INPUT_*` environment variables, parsed only in `ActionInputs` (key n
 | `github-server-url` | `INPUT_GITHUB_SERVER_URL` | no | server of `source_ref.url` permalinks; default `https://github.com` |
 | `github-token` | — | no | optional and unused: no v0.1.0 mode calls the GitHub API; not read |
 | `doc-issues` | `INPUT_DOC_ISSUES` | no | PLANNED; `"true"` fails the run at start; default `false` |
-| `doc-source` | `INPUT_DOC_SOURCE` | yes | mode switch; `"false"` when unset |
-| `ui-tests` | `INPUT_UI_TESTS` | yes | mode switch; `"false"` when unset |
+| `doc-source` | `INPUT_DOC_SOURCE` | no | mode switch; default `false` |
+| `ui-tests` | `INPUT_UI_TESTS` | no | mode switch; default `false` |
 | `verbose-logging` | `INPUT_VERBOSE_LOGGING` | no | default `false` |
 | `doc-source-repositories` | `INPUT_DOC_SOURCE_REPOSITORIES` | no | JSON array string, default `[]` |
 | `ui-tests-repositories` | `INPUT_UI_TESTS_REPOSITORIES` | no | JSON array string, default `[]` |

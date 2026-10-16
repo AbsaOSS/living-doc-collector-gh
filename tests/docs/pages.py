@@ -45,8 +45,27 @@ APPROVED_PAGES: dict[str, int] = {
 # Tracked Markdown that is not a page: the agent board, the review rules and the test fixtures.
 NOT_PAGES = (".claude/", ".github/", "tests/fixtures/")
 
-_FENCE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>.*)$")
-_FENCE_CLOSE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})\s*$")
+# A fence may sit in a list item or a blockquote, so `>` markers, list markers and indentation may precede it.
+_LIST_MARKER = r"(?:[-*+]|\d{1,9}[.)])"
+_CONTAINER_PREFIX = rf"(?:[ \t]*(?:>|{_LIST_MARKER}(?=[ \t])))*[ \t]*"
+_FENCE_RE = re.compile(rf"^(?P<prefix>{_CONTAINER_PREFIX})(?P<fence>`{{3,}}|~{{3,}})(?P<info>.*)$")
+_FENCE_RUN_RE = re.compile(r"`{3,}|~{3,}")
+_QUOTES_RE = re.compile(r"^(?:[ \t]*>)*")
+_LIST_MARKER_RE = re.compile(_LIST_MARKER)
+# A code span: an exact run of backticks closed by the same run, across line breaks but not across a blank line.
+_CODE_SPAN = r"(?<!`)(?P<ticks>`+)(?:(?!\n[ \t]*\n).)+?(?<!`)(?P=ticks)(?!`)"
+_CODE_SPAN_RE = re.compile(_CODE_SPAN, re.S)
+# One left-to-right pass, so `<!--` inside a code span is text, not the start of a comment.
+_CODE_SPAN_OR_COMMENT_RE = re.compile(rf"(?P<span>{_CODE_SPAN})|<!--.*?-->", re.S)
+
+# The file kinds a `path::symbol` anchor may point into, and the anchor itself; `ANCHOR_PATTERN` has no groups,
+# so it can be embedded. A trailing `()` or pytest `[id]` is allowed and not part of the symbol.
+FILE_TYPES = "py|md|yml|yaml|toml|sh|txt|json|example|cfg|ini|feature|ts"
+_ANCHOR_PATH = rf"(?:[\w.-]+/)*(?:[\w-][\w.-]*\.(?:{FILE_TYPES})|Makefile|\.[\w-][\w.-]*)"
+_ANCHOR_SYMBOL = r"[\w.-]*\w"
+_ANCHOR_SUFFIX = r"(?:\(\)|\[[^\]\s]*\])?"
+ANCHOR_PATTERN = rf"{_ANCHOR_PATH}::{_ANCHOR_SYMBOL}{_ANCHOR_SUFFIX}"
+ANCHOR_RE = re.compile(rf"(?<![\w./<>-])(?P<path>{_ANCHOR_PATH})::(?P<symbol>{_ANCHOR_SYMBOL}){_ANCHOR_SUFFIX}")
 
 
 def _fence_open(line: str) -> re.Match[str] | None:
@@ -71,10 +90,55 @@ class CodeBlock(NamedTuple):
     line_above: str
 
 
-def _closes(line: str, fence: str) -> bool:
-    """Whether `line` closes a block opened with `fence`: the same character, at least as many times."""
-    close_m = _FENCE_CLOSE_RE.match(line)
-    return close_m is not None and close_m.group("fence")[0] == fence[0] and len(close_m.group("fence")) >= len(fence)
+class _Fence(NamedTuple):
+    """An open fence: its run, its `>` depth, its column after the quotes, whether a list item or blockquote holds
+    it (the block then ends where that container ends), and the prefix its code lines carry."""
+
+    run: str
+    depth: int
+    column: int
+    contained: bool
+    indent: str
+
+
+def _quotes(line: str, depth: int | None = None) -> str:
+    """The `>` markers `line` opens with - at most `depth` of them, so a deeper `>` stays code - and the whitespace
+    between them."""
+    quotes_m = _QUOTES_RE.match(line) if depth is None else re.match(rf"^(?:[ \t]*>){{0,{depth}}}", line)
+    return quotes_m.group(0) if quotes_m else ""
+
+
+def _open(fence_m: re.Match[str]) -> _Fence:
+    """The fence an opening-fence match starts; a list marker in its prefix counts as indentation."""
+    prefix = fence_m.group("prefix")
+    quotes = _quotes(prefix)
+    after = _LIST_MARKER_RE.sub(lambda marker_m: " " * len(marker_m.group(0)), prefix[len(quotes) :])
+    contained = bool(quotes) or after != prefix[len(quotes) :] or len(after) >= 4
+    return _Fence(fence_m.group("fence"), quotes.count(">"), len(after), contained, quotes + after)
+
+
+def _step(line: str, fence: _Fence) -> str:
+    """`close` when `line` closes the block, `end` when the block's container ended before `line`, else `code`."""
+    quotes = _quotes(line, fence.depth)
+    if quotes.count(">") < fence.depth:
+        return "end"
+    after = line[len(quotes) :]
+    lead = len(after) - len(after.lstrip(" "))
+    stripped = after.strip()
+    run_m = _FENCE_RUN_RE.fullmatch(stripped)
+    if run_m and stripped[0] == fence.run[0] and len(stripped) >= len(fence.run) and lead <= fence.column + 3:
+        return "close"
+    if fence.contained and stripped and lead < fence.column:
+        return "end"
+    return "code"
+
+
+def _code_line(line: str, fence: _Fence) -> str:
+    """A line of the block without its container's prefix: the quotes, and indentation up to the fence's column."""
+    if line.startswith(fence.indent):
+        return line[len(fence.indent) :]
+    after = line[len(_quotes(line, fence.depth)) :]
+    return after[min(fence.column, len(after) - len(after.lstrip(" "))) :]
 
 
 def read_page(page: str) -> str:
@@ -83,11 +147,28 @@ def read_page(page: str) -> str:
 
 
 def tracked_markdown() -> set[str]:
-    """Every Markdown file git tracks that is a page, not part of the agent board or a test fixture."""
+    """Every Markdown file git tracks - `.md` or `.markdown`, in any case - that is a page, not part of the agent
+    board or a test fixture."""
     listed = subprocess.run(
-        ["git", "ls-files", "*.md"], cwd=REPO_ROOT, capture_output=True, check=True, text=True
+        ["git", "ls-files", "--", ":(icase)*.md", ":(icase)*.markdown"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
     ).stdout.splitlines()
     return {path for path in listed if not path.startswith(NOT_PAGES)}
+
+
+def check_page_list(listed: set[str], approved: dict[str, int]) -> list[str]:
+    """Every listed page is approved, every approved page is listed, and its path gives its depth."""
+    problems = [f"{page}: unapproved page; add it to APPROVED_PAGES" for page in sorted(listed - set(approved))]
+    problems += [f"{page}: approved but not tracked" for page in sorted(set(approved) - listed)]
+    problems += [
+        f"{page}: listed at depth {depth}, but its path gives {page_depth(page)}"
+        for page, depth in approved.items()
+        if page_depth(page) != depth
+    ]
+    return problems
 
 
 @lru_cache(maxsize=1)
@@ -97,20 +178,23 @@ def action_yml() -> dict[str, Any]:
 
 
 def unfenced_lines(text: str) -> list[str]:
-    """The page's lines outside fenced code blocks, so a `#` comment in a code block is never a heading."""
+    """The page's lines outside fenced code blocks and HTML comments, so a `#` comment in a code block, or a
+    commented-out heading or link, is never read as one."""
     lines: list[str] = []
-    fence: str | None = None
+    fence: _Fence | None = None
     for line in text.splitlines():
-        fence_m = _fence_open(line)
-        if fence is None and fence_m:
-            fence = fence_m.group("fence")
-            continue
         if fence is not None:
-            if _closes(line, fence):
-                fence = None
+            step = _step(line, fence)
+            if step != "end":
+                fence = None if step == "close" else fence
+                continue
+            fence = None
+        fence_m = _fence_open(line)
+        if fence_m:
+            fence = _open(fence_m)
             continue
         lines.append(line)
-    return lines
+    return _CODE_SPAN_OR_COMMENT_RE.sub(lambda m: m.group("span") or "", "\n".join(lines)).splitlines()
 
 
 def code_blocks(text: str) -> list[CodeBlock]:
@@ -123,26 +207,33 @@ def code_blocks(text: str) -> list[CodeBlock]:
         if fence_m is None:
             index += 1
             continue
-        fence = fence_m.group("fence")
+        fence = _open(fence_m)
         above = next((line.strip() for line in reversed(lines[:index]) if line.strip()), "")
         body: list[str] = []
         index += 1
-        while index < len(lines) and not _closes(lines[index], fence):
-            body.append(lines[index])
+        step = "code"
+        while index < len(lines) and (step := _step(lines[index], fence)) == "code":
+            body.append(_code_line(lines[index], fence))
             index += 1
         blocks.append(CodeBlock(fence_m.group("info").strip(), "\n".join(body) + "\n", above))
-        index += 1
+        if step == "close":
+            index += 1  # a block its container ended leaves that line to be read again
     return blocks
+
+
+def all_headings(text: str) -> list[tuple[int, str]]:
+    """`(level, text)` of every heading outside fenced blocks, in page order."""
+    found = []
+    for line in unfenced_lines(text):
+        heading_m = _HEADING_RE.match(line)
+        if heading_m:
+            found.append((len(heading_m.group("hashes")), heading_m.group("text")))
+    return found
 
 
 def headings(text: str, level: int) -> list[str]:
     """The text of every heading of exactly `level` (2 for `##`) outside fenced blocks."""
-    found = []
-    for line in unfenced_lines(text):
-        heading_m = _HEADING_RE.match(line)
-        if heading_m and len(heading_m.group("hashes")) == level:
-            found.append(heading_m.group("text"))
-    return found
+    return [title for heading_level, title in all_headings(text) if heading_level == level]
 
 
 def slug(heading: str) -> str:
@@ -200,19 +291,22 @@ def table_rows(lines: list[str]) -> list[list[str]]:
 
 
 def check_purpose_then_contents(page: str, text: str) -> list[str]:
-    """The first `##` heading is `Purpose` and the second is `Contents`."""
-    chapters = headings(text, 2)
-    if chapters[:2] == ["Purpose", "Contents"]:
+    """The page opens with its `#` title, then `## Purpose`, then `## Contents`: no heading comes between them."""
+    opening = all_headings(text)[:3]
+    if opening[:1] and opening[0][0] == 1 and opening[1:] == [(2, "Purpose"), (2, "Contents")]:
         return []
-    return [f"{page}: the first two '##' headings must be 'Purpose', 'Contents'; found {chapters[:2]!r}"]
+    found = [f"{'#' * level} {title}" for level, title in opening]
+    return [f"{page}: the page must open with '# <title>', '## Purpose', '## Contents'; found {found!r}"]
 
 
 def check_contents_links(page: str, text: str) -> list[str]:
-    """`Contents` links to every other `##` chapter of the page, and to nothing else."""
+    """`Contents` links to every other `##` chapter of the page, and to nothing else. GitHub numbers a repeated
+    fragment across headings of every level, so every heading takes part in the numbering."""
+    every = all_headings(text)
     chapters = {
         fragment: title
-        for fragment, title in _unique_fragments(headings(text, 2))
-        if title not in ("Purpose", "Contents")
+        for (fragment, title), (level, _) in zip(_unique_fragments([title for _, title in every]), every, strict=True)
+        if level == 2 and title not in ("Purpose", "Contents")
     }
     problems: list[str] = []
     linked: set[str] = set()
@@ -235,10 +329,10 @@ def check_contents_links(page: str, text: str) -> list[str]:
 
 def _resolved_links(page: str, text: str) -> set[str]:
     """Every relative link of the page into the repository, as a repository path without its fragment. A link
-    inside a fenced code block does not count - it is an example, not navigation."""
+    inside a fenced code block, an HTML comment or a code span does not count - GitHub renders no link there."""
     base = PurePosixPath(page).parent
     resolved: set[str] = set()
-    for link_m in _LINK_TARGET_RE.finditer("\n".join(unfenced_lines(text))):
+    for link_m in _LINK_TARGET_RE.finditer(_CODE_SPAN_RE.sub("", "\n".join(unfenced_lines(text)))):
         target = link_m.group("target").split("#", 1)[0]
         if not target or "://" in target or target.startswith("mailto:"):
             continue

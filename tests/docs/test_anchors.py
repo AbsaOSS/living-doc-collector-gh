@@ -24,14 +24,25 @@ from typing import Optional
 
 import pytest
 
-from tests.docs.pages import APPROVED_PAGES, REPO_ROOT, read_page, unfenced_lines
-
-_ANCHOR_RE = re.compile(
-    r"`(?P<path>(?:[\w.-]+/)*[\w.-]+\.(?:py|md|yml|yaml|toml|sh|txt|json|example)|Makefile|\.pylintrc)::(?P<symbol>[\w.-]+)`"
+from tests.docs.pages import (
+    ANCHOR_PATTERN,
+    ANCHOR_RE,
+    APPROVED_PAGES,
+    FILE_TYPES,
+    REPO_ROOT,
+    read_page,
+    unfenced_lines,
 )
-_LINE_NUMBER_RE = re.compile(r"\.(?:py|md|yml|yaml|toml|sh)(?::\d+|#L\d+|\s+lines?\s+\d+(?:-\d+)?\b)")
-_LIST_ITEM_RE = re.compile(r"^(?:[-*]|\d+\.) ")
-_ARROW_DESTINATION_RE = re.compile(r"→\s*\S")
+
+_LINE_NUMBER_RE = re.compile(
+    rf"(?:\.(?:{FILE_TYPES})|Makefile|\.pylintrc|\.coveragerc)`?(?::L?\d+|#L\d+|,?\s+lines?\s+\d+(?:-\d+)?\b)"
+)
+_LIST_ITEM_RE = re.compile(r"^(?:[-*+]|\d{1,9}[.)])[ \t]")
+# The components a rule may name instead of an anchor (DEVELOPER.md, "Writing documentation", Anchors).
+COMPONENTS = ("utilities", "toolkit")
+_DESTINATION = rf"(?:`{ANCHOR_PATTERN}`|{ANCHOR_PATTERN}|\[[^\]]*\]\([^)\s]+\)|(?:{'|'.join(COMPONENTS)})\b)"
+_TRAILING_DESTINATIONS_RE = re.compile(rf"→\s*{_DESTINATION}(?:\s*(?:,|\band\b)\s*{_DESTINATION})*\s*$")
+_LEAD_IN_DESTINATION_RE = re.compile(rf"→\s*{_DESTINATION}")
 
 
 def _resolve(path: str) -> Optional[Path]:
@@ -78,8 +89,13 @@ def _anchor_problem(path: str, symbol: str) -> Optional[str]:
     return None if symbol in text else f"'{path}' does not contain {symbol!r}"
 
 
+def anchors(text: str) -> list[tuple[str, str]]:
+    """Every `path::symbol` of a page, ticked or not; a trailing `()` or pytest `[id]` is dropped from the symbol."""
+    return [(anchor_m.group("path"), anchor_m.group("symbol")) for anchor_m in ANCHOR_RE.finditer(text)]
+
+
 def _anchors(page: str) -> list[tuple[str, str]]:
-    return [(anchor_m.group("path"), anchor_m.group("symbol")) for anchor_m in _ANCHOR_RE.finditer(read_page(page))]
+    return anchors(read_page(page))
 
 
 @pytest.mark.parametrize("page", sorted(APPROVED_PAGES))
@@ -136,9 +152,53 @@ def test_a_line_number_anchor_is_found():
     assert _LINE_NUMBER_RE.findall("see `main.py:42` and [run](main.py#L42)") == [".py:42", ".py#L42"]
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "`main.py` lines 12-34",
+        "main.py, line 42",
+        "main.py:L42",
+        "`requirements.txt:3`",
+        "[pin](requirements.txt#L3)",
+        "[qa](Makefile#L12)",
+        "`.pylintrc:10`",
+    ],
+)
+def test_every_line_number_form_is_found(text):
+    """A line number after a ticked file, after a comma, as `:L42`, or into a non-Python file is caught too."""
+    assert len(_LINE_NUMBER_RE.findall(text)) == 1
+
+
+def test_an_anchor_into_a_non_python_file_is_no_line_number():
+    """`test.yml::3.14` and `Makefile::qa` name a text, not a line."""
+    assert _LINE_NUMBER_RE.findall("`.github/workflows/test.yml::3.14` and `Makefile::qa`") == []
+
+
+@pytest.mark.parametrize(
+    "text, found",
+    [
+        ("→ `utils/artifact.py::store_artifacts()`", ("utils/artifact.py", "store_artifacts")),
+        ("→ utils/artifact.py::store_artifacts", ("utils/artifact.py", "store_artifacts")),
+        ("→ `tests/test_main.py::test_no_such_case[param]`", ("tests/test_main.py", "test_no_such_case")),
+        ("→ `.coveragerc::fail_under`", (".coveragerc", "fail_under")),
+    ],
+    ids=["call-parentheses", "unticked", "pytest-id", "dotfile"],
+)
+def test_every_anchor_form_is_found_so_a_wrong_one_is_reported(text, found):
+    """An anchor with `()`, a pytest id, no ticks, or into a dotfile is still read, so its resolution is checked."""
+    assert anchors(text) == [found]
+    assert _anchor_problem(*found) is not None
+
+
+def test_a_placeholder_is_no_anchor():
+    """The rule's own placeholders, `path::symbol` and `tests/<path>.py::test_name`, are not read as anchors."""
+    assert anchors("`path::symbol`, `tests/<path>.py::test_name`") == []
+
+
 def unplaced_list_items(page: str, text: str) -> list[str]:
-    """Top-level list items that say nowhere where they are realised: no `→` (an anchor, a component or a link), no
-    anchor, no link, and no lead-in line that carries an anchor. `Contents` is routing, not facts."""
+    """Top-level list items that do not end in `→` and their destinations - anchors, links or components - and
+    whose lead-in carries none either. A lead-in covers only the list right after it, not one past a table.
+    `Contents` is routing, not facts."""
     problems: list[str] = []
     chapter, lead_in, previous = "", "", "blank"
     for line in unfenced_lines(text):
@@ -150,8 +210,11 @@ def unplaced_list_items(page: str, text: str) -> list[str]:
             chapter = stripped.lstrip("#").strip() if stripped.startswith("## ") else chapter
             lead_in, previous = "", "blank"
             continue
-        if line.startswith(" ") or stripped.startswith("|"):
-            continue  # a sub-item (`Why:`, detail) or a table row
+        if stripped.startswith("|"):
+            lead_in, previous = "", "blank"  # a table ends the reach of the lead-in above it
+            continue
+        if line.startswith((" ", "\t")):
+            continue  # a sub-item (`Why:`, detail)
         if _LIST_ITEM_RE.match(line) is None:
             lead_in = f"{lead_in} {stripped}" if previous == "text" else stripped
             previous = "text"
@@ -159,14 +222,9 @@ def unplaced_list_items(page: str, text: str) -> list[str]:
         previous = "item"
         if chapter == "Contents":
             continue
-        if (
-            _ARROW_DESTINATION_RE.search(stripped)
-            or "](" in stripped
-            or _ANCHOR_RE.search(stripped)
-            or _ARROW_DESTINATION_RE.search(lead_in)
-        ):
+        if _TRAILING_DESTINATIONS_RE.search(stripped) or _LEAD_IN_DESTINATION_RE.search(lead_in):
             continue
-        problems.append(f"{page}: '{stripped[:80]}' names no anchor, component or link, and its lead-in none either")
+        problems.append(f"{page}: '{stripped[:80]}' ends in no anchor, component or link, and its lead-in none either")
     return problems
 
 
@@ -182,10 +240,53 @@ def test_an_unplaced_list_item_is_reported_and_a_lead_in_anchor_covers_its_items
     dangling_arrow = "## Facts\n\n- a fact with a dangling arrow →\n"
     covered = "## Facts\n\nThe cases → `utils/artifact.py::collect_sources`:\n\n- a fact with no home\n"
     assert unplaced_list_items("docs/x.md", bare) == [
-        "docs/x.md: '- a fact with no home' names no anchor, component or link, and its lead-in none either"
+        "docs/x.md: '- a fact with no home' ends in no anchor, component or link, and its lead-in none either"
     ]
     assert unplaced_list_items("docs/x.md", dangling_arrow) == [
-        "docs/x.md: '- a fact with a dangling arrow →' names no anchor, component or link, and its lead-in none "
+        "docs/x.md: '- a fact with a dangling arrow →' ends in no anchor, component or link, and its lead-in none "
         "either"
     ]
     assert unplaced_list_items("docs/x.md", covered) == []
+
+
+@pytest.mark.parametrize(
+    "item",
+    [
+        "- a fact → somewhere",
+        "- collect → normalize → generate is deterministic",
+        "- the flow `a → b` is fixed",
+        "- see [x](y.md) for a fact with no home",
+        "- a fact → `utils/artifact.py::store_artifact` and more text",
+    ],
+)
+def test_an_item_that_does_not_end_in_a_destination_is_reported(item):
+    """An arrow mid-sentence, an arrow to no destination, or a link mid-sentence does not say where it is realised."""
+    assert len(unplaced_list_items("docs/x.md", f"## Facts\n\n{item}\n")) == 1
+
+
+@pytest.mark.parametrize(
+    "item",
+    [
+        "- a fact → `utils/artifact.py::store_artifact`",
+        "- a fact → utilities",
+        "- a fact → [Errors](../docs/action.md#errors), [Inputs](../docs/action.md#inputs)",
+        "- a fact → `main.py::run` and `utils/artifact.py::store_artifact`",
+    ],
+)
+def test_an_item_that_ends_in_destinations_passes(item):
+    """An anchor, a component, or several links or anchors joined by `,` or `and` end an item."""
+    assert unplaced_list_items("docs/x.md", f"## Facts\n\n{item}\n") == []
+
+
+def test_a_lead_in_does_not_cover_a_list_after_a_table():
+    """A lead-in's `→` covers the list right after it; past a table, each item needs its own destination."""
+    page = "## Facts\n\nThe rows → `utils/artifact.py::collect_sources`:\n\n| a | b |\n|---|---|\n\n- a fact with no home\n"
+    assert unplaced_list_items("docs/x.md", page) == [
+        "docs/x.md: '- a fact with no home' ends in no anchor, component or link, and its lead-in none either"
+    ]
+
+
+@pytest.mark.parametrize("item", ["+ a fact with no home", "1) a fact with no home", "-\ta fact with no home"])
+def test_every_list_marker_is_read_as_a_list_item(item):
+    """`+`, `1)` and a tab after the marker start a list item on GitHub, so the item is checked."""
+    assert len(unplaced_list_items("docs/x.md", f"## Facts\n\n{item}\n")) == 1

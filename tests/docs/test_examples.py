@@ -23,19 +23,28 @@ from typing import Any
 import pytest
 import yaml
 
-from tests.docs.pages import APPROVED_PAGES, CodeBlock, action_yml, code_blocks, read_page
+from tests.docs.pages import APPROVED_PAGES, CodeBlock, action_yml, code_blocks, headings, read_page
 
 ACTION = "AbsaOSS/living-doc-collector-gh"
-_USES_RE = re.compile(rf"uses:\s*(?P<quote>['\"]?){re.escape(ACTION)}@(?P<ref>[^'\"\s]+)(?P=quote)")
+# GitHub resolves `owner/repo` in `uses:` regardless of case.
+_USES_RE = re.compile(rf"uses:\s*(?P<quote>['\"]?){re.escape(ACTION)}@(?P<ref>[^'\"\s]+)(?P=quote)", re.IGNORECASE)
 _RELEASE_TAG_RE = re.compile(r"v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)")
+_LANGUAGE_ALIASES = {"yml": "yaml", "py": "python", "python3": "python"}
 
 
-def _examples(info: str) -> list:
+def example_language(info: str) -> str:
+    """The language of a fenced block: the first word of its info string, lowercased, with its aliases folded."""
+    words = info.split()
+    language = words[0].lower() if words else ""
+    return _LANGUAGE_ALIASES.get(language, language)
+
+
+def _examples(language: str) -> list:
     return [
         pytest.param(block, id=f"{page}#{index}")
         for page in sorted(APPROVED_PAGES)
         for index, block in enumerate(code_blocks(read_page(page)))
-        if block.info == info
+        if example_language(block.info) == language
     ]
 
 
@@ -48,7 +57,7 @@ def action_with_blocks(node: Any) -> list[dict]:
             found.extend(action_with_blocks(item))
     elif isinstance(node, dict):
         uses = node.get("uses")
-        if isinstance(node.get("with"), dict) and (uses is None or str(uses).startswith(f"{ACTION}@")):
+        if isinstance(node.get("with"), dict) and (uses is None or str(uses).lower().startswith(f"{ACTION.lower()}@")):
             found.append(node["with"])
         for key, value in node.items():
             if key != "with":
@@ -151,6 +160,86 @@ def test_planted_undeclared_input_is_reported():
     assert yaml_example_problems(CodeBlock("yaml", code, "")) == [
         "`with:` sets `doc-sources`, which `action.yml` does not declare"
     ]
+
+
+def test_planted_lowercase_owner_is_checked_and_its_release_read():
+    """`absaoss/living-doc-collector-gh` is the same action on GitHub, so its inputs and its release are checked."""
+    code = "- uses: absaoss/living-doc-collector-gh@v0.1.0\n  with:\n    doc-sources: true\n"
+    assert yaml_example_problems(CodeBlock("yaml", code, "")) == [
+        "`with:` sets `doc-sources`, which `action.yml` does not declare"
+    ]
+    assert {ref_m.group("ref") for ref_m in _USES_RE.finditer(code)} == {"v0.1.0"}
+
+
+@pytest.mark.parametrize(
+    "info, language",
+    [
+        ("yaml", "yaml"),
+        ("yml", "yaml"),
+        ("YAML", "yaml"),
+        ("yaml title=step.yml", "yaml"),
+        ("JSON", "json"),
+        ("py", "python"),
+        ("python3", "python"),
+        ("shell", "shell"),
+        ("", ""),
+    ],
+)
+def test_every_spelling_of_a_language_is_checked(info, language):
+    """A `yml`, `YAML` or annotated block is a `yaml` example; `py` and `python3` are `python`."""
+    assert example_language(info) == language
+
+
+def test_a_fence_in_a_list_item_or_a_blockquote_is_an_example():
+    """GitHub renders an indented fence under a list item, and a quoted one, as code, so both are checked."""
+    page = (
+        "1. Add the step:\n\n    ```yaml\n    - uses: AbsaOSS/living-doc-collector-gh@v0.2.0\n      with:\n"
+        "        doc-sources: true\n    ```\n\n> ```yml\n> with:\n>   ui-test: true\n> ```\n"
+    )
+    blocks = code_blocks(page)
+    assert [block.info for block in blocks] == ["yaml", "yml"]
+    assert [problem for block in blocks for problem in yaml_example_problems(block)] == [
+        "`with:` sets `doc-sources`, which `action.yml` does not declare",
+        "`with:` sets `ui-test`, which `action.yml` does not declare",
+    ]
+
+
+def test_a_fence_on_the_list_marker_line_is_an_example():
+    """`1. ```yaml` opens a block inside the item, so its inputs are checked and the page after it is still read."""
+    page = (
+        "1. ```yaml\n   - uses: AbsaOSS/living-doc-collector-gh@v0.2.0\n     with:\n       doc-sources: true\n   ```\n\n"
+        "## Next\n"
+    )
+    blocks = code_blocks(page)
+    assert [block.info for block in blocks] == ["yaml"]
+    assert yaml_example_problems(blocks[0]) == ["`with:` sets `doc-sources`, which `action.yml` does not declare"]
+    assert headings(page, 2) == ["Next"]
+
+
+@pytest.mark.parametrize(
+    "page",
+    [
+        "- ```markdown\n  > [!NOTE]\n  > Text.\n  ```\n\n## Errors\n",
+        "```markdown\n> ```\n## Not a heading\n```\n\n## Errors\n",
+    ],
+    ids=["list-item-fence", "top-level-fence"],
+)
+def test_a_quote_marker_inside_a_fence_is_code(page):
+    """A `>` deeper than the fence's own blockquote is code: it neither ends nor closes the block."""
+    assert headings(page, 2) == ["Errors"]
+
+
+def test_an_unclosed_fence_ends_with_its_container():
+    """A quoted fence with no closing run ends where the blockquote ends, as on GitHub, so the page goes on."""
+    page = "> ```yaml\n> with:\n>   project-id: p\n\n## Contents\n"
+    assert headings(page, 2) == ["Contents"]
+    assert [block.code for block in code_blocks(page)] == ["with:\n  project-id: p\n"]
+
+
+def test_an_indented_run_inside_a_top_level_fence_does_not_close_it():
+    """Four spaces before a run inside a top-level fence make it code, not a closing fence."""
+    page = "```markdown\n    ```\n## Not a heading\n```\n\n## Next\n"
+    assert headings(page, 2) == ["Next"]
 
 
 def test_planted_bare_with_block_is_checked_too():

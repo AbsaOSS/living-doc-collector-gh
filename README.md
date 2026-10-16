@@ -28,7 +28,7 @@ contracts `living-doc-utilities` owns, for the downstream `living-doc-*` tools.
 - **UI Tests** (`ui-tests`): UI test scenarios from `.feature` scenario blocks, as `ui-tests-v1.0.0` → [mode](ui_tests/README.md)
 - **Documentation Issues** (`doc-issues`): GitHub Issues as a documentation source; PLANNED, and `true` fails the run at start → [mode](doc_issues/README.md)
 - Modular: activate only the modes you need; each writes one artifact, validated before it is written → [Contracts](docs/action.md#contracts)
-- Deterministic: the same checkouts always give the same records; nothing is fetched from the network.
+- Deterministic: the same checkouts always give the same records; collection reads only those checkouts.
 - Pipeline-ready: it chains with the other `living-doc-*` actions → [Architecture](https://github.com/AbsaOSS/living-doc/blob/master/docs/introduction/architecture.md)
 - GitHub Actions first: a step in a workflow is the supported way to run it; a local run is a development and operator-check aid, not a second deployment target → [Debug run](DEVELOPER.md#debug-run), [Local Integration Run](DEVELOPER.md#local-integration-run)
 - AI-free: collect → normalize → generate is deterministic tooling, with no LLM call anywhere in that path → [AI-free Principle](CONTRIBUTING.md#ai-free-principle)

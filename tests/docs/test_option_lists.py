@@ -23,13 +23,26 @@ from typing import Any
 import pytest
 from living_doc_utilities.contracts.codes import ALL_CODES
 
-from tests.docs.pages import APPROVED_PAGES, REPO_ROOT, action_yml, read_page, section, table_rows, unfenced_lines
+from tests.docs.pages import (
+    ANCHOR_RE,
+    APPROVED_PAGES,
+    REPO_ROOT,
+    action_yml,
+    read_page,
+    section,
+    table_rows,
+    unfenced_lines,
+)
 
 ACTION_PAGE = "docs/action.md"
 _TICKED_RE = re.compile(r"`([^`\s]+)`")
-_CONSTANT_RE = re.compile(r"^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$")
-_NAME_RE = re.compile(r"^[a-z]+(?:-[a-z]+)+$")
+_CONSTANT_WORD_RE = re.compile(r"(?<![\w$])[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b")
+_LINK_TARGET_RE = re.compile(r"\]\([^)\s]*\)")
+_NAME_RE = re.compile(r"^[a-z]+(?:-[a-z]+)*$")
+_HYPHENATED_NAME_RE = re.compile(r"^[a-z]+(?:-[a-z]+)+$")
+_SUBJECT_RE = re.compile(r"^- ((?:`[^`\s]+`(?:,\s*)?)+)")
 _NO_DEFAULT = "—"
+_PLANNED = "PLANNED"
 # Upper-case names a page may tick that belong to another tool, not to this repository's code: pip's settings.
 EXTERNAL_NAMES = {"PIP_INDEX_URL", "PIP_FIND_LINKS"}
 DOCUMENTED_TEST_NAMES = {"NOT_PRODUCED"}
@@ -46,17 +59,37 @@ def documented_options(lines: list[str]) -> list[tuple[str, str, str]]:
     return [(_cell(row[0]), row[1], _cell(row[2])) for row in table_rows(lines)]
 
 
-def declared_inputs() -> list[tuple[str, str, str]]:
-    """`(name, required, default)` per input of `action.yml`, in its order."""
-    inputs: dict[str, dict[str, Any]] = action_yml()["inputs"]
+def _action_value(value: Any) -> str:
+    """An `action.yml` default as the runner passes it to the step: a YAML boolean as `true` / `false`, no value as
+    an empty string."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return "" if value is None else str(value)
+
+
+def declared_inputs(inputs: dict[str, dict[str, Any]] | None = None) -> list[tuple[str, str, str]]:
+    """`(name, required, default)` per input of `action.yml` (or of `inputs`), in its order."""
+    inputs = action_yml()["inputs"] if inputs is None else inputs
     return [
         (
             name,
-            "yes" if spec.get("required") else "no",
-            str(spec["default"]) if "default" in spec else _NO_DEFAULT,
+            "yes" if spec.get("required") is True else "no",
+            _action_value(spec["default"]) if "default" in spec else _NO_DEFAULT,
         )
         for name, spec in inputs.items()
     ]
+
+
+def planned_problems(page: str, rows: list[list[str]], inputs: dict[str, dict[str, Any]]) -> list[str]:
+    """Each input whose meaning on the page is not marked `PLANNED` exactly when its `action.yml` description is."""
+    meanings = {_cell(row[0]): row[3] for row in rows if len(row) > 3}
+    problems = []
+    for name, spec in inputs.items():
+        planned = str(spec.get("description", "")).startswith(_PLANNED)
+        if name in meanings and meanings[name].startswith(_PLANNED) != planned:
+            state = "PLANNED" if planned else "not PLANNED"
+            problems.append(f"{page} § Inputs: `{name}` is {state} in `action.yml`; its meaning must say so first")
+    return problems
 
 
 def table_problems(page: str, chapter: str, documented: list, declared: list) -> list[str]:
@@ -94,14 +127,92 @@ def test_the_output_table_equals_action_yml():
     assert table_problems(ACTION_PAGE, "Outputs", documented, declared) == []
 
 
-def test_the_readme_overview_names_every_input_and_output():
-    """README § Inputs and outputs names every input and output, and no name `action.yml` does not declare."""
-    names = {
-        token for line in section(read_page("README.md"), "Inputs and outputs") for token in _TICKED_RE.findall(line)
+def test_the_planned_inputs_are_marked_planned():
+    """`docs/action.md` § Inputs starts the meaning of every PLANNED input, and only those, with `PLANNED`."""
+    rows = table_rows(section(read_page(ACTION_PAGE), "Inputs"))
+    assert planned_problems(ACTION_PAGE, rows, action_yml()["inputs"]) == []
+
+
+def test_planted_unmarked_planned_input_is_reported():
+    """A PLANNED input whose meaning drops the mark fails, as does an available input marked PLANNED."""
+    inputs = {"doc-issues-repositories": {"description": "PLANNED - not read."}, "doc-source": {"description": "On."}}
+    rows = [
+        ["`doc-issues-repositories`", "no", "`[]`", "The Documentation Issues mode's sources, a JSON array"],
+        ["`doc-source`", "no", "`false`", "PLANNED: runs the mode"],
+    ]
+    assert planned_problems("docs/x.md", rows, inputs) == [
+        "docs/x.md § Inputs: `doc-issues-repositories` is PLANNED in `action.yml`; its meaning must say so first",
+        "docs/x.md § Inputs: `doc-source` is not PLANNED in `action.yml`; its meaning must say so first",
+    ]
+
+
+def test_an_action_yml_default_is_read_as_the_runner_passes_it():
+    """An unquoted YAML boolean default is the string `true` / `false`, an empty one is `''`, and only a YAML `true`
+    makes an input required."""
+    inputs = {"a": {"default": False}, "b": {"default": None}, "c": {"required": "false", "default": "x"}}
+    assert declared_inputs(inputs) == [("a", "no", "false"), ("b", "no", ""), ("c", "no", "x")]
+
+
+def readme_overview_problems(lines: list[str], inputs: list[str], outputs: list[str]) -> list[str]:
+    """Each input missing from the list items, each output not named after the list, and each undeclared name."""
+    in_items = {token for line in lines if line.startswith("- ") for token in _TICKED_RE.findall(line)}
+    elsewhere = {token for line in lines if not line.startswith("- ") for token in _TICKED_RE.findall(line)}
+    problems = [
+        f"README § Inputs and outputs: input `{name}` is in no list item" for name in inputs if name not in in_items
+    ]
+    problems += [
+        f"README § Inputs and outputs: output `{name}` is not named outside the input list"
+        for name in outputs
+        if name not in elsewhere
+    ]
+    # A hyphenated name is an input wherever it is ticked; a one-word one only as an item's subject - the ticked names
+    # it opens with - since a meaning may tick a value such as `true`, even before its `:`.
+    subjects = {
+        token
+        for line in lines
+        if (subject_m := _SUBJECT_RE.match(line))
+        for token in _TICKED_RE.findall(subject_m.group(1))
     }
-    declared = set(action_yml()["inputs"]) | set(action_yml()["outputs"])
-    assert declared - names == set(), "README § Inputs and outputs misses these"
-    assert {name for name in names if _NAME_RE.match(name)} - declared == set(), "README names undeclared inputs"
+    named = {name for name in in_items | elsewhere if _HYPHENATED_NAME_RE.match(name)}
+    named |= {name for name in subjects if _NAME_RE.match(name)}
+    undeclared = named - set(inputs) - set(outputs)
+    problems += [f"README § Inputs and outputs: `{name}` is not in `action.yml`" for name in sorted(undeclared)]
+    return problems
+
+
+def test_a_value_ticked_in_a_meaning_is_no_input_name():
+    """`true`, `false` or `json` in an item's meaning are values, not undeclared inputs."""
+    lines = [
+        "- `allow-partial`: `true` writes without a failed source; `false` fails; the sources are `json`",
+        "- `verbose-logging` (default `false`): debug logging",
+        "- `doc-source` - `true` runs the mode",
+    ]
+    assert readme_overview_problems(lines, ["allow-partial", "verbose-logging", "doc-source"], []) == []
+    assert readme_overview_problems(["- `verbose` - an alias"], [], []) == [
+        "README § Inputs and outputs: `verbose` is not in `action.yml`"
+    ]
+
+
+def test_the_readme_overview_names_every_input_and_output():
+    """README § Inputs and outputs gives every input a list item, names the output after the list, and names
+    nothing `action.yml` does not declare."""
+    lines = section(read_page("README.md"), "Inputs and outputs")
+    assert readme_overview_problems(lines, list(action_yml()["inputs"]), list(action_yml()["outputs"])) == []
+
+
+def test_planted_readme_overview_gaps_are_reported():
+    """A dropped output paragraph, an undeclared one-word name, and inputs named only in a sentence each fail."""
+    lines = [
+        "Every input at a glance:",
+        "- `project-id` (required): the project",
+        "- `verbose`: an alias",
+        "Not covered here: `allow-partial`.",
+    ]
+    assert readme_overview_problems(lines, ["project-id", "allow-partial"], ["output-path"]) == [
+        "README § Inputs and outputs: input `allow-partial` is in no list item",
+        "README § Inputs and outputs: output `output-path` is not named outside the input list",
+        "README § Inputs and outputs: `verbose` is not in `action.yml`",
+    ]
 
 
 def test_planted_missing_or_wrong_input_row_is_reported():
@@ -126,17 +237,17 @@ def test_the_table_reader_unticks_cells_and_reads_an_empty_default():
 
 
 def _code_problems(page: str, text: str, known: set[str]) -> list[str]:
-    """Every upper-case name a page ticks that is neither a registered code nor a name the repository's code uses;
-    in an `## Errors` chapter, every one must be a registered code."""
+    """Every upper-case name a page writes - ticked, bold or bare - that is neither a registered code nor a name the
+    repository's code uses; in an `## Errors` chapter, every one must be a registered code. Link targets and
+    `path::symbol` anchors are left out: the anchor check resolves those."""
     problems: list[str] = []
     chapter = ""
     for line in unfenced_lines(text):
         if line.startswith("## "):
             chapter = line[3:].strip()
             continue
-        for token in _TICKED_RE.findall(line):
-            name = token.strip("[]*")
-            if not _CONSTANT_RE.match(name) or name in ALL_CODES:
+        for name in _CONSTANT_WORD_RE.findall(ANCHOR_RE.sub("", _LINK_TARGET_RE.sub("]", line))):
+            if name in ALL_CODES:
                 continue
             if chapter == "Errors":
                 problems.append(f"{page} § Errors: `{name}` is not a registered code")
@@ -184,3 +295,22 @@ def test_planted_unknown_code_is_reported():
         "docs/x.md: `SOURCE_UNAVAILABEL` is neither a registered code nor a name in the repository's code",
         "docs/x.md § Errors: `EMPTY_SOURCES` is not a registered code",
     ]
+
+
+@pytest.mark.parametrize(
+    "cell",
+    ["SOURCE_UNAVAILABEL (error)", "**SOURCE_UNAVAILABEL**", "`SOURCE_UNAVAILABEL (error)`", "`SOURCE_UNAVAILABEL:`"],
+    ids=["bare", "bold", "code-span-with-space", "code-span-with-colon"],
+)
+def test_planted_unknown_code_in_any_markup_is_reported(cell):
+    """A misspelt code in an Errors table is caught bare, in bold, or in a code span with more text."""
+    text = f"## Errors\n\n| Situation | Code |\n|---|---|\n| x | {cell} |\n"
+    assert _code_problems("docs/x.md", text, set()) == [
+        "docs/x.md § Errors: `SOURCE_UNAVAILABEL` is not a registered code"
+    ]
+
+
+def test_an_anchor_or_link_target_is_not_read_as_a_code():
+    """`main.py::DOC_ISSUES_PLANNED_MESSAGE` is an anchor, and a URL's upper-case words are a link target."""
+    text = "## Errors\n\n| x | `INVALID_CONFIGURATION` | `main.py::DOC_ISSUES_PLANNED_MESSAGE` |\n\n[x](https://e.org/A_B)\n"
+    assert _code_problems("docs/x.md", text, set()) == []

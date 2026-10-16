@@ -52,12 +52,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          # A rename lists its old path too, so moving a file a page anchors still runs the tests.
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             changed_files=$(gh api \
               "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
-              --paginate --jq '.[].filename')
+              --paginate --jq '.[] | .filename, (.previous_filename // empty)')
           else
-            changed_files=$(git diff --name-only "${{ github.sha }}~1" "${{ github.sha }}")
+            changed_files=$(git diff --name-only --no-renames "${{ github.sha }}~1" "${{ github.sha }}")
           fi
 
           if echo "$changed_files" | grep -E '(\.py$|(^|/)requirements(-dev)?\.txt$|(^|/)pyproject\.toml$|^tests/fixtures/|^Makefile$|^\.pylintrc$|^\.github/workflows/test\.yml$)' > /dev/null; then
@@ -66,9 +67,10 @@ jobs:
             echo "python_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # A page or `action.yml` change runs the tests job too: tests/docs/ checks page structure, anchors, examples
-          # and option lists against `action.yml`, and tests/test_action_yml.py reads `action.yml`.
-          if echo "$changed_files" | grep -E '^((README|DEVELOPER|CONTRIBUTING|SPEC)\.md|docs/.*\.md|(doc_source|ui_tests|doc_issues)/README\.md|action\.yml)$' > /dev/null; then
+          # A Markdown, `action.yml` or other non-Python file the pages anchor runs the tests job too: tests/docs/
+          # checks every tracked page, its anchors, examples and option lists against `action.yml`, and
+          # tests/test_action_yml.py reads `action.yml`. tests/docs/test_ci_filter.py keeps this list complete.
+          if echo "$changed_files" | grep -E '(\.([Mm][Dd]|[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn])$|^action\.yml$|\.sh$|\.example$|^\.github/(dependabot\.yml|workflows/[^/]+\.ya?ml)$)' > /dev/null; then
             echo "docs_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "docs_changed=false" >> "$GITHUB_OUTPUT"
