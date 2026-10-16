@@ -17,9 +17,10 @@ Tooling and quality gates → Common pitfalls → Learned rules.
 
 ## Overview
 
-`Living Documentation Collector for GitHub` is a composite GitHub Action that data-mines
-GitHub Projects, Issues, and locally checked-out repositories for living-documentation
-content and writes machine-readable JSON for the downstream `living-doc-*` generators.
+`Living Documentation Collector for GitHub` is a composite GitHub Action that extracts
+living documentation from locally checked-out repositories. It is the collect step of a
+living-documentation pipeline and writes JSON, in the contracts `living-doc-utilities` owns,
+for the downstream `living-doc-*` tools. GitHub Issues as a source (`doc-issues`) is PLANNED.
 
 - Must treat execution as a GitHub Action on a GitHub-hosted runner as the supported path; `local-integration.sh` and the `run_script.sh` / `python3 main.py` flow are development, debugging and operator-check affordances only, and Must not reference `local-integration.sh` from a workflow.
 - Must read action inputs from `INPUT_*` environment variables and nowhere else.
@@ -52,8 +53,8 @@ Inputs — `INPUT_*` environment variables, parsed only in `ActionInputs` (key n
 | `github-server-url` | `INPUT_GITHUB_SERVER_URL` | no | server of `source_ref.url` permalinks; default `https://github.com` |
 | `github-token` | — | no | optional and unused: no v0.1.0 mode calls the GitHub API; not read |
 | `doc-issues` | `INPUT_DOC_ISSUES` | no | PLANNED; `"true"` fails the run at start; default `false` |
-| `doc-source` | `INPUT_DOC_SOURCE` | yes | mode switch; `"false"` when unset |
-| `ui-tests` | `INPUT_UI_TESTS` | yes | mode switch; `"false"` when unset |
+| `doc-source` | `INPUT_DOC_SOURCE` | no | mode switch; default `false` |
+| `ui-tests` | `INPUT_UI_TESTS` | no | mode switch; default `false` |
 | `verbose-logging` | `INPUT_VERBOSE_LOGGING` | no | default `false` |
 | `doc-source-repositories` | `INPUT_DOC_SOURCE_REPOSITORIES` | no | JSON array string, default `[]` |
 | `ui-tests-repositories` | `INPUT_UI_TESTS_REPOSITORIES` | no | JSON array string, default `[]` |

@@ -65,6 +65,11 @@ repo's own risk areas and review expectations; it is not shared with other repos
 - Must not bikeshed formatting that Black or Pylint already enforces.
 - Avoid proposing architectural rewrites unless they are explicitly requested.
 
+## Documentation
+
+- Must review a change to `README.md`, `DEVELOPER.md`, `CONTRIBUTING.md`, `SPEC.md`, `docs/action.md` or a mode page (`doc_source/README.md`, `ui_tests/README.md`, `doc_issues/README.md`) against `DEVELOPER.md`, "Writing documentation" — that section is the only copy of the page rules; Must not restate them here.
+- Must check a sample of ten decision- or fact-list items per changed page against the code their `path::symbol` names, and flag any item the code does not bear out.
+
 ## Repo specifics
 
 - Must treat these as high-risk areas — `INPUT_*` and repository-JSON parsing in `action_inputs.py`, output-directory cleaning and the artifact write in `utils/artifact.py::store_artifact`, the assembly of each mode's result in `doc_source/collector.py` / `ui_tests/collector.py`, and the GitHub addresses in `utils/github_urls.py`.
@@ -73,5 +78,5 @@ repo's own risk areas and review expectations; it is not shared with other repos
 - Must expect unit tests under `tests/` mirroring the package layout, with shared fixtures in `tests/conftest.py`.
 - Must treat the contracts as owned by `living-doc-utilities` — imported, not vendored: flag any committed `*-schema.json`, local contract model, local parser or normaliser, or any artifact read or written other than through `read_artifact` / `write_artifact`.
 - Must expect each mode's full-sample test (`tests/<mode>/test_full_sample.py`) to cover a new contract field, or list it in `NOT_PRODUCED` with a reason.
-- Must flag any change to the implementation or tests under `doc_issues/` or `tests/doc_issues/`: the mode is PLANNED after v0.1.0 and its code is kept aside unchanged for the port. A status-only doc edit (the PLANNED banner) is expected.
-- Must expect QA to run through the root `Makefile` — `make qa` covers `format-check`, `lint`, `types`, `no-vendored-schemas`, `retired-names` and `coverage`, and `.github/workflows/test.yml` calls the same targets.
+- Must flag any change to the implementation or tests under `doc_issues/` or `tests/doc_issues/`: the mode is PLANNED after v0.1.0 and its code is kept aside unchanged for the port. An edit of the PLANNED page `doc_issues/README.md` is expected.
+- Must expect QA to run through the root `Makefile` — `make qa` covers `format-check`, `lint`, `types`, `no-vendored-schemas`, `retired-names`, `runtime-requirements` and `coverage`, whose pytest run includes the documentation checks in `tests/docs/`; `.github/workflows/test.yml` calls the same targets.

@@ -43,7 +43,8 @@ inputs:
   # doc-source mode action inputs
   doc-source:
     description: 'Enable or disable `Documentation Source` mode.'
-    required: true
+    required: false
+    default: 'false'
   doc-source-repositories:
     description: 'JSON string defining the repositories for doc-source mode.'
     required: false
@@ -52,7 +53,8 @@ inputs:
   # ui-tests mode action inputs
   ui-tests:
     description: 'Enable or disable `UI Tests` mode.'
-    required: true
+    required: false
+    default: 'false'
   ui-tests-repositories:
     description: 'JSON string defining the repositories for ui-tests mode.'
     required: false

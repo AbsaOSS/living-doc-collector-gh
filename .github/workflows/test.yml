@@ -32,10 +32,11 @@ permissions:
 
 jobs:
   detect:
-    name: Detect Python Changes
+    name: Detect Python and Docs Changes
     runs-on: ubuntu-latest
     outputs:
       python_changed: ${{ steps.changes.outputs.python_changed }}
+      docs_changed: ${{ steps.changes.outputs.docs_changed }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -43,7 +44,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check whether Python-related files changed
+      - name: Check whether Python-related or documentation files changed
         id: changes
         shell: bash
         env:
@@ -51,18 +52,28 @@ jobs:
         run: |
           set -euo pipefail
 
+          # A rename lists its old path too, so moving a file a page anchors still runs the tests.
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             changed_files=$(gh api \
               "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" \
-              --paginate --jq '.[].filename')
+              --paginate --jq '.[] | .filename, (.previous_filename // empty)')
           else
-            changed_files=$(git diff --name-only "${{ github.sha }}~1" "${{ github.sha }}")
+            changed_files=$(git diff --name-only --no-renames "${{ github.sha }}~1" "${{ github.sha }}")
           fi
 
           if echo "$changed_files" | grep -E '(\.py$|(^|/)requirements(-dev)?\.txt$|(^|/)pyproject\.toml$|^tests/fixtures/|^Makefile$|^\.pylintrc$|^\.github/workflows/test\.yml$)' > /dev/null; then
             echo "python_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "python_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # A Markdown, `action.yml` or other non-Python file the pages anchor runs the tests job too: tests/docs/
+          # checks every tracked page, its anchors, examples and option lists against `action.yml`, and
+          # tests/test_action_yml.py reads `action.yml`. tests/docs/test_ci_filter.py keeps this list complete.
+          if echo "$changed_files" | grep -E '(\.([Mm][Dd]|[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn])$|^action\.yml$|\.sh$|\.example$|^\.github/(dependabot\.yml|workflows/[^/]+\.ya?ml)$)' > /dev/null; then
+            echo "docs_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
   # Static checks give the same result on every interpreter, so they run once, on the
@@ -130,7 +141,7 @@ jobs:
 
   tests:
     needs: detect
-    if: needs.detect.outputs.python_changed == 'true'
+    if: needs.detect.outputs.python_changed == 'true' || needs.detect.outputs.docs_changed == 'true'
     runs-on: ubuntu-latest
     name: Python Tests (Python ${{ matrix.python-version }})
     strategy:

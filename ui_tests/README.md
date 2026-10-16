@@ -1,45 +1,35 @@
 # UI Tests Mode
 
-- [Mode De/Activation](#mode-deactivation)
-- [Prerequisites](#prerequisites)
+## Purpose
+
+Workflow authors who mine UI test scenarios from `.feature` files read this page. It defines the mode's
+repository entry, what it discovers and writes, and how it reports problems.
+
+Read before: [Documentation Source mode](../doc_source/README.md) · Next: back to the [Action reference](../docs/action.md)
+
+## Contents
+
+- [Activation](#activation)
 - [Usage](#usage)
-- [Mode Inputs](#mode-inputs)
+- [Repository entry](#repository-entry)
+- [Discovery](#discovery)
 - [Output](#output)
 - [Errors](#errors)
 - [Formats](#formats)
 
-This mode mines UI test scenarios from `.feature` file **scenario blocks** in locally checked-out
-repositories and writes one `ui-tests-v1.0.0` artifact.
+## Activation
 
-## Mode De/Activation
+The mode mines scenario blocks from `.feature` files in local checkouts and writes one `ui-tests-v1.0.0` artifact → `ui_tests/collector.py::GHUITestsCollector`
 
-- **ui-tests**
-  - **Description**: Enables or disables the UI Tests mode.
-  - **Usage**: Set to `true` to activate.
-  - **Example**:
-    ```yaml
-    with:
-      ui-tests: true
-    ```
+- `ui-tests: true` turns it on; `ui-tests-repositories` lists its sources ([Inputs](../docs/action.md#inputs)) → `action_inputs.py::ActionInputs.is_ui_tests_mode_enabled`
+- The checkouts and the output directory need nothing beyond the action's own rules → [Prerequisites](../docs/action.md#prerequisites), [Output layout](../docs/action.md#output-layout)
 
----
-## Prerequisites
-
-1. **Checkout before action** — the caller performs `actions/checkout` for every target repository
-   before invoking this action. This action never clones or fetches repository contents itself, and needs no
-   token.
-2. **No output folder to prepare** — the action creates `<output-path>/ui-tests/` itself and replaces it on
-   every run, so any previous content there is removed. Nothing else under `output-path` is touched.
-
----
 ## Usage
-
-See the default minimal UI Tests mode action step definition:
 
 ```yaml
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
-  uses: AbsaOSS/living-doc-collector-gh@v0.1.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
   with:
     project-id: aul
     ui-tests: true                         # ui-tests mode de/activation
@@ -53,67 +43,52 @@ See the default minimal UI Tests mode action step definition:
         ]
 ```
 
-The base inputs (`project-id`, `output-path`, `allow-partial`, `github-server-url`) are in the
-[root README](../README.md#base-inputs).
+## Repository entry
 
----
-## Mode Inputs
+Each entry of `ui-tests-repositories` is one source; a malformed entry fails the run at start → `ui_tests/model/config_repository.py::ConfigRepository.load_from_json`
 
-| Input Name              | Description                                                            | Required | Default |
-|-------------------------|------------------------------------------------------------------------|----------|---------|
-| `ui-tests-repositories` | JSON array of the locally checked-out repositories to scan; each entry is one source. | No       | `'[]'`  |
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `organization-name` | string | yes | GitHub organization, used in `scenario_id`, `source_ref.url` and `metadata.source`; non-empty, no `/` |
+| `repository-name` | string | yes | GitHub repository name, used in `scenario_id`, `source_ref.url` and `metadata.source`; non-empty, no `/` |
+| `paths` | string[] | yes | Absolute directory paths to scan for `.feature` files |
 
-Each repository entry:
+## Discovery
 
-| Field               | Type     | Required | Description |
-|---------------------|----------|----------|-------------|
-| `organization-name` | string   | yes      | GitHub org name (used in `scenario_id`, `source_ref.url` and `metadata.source`); non-empty, no `/`. |
-| `repository-name`   | string   | yes      | GitHub repo name (used in `scenario_id`, `source_ref.url` and `metadata.source`); non-empty, no `/`. |
-| `paths`             | string[] | yes      | Absolute directory paths to scan for `.feature` files. |
+- Every configured path must exist; a missing one fails its whole source → `utils/feature_file_discovery.py::discover_feature_files`
+- Within a path, discovery is recursive, and `.feature` files under a `tutorial*` or `tutorial_<group>` directory are skipped → `utils/feature_file_discovery.py::_is_under_tutorial_dir`
 
-Every configured path must exist. Within one, discovery is recursive, and `.feature` files under a
-`tutorial*` / `tutorial_<group>` directory are skipped.
-
----
 ## Output
 
-`<output-path>/ui-tests/ui-tests.json` (by default `output/collector-gh/ui-tests/ui-tests.json`), a
-[`ui-tests-v1.0.0`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md)
-artifact written through `write_artifact`: validated before the write and written atomically.
+- `<output-path>/ui-tests/ui-tests.json`, by default `output/collector-gh/ui-tests/ui-tests.json` → `ui_tests/collector.py::UI_TESTS_FILE_NAME`
+- A [`ui-tests-v1.0.0`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md) artifact, written through `write_artifact`: validated before the write and written atomically → `utils/artifact.py::store_artifact`
 
-What this mode fills in the contract:
+What this mode fills in the contract → `ui_tests/collector.py::GHUITestsCollector.build_result`:
 
-- **`metadata.source.project_id`** — the `project-id` input.
-- **`metadata.stats.cardinality`** — `sources_configured` and `sources_failed` as in the
-  [root README](../README.md#errors).
-- **`scenarios[]`** — one per `Scenario:` / `Scenario Outline:`, except a scenario tagged `@tutorial` and every
-  scenario of a file whose feature-level tags include `@tutorial`.
-- **`scenario_id`** — `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the
-  file's path is the one from its repository root, whichever scan root found it; a slug repeated within one
-  file gets `-2`, `-3`, … appended; a title with no ASCII letter or digit gets the slug `scenario`.
-- **`source_ref`** — `system: GitHub`; `native_id` is the file's path from its repository root;
-  `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit,
-  `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed`.
+- **`metadata.source.project_id`**: the `project-id` input.
+- **`metadata.stats.cardinality`**: `sources_configured` and `sources_failed` as in [Errors](../docs/action.md#errors).
+- **`scenarios[]`**: one per `Scenario:` or `Scenario Outline:` → `ui_tests/collector.py::_is_tutorial_file`
+  - Not mined: a scenario tagged `@tutorial`, and every scenario of a file whose feature-level tags include `@tutorial`.
+- **`scenario_id`**: `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the file's path is repository-root-relative inside Git and scan-root-relative outside Git → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+  - A slug repeated within one file gets `-2`, `-3`, … appended; a title with no ASCII letter or digit gets the slug `scenario`.
+- **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed` → `utils/artifact.py::build_source_ref`
+  - Outside a Git checkout, `url` is empty and `NO_SOURCE_URL` is emitted.
 
----
 ## Errors
 
-The run-level codes (`INVALID_CONFIGURATION`, `SOURCE_UNAVAILABLE`, `EMPTY_SOURCE`, `NO_SOURCE_URL`) and
-`allow-partial` are in the [root README](../README.md#errors). Within a source:
+The run-level codes and `allow-partial` are in the action reference → [Errors](../docs/action.md#errors). Within a source:
 
-| Situation | Behaviour |
-|---|---|
-| A path in `paths` has no matching files | Log warning, continue; a source with no scenario at all is `EMPTY_SOURCE` |
-| A file cannot be read | Log warning, skip file, continue |
-| A malformed `@AC:` tag | `MALFORMED_AC` warning with the file's `path`; the scenario is kept without that link |
-| A file outside a git checkout | `NO_SOURCE_URL`, only when the file yields a scenario |
-| A `scenario_id` is already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it |
-| The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file |
+<!-- over limit: each behaviour cell is one rule with its warning fields; splitting it would scatter the rule -->
+| Situation | Behaviour | Where |
+|---|---|---|
+| A path in `paths` has no matching files | Log warning, continue; a source with no scenario at all is `EMPTY_SOURCE` | `utils/feature_file_discovery.py::discover_feature_files` |
+| A file cannot be read | Log warning, skip the file, continue | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
+| A malformed `@AC:` tag | `MALFORMED_AC` warning with the file's `path`; the scenario is kept without that link | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
+| A file outside a git checkout | `NO_SOURCE_URL`, only when the file yields a scenario | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
+| A `scenario_id` already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
+| The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file | `utils/artifact.py::collect_artifact` |
 
----
 ## Formats
 
-Scenarios and their `@AC:<id>[/aspect:<value>]` tags follow the canon in `living-doc`'s
-[Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md)
-and [Living Doc Glossary](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-glossary.md).
-This mode parses them with `living-doc-utilities`' `authoring.scenario` parser.
+- Scenarios and their `@AC:<id>[/aspect:<value>]` tags follow the canon in `living-doc` → [Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md), [Living Doc Glossary](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-glossary.md)
+- This mode parses them with `living-doc-utilities`' `authoring.scenario` parser → utilities

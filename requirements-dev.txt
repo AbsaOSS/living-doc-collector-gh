@@ -15,6 +15,9 @@ pytest==9.1.1
 pytest-cov==7.1.0
 pytest-mock==3.16.0
 
+# The documentation checks (`tests/docs/`) parse `action.yml` and every `yaml` example of the pages.
+PyYAML==6.0.3
+
 # Only `doc_issues/` imports these - PLANNED after v0.1.0, kept aside out of the build. Its tests are not
 # collected either (`pyproject.toml` ignores `tests/doc_issues`); the pins are kept for the port.
 PyGithub==2.10.0

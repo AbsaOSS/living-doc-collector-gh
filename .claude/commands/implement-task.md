@@ -1,9 +1,9 @@
 ---
-description: Implement a Phase 0 / roadmap task end to end, from its spec to a PR-ready description.
+description: Implement a task end to end, from its acceptance criteria to a PR-ready description.
 argument-hint: <task-id> (e.g. P0-CGH-2) [path-or-URL to the task list, if not the default]
 ---
 
-You are driving a single roadmap task to completion in `living-doc-collector-gh`.
+You are driving a single implementation task to completion in `living-doc-collector-gh`.
 Follow these steps **in this exact order**. Do not skip or reorder them.
 
 Task ID: `$1`
@@ -11,8 +11,8 @@ Task-list source (optional override): `$2`
 
 ## 1. Read the task
 
-- Locate task `$1` in the Phase 0 task list (`living-doc/docs/specs/phase-0-tasklist.md`)
-  or the roadmap (`living-doc/docs/specs/roadmap.md`). If `$2` is given, read it there.
+- Locate task `$1` in its GitHub issue (`gh issue view`) or in the brief the owner hands over.
+  If `$2` is given, read it there.
 - Read the task's **prompt** and its **acceptance criteria** in full. Also read the
   linked GitHub issue if the task names one.
 - Write the acceptance criteria out as a numbered checklist you will verify against code
@@ -69,7 +69,8 @@ these sections, per `CONTRIBUTING.md`:
 
 - `## Overview` — what changed and why.
 - `## Release Notes` — at least one real user-facing bullet (no `TBD`).
-- `## Related` — `Closes #<issue>` for the task's issue.
+- `## Related` — use `Closes #<issue>` when the task is tied to a GitHub issue. If there is no issue,
+  identify the owner-provided brief or task-list source instead; do not invent an issue reference.
 
 Include a short "Acceptance criteria" checklist mapping each criterion to the `file:line`
 that satisfies it (from step 5).

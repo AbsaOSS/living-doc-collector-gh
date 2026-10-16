@@ -2,7 +2,7 @@
 
 Productivity helpers for roadmap/spec-driven work in `living-doc-collector-gh`. This is the
 **reference copy** for the `living-doc-*` ecosystem — other repos copy it and adapt the
-repo-specific parts (the mock/fixture table, the doc paths) in their Phase 0 `-2` task.
+repo-specific parts (the mock/fixture table, the doc paths) when they adopt it.
 
 These helpers are **acceleration, not dependency**. Every task they describe can be done by
 hand, just slower. Nothing in CI or the release path requires them.
@@ -11,7 +11,7 @@ hand, just slower. Nothing in CI or the release path requires them.
 
 | File | Kind | Purpose |
 |---|---|---|
-| `commands/implement-task.md` | slash command | Drive one roadmap task from its spec to a PR-ready description. |
+| `commands/implement-task.md` | slash command | Drive a task from its GitHub issue or owner-provided brief, through acceptance criteria, to a PR-ready description. |
 | `commands/verify-pr-ready.md` | slash command | Convergent review loop before a PR: verified findings in a ledger, delta re-review, one yes/no. |
 | `agents/test-author.md` | subagent | Write deterministic pytest tests using this repo's real mock surface. |
 | `rules/docs-lifecycle.md` | rule | Implemented `SPEC.md` sections **move** into the live docs. |
