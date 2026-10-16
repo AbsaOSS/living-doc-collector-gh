@@ -103,7 +103,7 @@ Each enabled mode writes one artifact under the root → `main.py::run`
 - A mode creates its directory and replaces it on every run, so any previous content there is removed → `utils/artifact.py::clear_output_dir`
 - A mode clears only its own `<output-path>/<mode>/`; nothing else under `output-path` is touched → `utils/artifact.py::collect_artifact`
   - Why: two collectors, or two runs with different `output-path`, in one tree never touch each other's files.
-- The layout rule is `living-doc-utilities`', in § Collector output layout of the pipeline rules → [pipeline rules](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md)
+- The layout rule is defined in `living-doc-utilities`, § Collector output layout → [pipeline rules](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md)
 
 ## Errors
 
