@@ -17,9 +17,10 @@ Tooling and quality gates → Common pitfalls → Learned rules.
 
 ## Overview
 
-`Living Documentation Collector for GitHub` is a composite GitHub Action that data-mines
-GitHub Projects, Issues, and locally checked-out repositories for living-documentation
-content and writes machine-readable JSON for the downstream `living-doc-*` generators.
+`Living Documentation Collector for GitHub` is a composite GitHub Action that extracts
+living documentation from locally checked-out repositories. It is the collect step of a
+living-documentation pipeline and writes JSON, in the contracts `living-doc-utilities` owns,
+for the downstream `living-doc-*` tools. GitHub Issues as a source (`doc-issues`) is PLANNED.
 
 - Must treat execution as a GitHub Action on a GitHub-hosted runner as the supported path; `local-integration.sh` and the `run_script.sh` / `python3 main.py` flow are development, debugging and operator-check affordances only, and Must not reference `local-integration.sh` from a workflow.
 - Must read action inputs from `INPUT_*` environment variables and nowhere else.

@@ -5,8 +5,9 @@
 
 ## Purpose
 
-Workflow authors who add this collector to a living-documentation pipeline read this page. It gives the overview,
-the inputs and outputs at a glance, one action step to start from, and the page to read next.
+A GitHub Action that extracts living documentation from locally checked-out repositories. It is the collect step
+of a living-documentation pipeline. It writes JSON, in the contracts `living-doc-utilities` owns, for the downstream
+`living-doc-*` tools.
 
 ## Contents
 
@@ -20,9 +21,6 @@ the inputs and outputs at a glance, one action step to start from, and the page 
 - [Contact](#contact)
 
 ## Overview
-
-A GitHub Action that extracts living documentation from locally checked-out repositories. It writes JSON, in the
-contracts `living-doc-utilities` owns, for the downstream `living-doc-*` tools.
 
 - **Documentation Source** (`doc-source`): User Story, Functionality and Feature headers from `.feature` and PageObject files, as `doc-source-v1.0.0` → [mode](doc_source/README.md)
 - **UI Tests** (`ui-tests`): UI test scenarios from `.feature` scenario blocks, as `ui-tests-v1.0.0` → [mode](ui_tests/README.md)

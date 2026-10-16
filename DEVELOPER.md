@@ -69,18 +69,18 @@ The hand-written run of `main.py` in the development venv, for a debugger or one
 real checkout in a repeatable way, with a validated and reported result, use the [Local Integration Run](#local-integration-run).
 
 ```shell
-export INPUT_PROJECT_ID=aul                       # required
+export INPUT_PROJECT_ID=loans                     # required
 export INPUT_OUTPUT_PATH=./output/collector-gh    # the default
 export INPUT_VERBOSE_LOGGING=true
 export GITHUB_OUTPUT=/dev/null                    # main.py writes the output-path line here
 export INPUT_DOC_SOURCE=true
-export INPUT_DOC_SOURCE_REPOSITORIES='[{"organization-name": "absa-group", "repository-name": "aul-ui",
-  "us-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_us"],
-  "func-paths": ["/abs/path/aul-ui/playwright/features/liv_doc_func"],
-  "pages-paths": ["/abs/path/aul-ui/playwright/pages"]}]'
+export INPUT_DOC_SOURCE_REPOSITORIES='[{"organization-name": "bank-group", "repository-name": "loans-ui",
+  "us-paths": ["/abs/path/loans-ui/playwright/features/liv_doc_us"],
+  "func-paths": ["/abs/path/loans-ui/playwright/features/liv_doc_func"],
+  "pages-paths": ["/abs/path/loans-ui/playwright/pages"]}]'
 export INPUT_UI_TESTS=true
-export INPUT_UI_TESTS_REPOSITORIES='[{"organization-name": "absa-group", "repository-name": "aul-ui",
-  "paths": ["/abs/path/aul-ui/playwright/features"]}]'
+export INPUT_UI_TESTS_REPOSITORIES='[{"organization-name": "bank-group", "repository-name": "loans-ui",
+  "paths": ["/abs/path/loans-ui/playwright/features"]}]'
 python3 main.py
 ```
 
@@ -196,7 +196,7 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 
 | Depth | Pages | Rule |
 |---|---|---|
-| 1 | `README.md`; `DEVELOPER.md`, `CONTRIBUTING.md` and `SPEC.md` | `README.md` is the entry: overview, inputs and outputs at a glance, usage tip, "where next". The other three are solo: one page each, no child pages |
+| 1 | `README.md`; `DEVELOPER.md`, `CONTRIBUTING.md` and `SPEC.md` | `README.md` is the entry: what the action is for, overview, usage tip, inputs and outputs at a glance, "where next". The other three are solo: one page each, no child pages |
 | 2 | `docs/<topic>.md` | a hub: principle, decision list, routing to depth 3; it names and links facts, and defines none |
 | 2 leaf | `docs/<topic>.md` with no `docs/<topic>/` folder; a mode's `<mode>/README.md`, beside its code | a leaf may define, like a depth-3 page |
 | 3 | `docs/<topic>/<page>.md` | detail: fact lists, option lists, examples |
@@ -207,6 +207,8 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 
 1. `# Title`.
 2. `## Purpose`: 1 to 3 sentences, who reads the page and what they get; then `Read before:` and `Next:` links where the page sits on a reading path.
+   - `README.md` is the exception: its Purpose says what the action does and where it sits in the pipeline.
+     Why: GitHub shows the README as the repository's front page, so it opens with the action, not the page.
 3. `## Contents`: links to every other `##` chapter of the page, and nothing else.
 4. Only the parts the page needs.
 
