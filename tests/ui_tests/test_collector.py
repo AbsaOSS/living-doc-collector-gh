@@ -520,6 +520,31 @@ def test_file_reached_through_two_repository_entries_keeps_its_scenarios_once(tm
     ]
 
 
+def test_a_duplicate_scenario_in_a_checkout_with_no_resolvable_commit_carries_no_source_url(tmp_path, mocker):
+    # Arrange: the same file reached through two repository entries, in a fake, empty `.git` directory - git
+    # resolves no HEAD commit there, so the file has no URL.
+    repo_dir = tmp_path / "repo"
+    (repo_dir / ".git").mkdir(parents=True)
+    _write(repo_dir / "features" / "login.feature", "Feature: Login\n    Scenario: Login\n        Given a step\n")
+    mocker.patch(
+        "ui_tests.collector.ActionInputs.get_ui_tests_repositories",
+        return_value=[
+            {"organization-name": "absa-group", "repository-name": "aul-ui", "paths": [str(repo_dir)]},
+            {"organization-name": "absa-group", "repository-name": "aul-ui", "paths": [str(repo_dir / "features")]},
+        ],
+    )
+
+    # Act
+    result = GHUITestsCollector(str(tmp_path / "output")).build_result()
+
+    # Assert: each entry's `source_ref` raises its `NO_SOURCE_URL`; the duplicate carries no URL, not `""`.
+    assert [(w.code, w.path, w.source_url) for w in result.warnings] == [
+        ("NO_SOURCE_URL", "features/login.feature", None),
+        ("NO_SOURCE_URL", "login.feature", None),
+        ("AUTHORING_ERROR", "login.feature", None),
+    ]
+
+
 # per-source failures (R13)
 
 
