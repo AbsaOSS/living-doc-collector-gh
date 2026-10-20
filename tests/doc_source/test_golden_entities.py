@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 """
-`utilities`' golden source-code entities (tests/fixtures/golden/, copied at v0.6.0) run through the full
+`utilities`' golden source-code entities (tests/fixtures/golden/, copied at v0.7.0) run through the full
 `doc-source` collector come out unchanged except `source_ref`: each entity in `doc-source.json` equals what
 the canonical parsers plus `derive_statuses` produce for the same files.
 """

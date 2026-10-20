@@ -108,6 +108,8 @@ The run-level codes and `allow-partial` are in the action reference → [Errors]
 | The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file | `utils/artifact.py::collect_artifact` |
 
 - A warning about one file carries that file in its `path` field → `utils/artifact.py::with_path`
+- A warning with a `path` also carries that file's permalink in `source_url`, built as `source_ref.url` is → `utils/artifact.py::file_url`
+  - Unset wherever the file's `source_ref.url` would be empty.
 - A status or relation warning of `derive_statuses` or `check_relations` carries the `entity_id` → utilities
   - `MISSING_STATUS` and `STATUS_AC_MISMATCH` also carry the entity's file in `path` (`utils/artifact.py::with_entity_paths`).
 - A dropped cross-reference page's `UNRESOLVED_RELATION` has no `entity_id`: it carries `path`, and its target in `context` → `doc_source/collector.py::GHDocSourceCollector._attach_cross_references`

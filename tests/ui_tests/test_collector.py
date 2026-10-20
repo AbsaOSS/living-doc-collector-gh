@@ -245,8 +245,8 @@ def test_source_ref_in_a_checkout_with_no_resolvable_commit_reports_no_source_ur
     # Assert
     assert result.scenarios[0].source_ref.url == ""
     assert result.scenarios[0].scenario_id == "absa-group/aul-ui/features/create.feature/first-scenario"
-    assert [(w.code, w.path, w.context) for w in result.warnings] == [
-        ("NO_SOURCE_URL", "features/create.feature", None)
+    assert [(w.code, w.path, w.source_url, w.context) for w in result.warnings] == [
+        ("NO_SOURCE_URL", "features/create.feature", None, None)
     ]
 
 
@@ -309,6 +309,28 @@ def test_malformed_ac_tag_is_reported_with_the_file_path(tmp_path, mocker, text,
         expected_ac_id,
     )
     assert malformed[0].context == f"tag={tag!r} line_no=2"
+    # Outside a git checkout the file has no URL.
+    assert malformed[0].source_url is None
+
+
+def test_malformed_ac_tag_carries_the_file_s_url(tmp_path, mocker, git_checkout):
+    # Arrange: the scan root is below the repository root, so `path` and the URL's path differ.
+    repo_dir = tmp_path / "repo"
+    sha = git_checkout(repo_dir)
+    _write(repo_dir / "features" / "malformed.feature", MALFORMED_TAG_FEATURE)
+    _configure(mocker, repo_dir / "features")
+
+    # Act
+    result = GHUITestsCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    assert [(w.code, w.path, w.source_url) for w in result.warnings] == [
+        (
+            "MALFORMED_AC",
+            "malformed.feature",
+            f"https://github.com/absa-group/aul-ui/blob/{sha}/features/malformed.feature",
+        )
+    ]
 
 
 def test_unreadable_file_is_skipped(tmp_path, mocker):
@@ -472,7 +494,7 @@ def test_file_reached_through_two_repository_entries_keeps_its_scenarios_once(tm
     # Arrange: two entries for the same repository with overlapping scan roots discover the same file twice.
     # The second entry's duplicate scenario is still an answer, so it raises no `EMPTY_SOURCE`.
     repo_dir = tmp_path / "repo"
-    git_checkout(repo_dir)
+    sha = git_checkout(repo_dir)
     _write(repo_dir / "features" / "login.feature", "Feature: Login\n    Scenario: Login\n        Given a step\n")
     mocker.patch(
         "ui_tests.collector.ActionInputs.get_ui_tests_repositories",
@@ -488,8 +510,13 @@ def test_file_reached_through_two_repository_entries_keeps_its_scenarios_once(tm
     # Assert
     assert [s.scenario_id for s in result.scenarios] == ["absa-group/aul-ui/features/login.feature/login"]
     # `path` is the typed field; no field carries a scenario id, so it stays free text (`DEC-77`).
-    assert [(w.code, w.path, w.context) for w in result.warnings] == [
-        ("AUTHORING_ERROR", "login.feature", "scenario_id='absa-group/aul-ui/features/login.feature/login'")
+    assert [(w.code, w.path, w.source_url, w.context) for w in result.warnings] == [
+        (
+            "AUTHORING_ERROR",
+            "login.feature",
+            f"https://github.com/absa-group/aul-ui/blob/{sha}/features/login.feature",
+            "scenario_id='absa-group/aul-ui/features/login.feature/login'",
+        )
     ]
 
 

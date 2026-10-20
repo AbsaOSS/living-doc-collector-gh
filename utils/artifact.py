@@ -131,6 +131,35 @@ def relative_path(file_path: Path, scan_roots: list[str]) -> str:
     return file_path.name
 
 
+def _repository_path(file_path: Path, repo_root: Path) -> str:
+    """The file's `/`-separated path from its repository root."""
+    return file_path.resolve().relative_to(repo_root).as_posix()
+
+
+def file_url(repository: SourceRepository, file_path: Path) -> Optional[str]:
+    """
+    The file's permalink at its checkout's HEAD commit on the repository's GitHub server: a record's
+    `source_ref.url`, and the `source_url` of every warning located in the file.
+
+    @param repository: The configured repository the file belongs to.
+    @param file_path: The source file.
+    @return: The URL, or None when the file is outside a git checkout or its HEAD commit git cannot resolve.
+    """
+    root = find_repo_root(file_path)
+    if root is None:
+        return None
+    sha = head_commit(root)
+    if sha is None:
+        return None
+    return blob_url(
+        repository.server_url,
+        repository.organization_name,
+        repository.repository_name,
+        sha,
+        _repository_path(file_path, root),
+    )
+
+
 def build_source_ref(
     repository: SourceRepository, file_path: Path, scan_roots: list[str], native_type: str
 ) -> tuple[SourceRef, list[ContractWarning]]:
@@ -149,15 +178,10 @@ def build_source_ref(
     @return: The source_ref and any warning raised while building it.
     """
     root = find_repo_root(file_path)
-    sha: Optional[str] = None
-    if root is None:
-        native_id = relative_path(file_path, scan_roots)
-    else:
-        native_id = file_path.resolve().relative_to(root).as_posix()
-        sha = head_commit(root)
+    native_id = relative_path(file_path, scan_roots) if root is None else _repository_path(file_path, root)
+    url = file_url(repository, file_path)
     warnings: list[ContractWarning] = []
-    if sha is None:
-        url = ""
+    if url is None:
         reason = "outside a git checkout" if root is None else "in a checkout with no resolvable HEAD commit"
         warnings.append(
             ContractWarning(
@@ -167,53 +191,57 @@ def build_source_ref(
                 # scan-root-relative by contract, so it is never `native_id`, which is repo-root-relative
                 # whenever a repository root was found.
                 path=relative_path(file_path, scan_roots),
+                # No `source_url`: the file has none, which is what this warning reports.
             )
         )
-    else:
-        url = blob_url(repository.server_url, repository.organization_name, repository.repository_name, sha, native_id)
 
     source_ref = SourceRef(
         system="GitHub",
         native_id=native_id,
         native_type=native_type,
-        url=url,
+        url=url or "",
         tracker_state=SOURCE_FILE_TRACKER_STATE,
     )
     return source_ref, warnings
 
 
-def with_path(warnings: list[ContractWarning], path: str) -> list[ContractWarning]:
+def _located(warning: ContractWarning, path: str, source_url: Optional[str]) -> ContractWarning:
+    return warning.model_copy(update={"path": path, "source_url": source_url})
+
+
+def with_path(warnings: list[ContractWarning], path: str, source_url: Optional[str]) -> list[ContractWarning]:
     """
-    Fill the source file each warning was raised for into its typed `path` field (`DEC-77`).
+    Fill the source file each warning was raised for into its typed `path` and `source_url` fields.
 
     `authoring` never knows the file, so a collector fills it; `context` keeps whatever the parser wrote.
 
     @param warnings: Warnings a parser returned for one file.
     @param path: The file's path relative to its scan root.
-    @return: The warnings, each with `path` set.
+    @param source_url: The file's URL, as `file_url` returns it.
+    @return: The warnings, each with `path` and `source_url` set.
     """
-    return [warning.model_copy(update={"path": path}) for warning in warnings]
+    return [_located(warning, path, source_url) for warning in warnings]
 
 
 def with_entity_paths(
-    warnings: list[ContractWarning], paths: dict[str, str], codes: frozenset[str]
+    warnings: list[ContractWarning], files: dict[str, tuple[str, Optional[str]]], codes: frozenset[str]
 ) -> list[ContractWarning]:
     """
-    Fill the typed `path` of every warning that states a fact about one entity's own source file (`DEC-77`).
+    Fill the typed `path` and `source_url` of every warning that states a fact about one entity's own source file.
 
     `derive_statuses` works over the entities of the whole run and never knows their files, so a collector
     fills them in afterwards, looking each one up by `entity_id`. Only the listed codes are located: a
-    cross-entity warning is not about one file and keeps `path` unset.
+    cross-entity warning is not about one file and keeps both unset.
 
     @param warnings: Warnings `authoring` returned for the run.
-    @param paths: Each entity's source path relative to its scan root, by `entity_id`.
+    @param files: Each entity's source file by `entity_id`: its path relative to its scan root, and its URL.
     @param codes: The warning codes that are facts about one entity's own file.
-    @return: The warnings, each listed code's `path` set when the entity's file is known.
+    @return: The warnings, each listed code's `path` and `source_url` set when the entity's file is known.
     """
     return [
         (
-            warning.model_copy(update={"path": paths[warning.entity_id]})
-            if warning.code in codes and warning.path is None and warning.entity_id in paths
+            _located(warning, *files[warning.entity_id])
+            if warning.code in codes and warning.path is None and warning.entity_id in files
             else warning
         )
         for warning in warnings

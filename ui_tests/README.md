@@ -88,6 +88,9 @@ The run-level codes and `allow-partial` are in the action reference → [Errors]
 | A `scenario_id` already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
 | The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file | `utils/artifact.py::collect_artifact` |
 
+- A warning with the file's `path` also carries the file's permalink in `source_url`, built as `source_ref.url` is → `utils/artifact.py::file_url`
+  - Unset wherever the file's `source_ref.url` would be empty.
+
 ## Formats
 
 - Scenarios and their `@AC:<id>[/aspect:<value>]` tags follow the canon in `living-doc` → [Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md), [Living Doc Glossary](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-glossary.md)
