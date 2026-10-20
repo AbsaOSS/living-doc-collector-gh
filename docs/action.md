@@ -42,7 +42,7 @@ Every input `action.yml` declares, in its order; a test keeps this table equal t
 | `project-id` | yes | — | The project the run documents, written to every artifact's `metadata.source.project_id`; format `PROJECT_ID_PATTERN` ([pipeline rules](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts/pipeline-rules.md), § Project id) |
 | `output-path` | no | `./output/collector-gh` | The output root; each mode writes and clears only `<output-path>/<mode>/` ([Output layout](#output-layout)) |
 | `allow-partial` | no | `false` | `false`: any failed source fails its mode, and with it the run. `true`: the mode writes without a failed source and records one `SOURCE_UNAVAILABLE` warning for it; it still fails if every source failed |
-| `github-server-url` | no | `https://github.com` | The GitHub server the configured repositories live on, used only to build `source_ref.url` permalinks ([GitHub Enterprise Server](#github-enterprise-server)) |
+| `github-server-url` | no | `https://github.com` | The GitHub server the configured repositories live on, used only to build the `source_ref.url` and warning `source_url` permalinks ([GitHub Enterprise Server](#github-enterprise-server)) |
 | `github-token` | no | `''` | Unused: the `doc-source` and `ui-tests` modes read local checkouts and make no GitHub API call |
 | `doc-issues` | no | `false` | PLANNED: the Documentation Issues mode is not available in this version; `true` fails the run at start ([Documentation Issues](../doc_issues/README.md)) |
 | `verbose-logging` | no | `false` | `true` turns on verbose (debug) logging |
@@ -119,7 +119,7 @@ Each configured repository entry is one **source**, collected on its own → `ut
 | `doc-issues: true` | `INVALID_CONFIGURATION` (error) | The run fails at start ([Documentation Issues](../doc_issues/README.md)); exit `1` | `main.py::DOC_ISSUES_PLANNED_MESSAGE` |
 | A configured path of a source does not exist | `SOURCE_UNAVAILABLE` (error) | Default: every source is still tried, then the mode fails; the log names each failed source; the run writes no file; exit `1`. With `allow-partial: true`: one warning per failed source, and the mode writes without it; it still fails if every source failed | `utils/artifact.py::collect_sources` |
 | A source yields nothing: no entity header (`doc-source`) or scenario (`ui-tests`) is read from it, kept or skipped | `EMPTY_SOURCE` (warning) | Reported in `warnings[]`; the run succeeds | `utils/artifact.py::collect_sources` |
-| A source file is outside a git checkout, or its checkout has no resolvable commit | `NO_SOURCE_URL` (warning) | `source_ref.url` is `""` | `utils/artifact.py::build_source_ref` |
+| A source file is outside a git checkout, or its checkout has no resolvable commit | `NO_SOURCE_URL` (warning) | `source_ref.url` is `""`, and the file's warnings carry no `source_url` | `utils/artifact.py::build_source_ref` |
 
 - A failed mode fails the whole run → `main.py::run`
   - A mode that already wrote has its artifact removed: exit `1` leaves no output file, not even the other mode's.

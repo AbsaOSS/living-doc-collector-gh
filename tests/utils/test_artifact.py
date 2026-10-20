@@ -27,6 +27,7 @@ from utils.artifact import (
     build_source_ref,
     collect_artifact,
     collect_sources,
+    file_url,
     find_repo_root,
     head_commit,
     relative_path,
@@ -128,6 +129,36 @@ def test_head_commit_reads_each_checkout_once(tmp_path, git_checkout, mocker):
     assert spy.call_count == 1
 
 
+# file_url
+
+
+def test_file_url_is_the_blob_permalink_from_the_repository_root_at_head(tmp_path, git_checkout):
+    # Arrange: the scan root is below the repository root, so the URL's path is not the scan-root-relative one.
+    sha = git_checkout(tmp_path / "repo")
+    file_path = tmp_path / "repo" / "features" / "a b.feature"
+    repository = SourceRepository("org", "repo", "https://ghe.example")
+
+    # Act
+    url = file_url(repository, file_path)
+
+    # Assert: the URL a record of the same file gets in `source_ref.url`.
+    assert url == f"https://ghe.example/org/repo/blob/{sha}/features/a%20b.feature"
+    assert url == build_source_ref(repository, file_path, [str(tmp_path / "repo" / "features")], "s")[0].url
+
+
+def test_file_url_is_none_outside_a_git_checkout(tmp_path):
+    # Act & Assert
+    assert file_url(SourceRepository("org", "repo"), tmp_path / "scan" / "a.feature") is None
+
+
+def test_file_url_is_none_in_a_checkout_with_no_resolvable_head(tmp_path):
+    # Arrange: a fake `.git` directory - the root is found, but git resolves no commit.
+    (tmp_path / "repo" / ".git").mkdir(parents=True)
+
+    # Act & Assert
+    assert file_url(SourceRepository("org", "repo"), tmp_path / "repo" / "a.feature") is None
+
+
 # build_source_ref
 
 
@@ -170,7 +201,9 @@ def test_build_source_ref_outside_git_has_no_url_and_a_scan_root_relative_native
     # Assert
     assert source_ref.url == ""
     assert source_ref.native_id == "x/a.feature"
-    assert [(w.code, w.path, w.context) for w in warnings] == [("NO_SOURCE_URL", "x/a.feature", None)]
+    assert [(w.code, w.path, w.source_url, w.context) for w in warnings] == [
+        ("NO_SOURCE_URL", "x/a.feature", None, None)
+    ]
     assert "outside a git checkout" in warnings[0].message
 
 
@@ -188,7 +221,7 @@ def test_build_source_ref_in_a_checkout_with_no_resolvable_head_has_no_url(tmp_p
     # contract - so one physical file is reported under one path by every emitter.
     assert source_ref.url == ""
     assert source_ref.native_id == "scan/a.feature"
-    assert [(w.code, w.path, w.context) for w in warnings] == [("NO_SOURCE_URL", "a.feature", None)]
+    assert [(w.code, w.path, w.source_url, w.context) for w in warnings] == [("NO_SOURCE_URL", "a.feature", None, None)]
     assert "no resolvable HEAD commit" in warnings[0].message
 
 
@@ -211,19 +244,20 @@ def test_relative_path_falls_back_to_the_file_name(tmp_path):
 # with_path
 
 
-def test_with_path_sets_the_typed_path_and_keeps_the_parser_s_context():
+def test_with_path_sets_the_typed_path_and_source_url_and_keeps_the_parser_s_context():
     # Arrange
     warnings = [
         ContractWarning(code="MALFORMED_AC", message="m", context="line_no=3", ac_id="US-1-01", line_no=3),
         ContractWarning(code="MALFORMED_AC", message="m"),
     ]
+    url = "https://github.com/org/repo/blob/abc/src/us/nested/a.feature"
 
     # Act: a path with a directory component, so a regression that kept only the file name would show up -
     # two files of the same name under different sub-directories must stay distinguishable.
-    located = with_path(warnings, "us/nested/a.feature")
+    located = with_path(warnings, "us/nested/a.feature", url)
 
-    # Assert: `DEC-77` - the file is the typed field, never a prefix rewritten into the free text.
-    assert [w.path for w in located] == ["us/nested/a.feature", "us/nested/a.feature"]
+    # Assert: the file is the typed fields, never a prefix rewritten into the free text.
+    assert [(w.path, w.source_url) for w in located] == [("us/nested/a.feature", url), ("us/nested/a.feature", url)]
     assert [w.context for w in located] == ["line_no=3", None]
     assert [(w.ac_id, w.line_no) for w in located] == [("US-1-01", 3), (None, None)]
 
@@ -243,27 +277,31 @@ def test_with_entity_paths_locates_only_the_listed_codes():
     # Act
     located = with_entity_paths(
         warnings,
-        {"US-1": "us/nested/story.feature", "FEAT-1": "pages/Feature1Page.ts"},
+        {"US-1": ("us/nested/story.feature", "https://u/story"), "FEAT-1": ("pages/Feature1Page.ts", "https://u/feat")},
         frozenset({"MISSING_STATUS"}),
     )
 
-    # Assert: `DEC-77` - a fact about one header is located, a cross-entity fact is not.
-    assert [(w.code, w.entity_id, w.path) for w in located] == [
-        ("MISSING_STATUS", "US-1", "us/nested/story.feature"),
-        ("MISSING_STATUS", "US-9", None),
-        ("FEATURE_WITHOUT_FUNCTIONALITY", "FEAT-1", None),
+    # Assert: a fact about one header is located, a cross-entity fact is not.
+    assert [(w.code, w.entity_id, w.path, w.source_url) for w in located] == [
+        ("MISSING_STATUS", "US-1", "us/nested/story.feature", "https://u/story"),
+        ("MISSING_STATUS", "US-9", None, None),
+        ("FEATURE_WITHOUT_FUNCTIONALITY", "FEAT-1", None, None),
     ]
 
 
 def test_with_entity_paths_keeps_a_path_an_emitter_already_knew():
     # Arrange
-    warnings = [ContractWarning(code="MISSING_STATUS", message="m", entity_id="US-1", path="own.feature")]
+    warnings = [
+        ContractWarning(
+            code="MISSING_STATUS", message="m", entity_id="US-1", path="own.feature", source_url="https://u/own"
+        )
+    ]
 
     # Act
-    located = with_entity_paths(warnings, {"US-1": "other.feature"}, frozenset({"MISSING_STATUS"}))
+    located = with_entity_paths(warnings, {"US-1": ("other.feature", "https://u/other")}, frozenset({"MISSING_STATUS"}))
 
     # Assert: the emitter is the better source; the lookup only fills what is unset.
-    assert [w.path for w in located] == ["own.feature"]
+    assert [(w.path, w.source_url) for w in located] == [("own.feature", "https://u/own")]
 
 
 # source_context

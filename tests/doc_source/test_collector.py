@@ -110,6 +110,11 @@ TS_CROSS_REFERENCE_TEMPLATE = """/* ============================================
  * ============================================================================= */
 """
 
+# A key the contract does not carry, so the page's parser raises `IGNORED_AUTHORED_KEY` on line 9.
+TS_CROSS_REFERENCE_WITH_UNKNOWN_KEY_TEMPLATE = TS_CROSS_REFERENCE_TEMPLATE.replace(
+    "DetailsPage.ts\n", "DetailsPage.ts\n * colour:      red\n"
+)
+
 
 def _write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -387,6 +392,91 @@ def test_source_ref_outside_a_git_checkout_reports_no_source_url(tmp_path, mocke
     assert len([w for w in result.warnings if w.code == "NO_SOURCE_URL"]) == 3
 
 
+# warning source_url
+
+
+def test_a_skipped_file_s_warnings_carry_its_own_url(tmp_path, mocker, git_checkout):
+    # Arrange: neither skipped file ever gets a source_ref - one has no entity id, the other repeats US-1.
+    repo_dir = tmp_path / "repo"
+    sha = git_checkout(repo_dir)
+    _write(repo_dir / "us" / "a_story.feature", US_FEATURE_TEMPLATE.format(num=1))
+    _write(repo_dir / "us" / "b_story.feature", US_FEATURE_TEMPLATE.format(num=1).replace("Story 1", "Another story 1"))
+    _write(
+        repo_dir / "us" / "no_id.feature",
+        US_FEATURE_TEMPLATE.format(num=2).replace("US-2 · Story 2", "Story without an id"),
+    )
+    _configure(mocker, repo_dir)
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert: `path` is scan-root-relative, while the URL takes the path from the repository root.
+    blob = f"https://github.com/absa-group/aul-ui/blob/{sha}/us/"
+    skipped = [
+        (w.code, w.path, w.source_url) for w in result.warnings if w.code in ("AUTHORING_ERROR", "MISSING_ENTITY_ID")
+    ]
+    assert sorted(skipped) == [
+        ("AUTHORING_ERROR", "b_story.feature", blob + "b_story.feature"),
+        ("MISSING_ENTITY_ID", "no_id.feature", blob + "no_id.feature"),
+    ]
+
+
+def test_a_cross_reference_page_s_warnings_carry_the_page_s_url_not_its_feature_s(tmp_path, mocker, git_checkout):
+    # Arrange: FEAT-1's page raises a parser warning; FEAT-7's page has no Feature in the run.
+    repo_dir = tmp_path / "repo"
+    sha = git_checkout(repo_dir)
+    _write_entity_set(repo_dir)
+    _write(repo_dir / "pages" / "Feature1DetailsPage.ts", TS_CROSS_REFERENCE_WITH_UNKNOWN_KEY_TEMPLATE.format(num=1))
+    _write(repo_dir / "pages" / "Feature7DetailsPage.ts", TS_CROSS_REFERENCE_TEMPLATE.format(num=7))
+    _configure(mocker, repo_dir)
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    blob = f"https://github.com/absa-group/aul-ui/blob/{sha}/pages/"
+    assert result.features[0].source_ref.url == blob + "Feature1Page.ts"
+    assert [(w.code, w.path, w.line_no, w.source_url) for w in result.warnings if w.path is not None] == [
+        ("IGNORED_AUTHORED_KEY", "Feature1DetailsPage.ts", 9, blob + "Feature1DetailsPage.ts"),
+        ("UNRESOLVED_RELATION", "Feature7DetailsPage.ts", None, blob + "Feature7DetailsPage.ts"),
+    ]
+
+
+@pytest.mark.parametrize("checkout", ["outside-git", "no-resolvable-commit"])
+def test_a_file_with_no_url_gives_its_warnings_no_source_url(tmp_path, mocker, checkout):
+    # Arrange: one file for each kind of located warning, where no URL can be derived.
+    repo_dir = tmp_path / "repo"
+    if checkout == "outside-git":
+        mocker.patch("utils.artifact.find_repo_root", return_value=None)
+    else:
+        (repo_dir / ".git").mkdir(parents=True)
+    _write(repo_dir / "us" / "a_story.feature", US_FEATURE_TEMPLATE.format(num=1))
+    _write(repo_dir / "us" / "b_story.feature", US_FEATURE_TEMPLATE.format(num=1).replace("Story 1", "Another story 1"))
+    _write(repo_dir / "us" / "no_id.feature", US_FEATURE_TEMPLATE.format(num=2).replace("US-2 · Story 2", "No id"))
+    _write(repo_dir / "us" / "foreign.feature", US_FEATURE_TEMPLATE.format(num=3).replace("AC:US-3-01", "AC:US-9-01"))
+    _write(
+        repo_dir / "us" / "no_status.feature",
+        US_FEATURE_TEMPLATE.format(num=4).replace("# status:         active\n", ""),
+    )
+    _write(repo_dir / "pages" / "Feature7DetailsPage.ts", TS_CROSS_REFERENCE_WITH_UNKNOWN_KEY_TEMPLATE.format(num=7))
+    _configure(mocker, repo_dir)
+
+    # Act
+    result = GHDocSourceCollector(str(tmp_path / "output")).build_result()
+
+    # Assert
+    located = [w for w in result.warnings if w.path is not None]
+    assert {w.code for w in located} == {
+        "AUTHORING_ERROR",
+        "IGNORED_AUTHORED_KEY",
+        "MISSING_ENTITY_ID",
+        "MISSING_STATUS",
+        "NO_SOURCE_URL",
+        "UNRESOLVED_RELATION",
+    }
+    assert [w.source_url for w in located] == [None] * len(located)
+
+
 # PageObject files
 
 
@@ -569,8 +659,9 @@ def test_criterion_declaring_both_aspect_and_a_keyword_is_dropped_and_reported(t
     assert "declares its variants more than once (Aspect, colour)" in malformed[0].message
 
 
-def test_entity_the_contract_rejects_is_skipped_and_the_run_continues(tmp_path, mocker):
+def test_entity_the_contract_rejects_is_skipped_and_the_run_continues(tmp_path, mocker, git_checkout):
     # Arrange
+    sha = git_checkout(tmp_path / "repo")
     _write_entity_set(tmp_path / "repo")
     foreign_ac = US_FEATURE_TEMPLATE.format(num=2).replace("AC:US-2-01", "AC:US-9-01")
     _write(tmp_path / "repo" / "us" / "story_2.feature", foreign_ac)
@@ -587,6 +678,7 @@ def test_entity_the_contract_rejects_is_skipped_and_the_run_continues(tmp_path, 
     rejected = [w for w in artifact.warnings if w.code == "AUTHORING_ERROR"]
     assert len(rejected) == 1
     assert (rejected[0].path, rejected[0].entity_id, rejected[0].context) == ("story_2.feature", "US-2", None)
+    assert rejected[0].source_url == f"https://github.com/absa-group/aul-ui/blob/{sha}/us/story_2.feature"
     assert "US-9-01" in rejected[0].message
 
 
@@ -608,10 +700,11 @@ def test_duplicate_entity_id_keeps_the_first_file_and_reports_the_second(tmp_pat
     assert "'a_story.feature'" in duplicates[0].message
 
 
-def test_a_status_warning_about_one_header_carries_that_file_in_the_typed_path(tmp_path, mocker):
+def test_a_status_warning_about_one_header_carries_that_file_in_the_typed_path(tmp_path, mocker, git_checkout):
     # Arrange: `DEC-77`. US-1 authors no `status:`, so `derive_statuses` reports MISSING_STATUS - a fact about
     # this one header, so the file it is about belongs in the typed `path`. FEATURE_WITHOUT_FUNCTIONALITY holds
     # of FEAT-2 only in relation to the rest of the run, so it is not about one file and stays unlocated.
+    sha = git_checkout(tmp_path / "repo")
     _write(
         tmp_path / "repo" / "us" / "nested" / "no_status.feature",
         US_FEATURE_TEMPLATE.format(num=1).replace("# status:         active\n", ""),
@@ -624,9 +717,15 @@ def test_a_status_warning_about_one_header_carries_that_file_in_the_typed_path(t
 
     # Assert
     missing = [w for w in result.warnings if w.code == "MISSING_STATUS"]
-    assert [(w.path, w.entity_id) for w in missing] == [("nested/no_status.feature", "US-1")]
+    assert [(w.path, w.entity_id, w.source_url) for w in missing] == [
+        (
+            "nested/no_status.feature",
+            "US-1",
+            f"https://github.com/absa-group/aul-ui/blob/{sha}/us/nested/no_status.feature",
+        )
+    ]
     unlocated = [w for w in result.warnings if w.code == "FEATURE_WITHOUT_FUNCTIONALITY"]
-    assert [(w.path, w.entity_id) for w in unlocated] == [(None, "FEAT-2")]
+    assert [(w.path, w.entity_id, w.source_url) for w in unlocated] == [(None, "FEAT-2", None)]
 
 
 def test_reference_to_a_rejected_entity_is_reported_unresolved(tmp_path, mocker):

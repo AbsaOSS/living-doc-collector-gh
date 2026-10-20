@@ -42,6 +42,7 @@ from utils.artifact import (
     build_source_ref,
     collect_artifact,
     collect_sources,
+    file_url,
     relative_path,
     source_context,
     with_path,
@@ -205,7 +206,7 @@ class GHUITestsCollector:
             return 0
 
         parsed_scenarios, parse_warnings = parse_scenarios(text, _SCENARIO_ENTITY_TYPE)
-        warnings.extend(with_path(parse_warnings, rel_path))
+        warnings.extend(with_path(parse_warnings, rel_path, file_url(repository, file_path)))
         parsed_scenarios = _without_tutorial_scenarios(parsed_scenarios)
 
         # Built once the file keeps a scenario, so a file with none raises no `NO_SOURCE_URL`.
@@ -224,6 +225,7 @@ class GHUITestsCollector:
                         # No field carries a scenario id, so it stays in `context` (`DEC-77`).
                         context=f"scenario_id={scenario_id!r}",
                         path=rel_path,
+                        source_url=source_ref.url or None,
                     )
                 )
                 continue

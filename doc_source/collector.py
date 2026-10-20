@@ -50,6 +50,7 @@ from utils.artifact import (
     build_source_ref,
     collect_artifact,
     collect_sources,
+    file_url,
     relative_path,
     source_context,
     with_entity_paths,
@@ -71,7 +72,7 @@ PAGE_OBJECT_NATIVE_TYPE = "page-object"
 _LIVING_DOC_MARKER = "LIVING DOC"
 
 # `derive_statuses` codes that state a fact about one entity's own header, so the file they are about is the
-# entity's own and belongs in the typed `path` (`DEC-77`). `FEATURE_WITHOUT_FUNCTIONALITY` is deliberately
+# entity's own and belongs in the typed `path` and `source_url`. `FEATURE_WITHOUT_FUNCTIONALITY` is deliberately
 # absent: it holds of a Feature only in relation to the other entities of the run, so it is not about one file.
 _SINGLE_FILE_STATUS_CODES = frozenset({Code.MISSING_STATUS.name, Code.STATUS_AC_MISMATCH.name})
 
@@ -79,12 +80,12 @@ _SINGLE_FILE_STATUS_CODES = frozenset({Code.MISSING_STATUS.name, Code.STATUS_AC_
 @dataclass
 class _Collected:
     """Everything parsed in one run, before status derivation: the entities with their source_ref and the
-    path they were read from, the cross-reference pages waiting for their Feature, the warnings, and the
-    count of skipped entities."""
+    path they were read from, the cross-reference pages waiting for their Feature with the path and URL of
+    their own file, the warnings, and the count of skipped entities."""
 
     entities: list[ParsedEntity] = field(default_factory=list)
     sources: dict[str, tuple[SourceRef, str]] = field(default_factory=dict)
-    cross_references: list[tuple[str, PageRef, str]] = field(default_factory=list)
+    cross_references: list[tuple[str, PageRef, str, Optional[str]]] = field(default_factory=list)
     warnings: list[ContractWarning] = field(default_factory=list)
     entities_skipped: int = 0
 
@@ -241,6 +242,7 @@ class GHDocSourceCollector:
                             code=Code.AUTHORING_ERROR.name,
                             message=f"Entity fails contract validation and is skipped: {reason}",
                             path=rel_path,
+                            source_url=source_ref.url or None,
                             entity_id=parsed.entity_id,
                         )
                     )
@@ -248,7 +250,7 @@ class GHDocSourceCollector:
             if not rejected:
                 located = with_entity_paths(
                     status_warnings,
-                    {entity_id: path for entity_id, (_, path) in collected.sources.items()},
+                    {entity_id: (path, ref.url or None) for entity_id, (ref, path) in collected.sources.items()},
                     _SINGLE_FILE_STATUS_CODES,
                 )
                 return derived, entities, rejections + located
@@ -262,12 +264,13 @@ class GHDocSourceCollector:
         warnings: list[ContractWarning],
         source: tuple[SourceRepository, Path, list[str], str],
     ) -> None:
-        """Record one file's parse result: its warnings with the file's path, and its entity with a source_ref -
+        """Record one file's parse result: its warnings with the file's path and URL, and its entity with a source_ref -
         or, with no parseable entity id, a skip (the parser's `MISSING_ENTITY_ID` carries the title). An entity id
         already collected is skipped with an `AUTHORING_ERROR`: the first file read keeps it."""
         repository, file_path, scan_roots, native_type = source
         rel_path = relative_path(file_path, scan_roots)
-        collected.warnings.extend(with_path(warnings, rel_path))
+        url = file_url(repository, file_path)
+        collected.warnings.extend(with_path(warnings, rel_path, url))
         if entity is None:
             collected.entities_skipped += 1
             return
@@ -279,6 +282,7 @@ class GHDocSourceCollector:
                     code=Code.AUTHORING_ERROR.name,
                     message=f"Entity id is already collected from {first_source!r}; this file is skipped.",
                     path=rel_path,
+                    source_url=url,
                     entity_id=entity.entity_id,
                 )
             )
@@ -321,8 +325,9 @@ class GHDocSourceCollector:
         result, warnings = parse_page_object(text)
         if result is not None and result.entity is None:
             rel_path = relative_path(file_path, scan_roots)
-            collected.warnings.extend(with_path(warnings, rel_path))
-            collected.cross_references.append((result.parent_feat or "", result.page_ref, rel_path))
+            url = file_url(repository, file_path)
+            collected.warnings.extend(with_path(warnings, rel_path, url))
+            collected.cross_references.append((result.parent_feat or "", result.page_ref, rel_path, url))
             return
         entity = None if result is None else result.entity
         self._add_entity(collected, entity, warnings, (repository, file_path, scan_roots, PAGE_OBJECT_NATIVE_TYPE))
@@ -332,7 +337,7 @@ class GHDocSourceCollector:
         """Append each cross-reference page to its parent Feature's `pages`; one with no such Feature in the run
         is reported `UNRESOLVED_RELATION` and dropped."""
         features = {entity.entity_id: entity for entity in collected.entities if entity.type == "DocumentedFeature"}
-        for parent_feat, page_ref, rel_path in collected.cross_references:
+        for parent_feat, page_ref, rel_path, url in collected.cross_references:
             feature = features.get(parent_feat)
             if feature is None:
                 collected.warnings.append(
@@ -342,6 +347,7 @@ class GHDocSourceCollector:
                         # No field carries the relation's target, so it stays in `context` (`DEC-77`).
                         context=f"target={parent_feat!r}",
                         path=rel_path,
+                        source_url=url,
                     )
                 )
                 continue
