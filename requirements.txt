@@ -2,5 +2,5 @@
 # file into its own venv (see `action.yml`). Development and test tools live in `requirements-dev.txt`;
 # `make qa` fails when a test, lint or type tool appears here (`tools/check_runtime_requirements.py`).
 living-doc-utilities==0.8.0
-pydantic==2.13.5
-tomli==2.4.1; python_version < "3.11"
+pydantic==2.14.1
+tomli==2.5.0; python_version < "3.11"
