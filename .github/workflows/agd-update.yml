@@ -72,7 +72,7 @@ jobs:
           version=$(awk '$1 == "source" && $2 == "agentic-defaults" { print $4 }' .agd.lock)
 
           # One open issue carries the update until its pull request merges: reuse it, or open it.
-          issue=$(gh issue list --state open --json number,title \
+          issue=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
             --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n 1)
           if [ -z "$issue" ]; then
             issue=$(gh issue create --title "$TITLE" \
@@ -97,7 +97,7 @@ jobs:
             echo
             echo 'An `edited` line is a file this project changed, which the update left alone. Settle it after you merge, with `agd diff`, then `agd merge` or `agd reset`: the next run replaces this branch.'
             echo
-            echo 'A pull request opened by GitHub Actions starts no checks: edit it, or close and reopen it, to run them.'
+            echo 'GitHub holds the checks of a pull request opened by GitHub Actions: someone with write access starts them with **Approve workflows to run** in the merge box.'
             echo
             echo '## Release Notes'
             echo "- Updates the agentic setup to agentic-defaults $version."

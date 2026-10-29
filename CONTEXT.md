@@ -60,7 +60,10 @@ normalizing or generating documentation (later pipeline steps).
 - The pipeline is AI-free: deterministic Python, no LLM call in the collect path →
   [CONTRIBUTING.md](CONTRIBUTING.md#ai-free-principle).
 - Exit codes are `0` for success and `1` for any failure, with no `2`–`5` taxonomy (reason unknown).
-- A failed mode fails the run, and a failed run leaves no artifact (R13).
+- A failed mode fails the run, and `run()` then removes what the other modes wrote, so exit `1` after the modes ran
+  leaves no output file (R13). A failure at start (`doc-issues` requested, invalid configuration) exits before any
+  mode clears its directory, so a previous run's output stays; a directory that can't be removed is logged as an
+  error → [docs/action.md](docs/action.md#errors).
 - The contracts belong to `living-doc-utilities`: a field's shape changes there and arrives by re-pinning. No
   `*-schema.json` is committed here (`make no-vendored-schemas`).
 - `requirements.txt` is runtime-only, because `action.yml` installs it on every caller's run. Test, lint and type tools

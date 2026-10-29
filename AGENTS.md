@@ -67,3 +67,4 @@ Files and parts marked "From agentic-defaults" are replaced when the kit updates
 - `make test`: the unit tests, `tests/integration` excluded (one file or test: `pytest <path>`)
 - `make lint` and `make format`: ruff and Pylint (score ≥ 9.5); ruff autofix and Black. Types: `make types`
 - Check, everything that must pass before work is done: `make qa`
+- Context check, for work on a branch: `bash .claude/skills/context-md/check.sh --base origin/master`
