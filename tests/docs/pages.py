@@ -42,8 +42,8 @@ APPROVED_PAGES: dict[str, int] = {
     "doc_issues/README.md": 2,
 }
 
-# Tracked Markdown that is not a page: the agent board, the review rules and the test fixtures.
-NOT_PAGES = (".claude/", ".github/", "tests/fixtures/")
+# Tracked Markdown that is not a page: the agentic setup, the review rules and the test fixtures.
+NOT_PAGES = ("AGENTS.md", "CLAUDE.md", ".local_context/", ".claude/", ".github/", "tests/fixtures/")
 
 # A fence may sit in a list item or a blockquote, so `>` markers, list markers and indentation may precede it.
 _LIST_MARKER = r"(?:[-*+]|\d{1,9}[.)])"
@@ -147,8 +147,8 @@ def read_page(page: str) -> str:
 
 
 def tracked_markdown() -> set[str]:
-    """Every Markdown file git tracks - `.md` or `.markdown`, in any case - that is a page, not part of the agent
-    board or a test fixture."""
+    """Every Markdown file git tracks - `.md` or `.markdown`, in any case - that is a page, not part of the agentic
+    setup, a `CONTEXT.md` or a test fixture."""
     listed = subprocess.run(
         ["git", "ls-files", "--", ":(icase)*.md", ":(icase)*.markdown"],
         cwd=REPO_ROOT,
@@ -156,7 +156,7 @@ def tracked_markdown() -> set[str]:
         check=True,
         text=True,
     ).stdout.splitlines()
-    return {path for path in listed if not path.startswith(NOT_PAGES)}
+    return {path for path in listed if not path.startswith(NOT_PAGES) and PurePosixPath(path).name != "CONTEXT.md"}
 
 
 def check_page_list(listed: set[str], approved: dict[str, int]) -> list[str]:
