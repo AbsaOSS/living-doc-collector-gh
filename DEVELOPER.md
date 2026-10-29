@@ -154,6 +154,7 @@ A run, in order:
 5. **Validates and reports** each artifact → `tools/local_integration.py::report`
    - It re-reads the artifact with `read_artifact`, then prints its contract, run time, size and `metadata.stats` counts (cardinality and field occupancy).
    - It prints the warnings by code: each code's count and its first ten occurrences.
+   - It spells out control characters (`\n`, `\x1b`) in text from the artifacts, in the report and its error line. A file in the target therefore cannot forge a report line. The collector's own log lines above the report stay as written.
 
 - It exits non-zero when a check, the install, the collector or a validation fails → `tools/local_integration.py::main`
 - For an issue or a report, keep the whole output: `set -o pipefail; ./local-integration.sh 2>&1 | tee local-integration.log`.

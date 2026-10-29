@@ -426,6 +426,42 @@ def test_an_artifact_of_the_other_contract_fails_validation(collected, tmp_path,
     assert len(err.splitlines()) == 1
 
 
+def test_main_spells_out_the_control_characters_a_file_carries(collected, capsys):
+    # Arrange: a warning whose message would clear the terminal and forge a report line.
+    path = collected / "doc-source" / "doc-source.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["warnings"].append({"code": "UNPARSED_AC_LINE", "message": "x\x1b[2J\n  warnings: 0"})
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    capsys.readouterr()
+
+    # Act
+    code = main(["report", str(collected), "doc-source", "5"])
+
+    # Assert: the message stays on its own line, its control characters spelled out.
+    out, err = capsys.readouterr()
+    assert code == 0
+    assert err == ""
+    assert "\x1b" not in out
+    assert "  warnings: 0" not in out.splitlines()
+    assert "x\\x1b[2J\\n  warnings: 0" in out
+
+
+def test_main_spells_out_the_control_characters_of_an_error(tmp_path, mocker, capsys):
+    # Arrange: `read_artifact` quotes a value with `repr`, so `report` is made to raise an error that carries them raw.
+    mocker.patch("tools.local_integration.report", side_effect=ValueError("x\x1b[2J\n  contract: forged"))
+
+    # Act
+    code = main(["report", str(tmp_path), "doc-source", "5"])
+
+    # Assert: one stderr line, its control characters spelled out.
+    out, err = capsys.readouterr()
+    assert code == 1
+    assert out == ""
+    assert "\x1b" not in err
+    assert len(err.splitlines()) == 1
+    assert err == "doc-source: the artifact is not valid: x\\x1b[2J\\n  contract: forged\n"
+
+
 def test_main_reports_only_the_two_collector_modes(tmp_path):
     # Act & Assert: `doc-issues` is PLANNED, so it has no artifact to report; argparse rejects it.
     with pytest.raises(SystemExit) as raised:
