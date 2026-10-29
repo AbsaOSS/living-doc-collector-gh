@@ -66,6 +66,11 @@ def repositories_json(organization: str, repository: str, paths: Sequence[str]) 
     return json.dumps([{"organization-name": organization, "repository-name": repository, **directories}])
 
 
+def _printable(line: str) -> str:
+    """One printed line with its control characters spelled out (`\\n`, `\\x1b`), so a file cannot forge a line."""
+    return "".join(char if char.isprintable() else char.encode("unicode_escape").decode("ascii") for char in line)
+
+
 def _counts(value: Any) -> str:
     """A `metadata.stats` value on one line: a number as it is, a mapping as sorted `key=count` pairs."""
     if isinstance(value, dict):
@@ -157,16 +162,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         try:
             print(repositories_json(args.organization, args.repository, args.paths))
         except ValueError as e:
-            print(f"repositories: {e}", file=sys.stderr)
+            print(_printable(f"repositories: {e}"), file=sys.stderr)
             return 1
         return 0
 
     try:
         lines = report(args.output_root, args.mode, args.elapsed_ms)
     except (ContractError, OSError, ValueError) as e:
-        print(f"{args.mode}: the artifact is not valid: {e}", file=sys.stderr)
+        print(_printable(f"{args.mode}: the artifact is not valid: {e}"), file=sys.stderr)
         return 1
-    print("\n".join(lines))
+    print("\n".join(_printable(line) for line in lines))
     return 0
 
 
