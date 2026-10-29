@@ -256,8 +256,9 @@ jobs:
           echo '::notice::switching the interpreter rebuilt the venv instead of reusing the 3.12 one.'
 
   # Python older than the 3.10 floor fails the action with one actionable error, before it creates any venv.
+  # Pinned to 24.04: `actions/setup-python` has no 3.9 build for the Ubuntu 26.04 that `ubuntu-latest` resolves to.
   action-rejects-python-39:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Action Venv - Python 3.9 Is Rejected
     steps:
       - name: Checkout repository
