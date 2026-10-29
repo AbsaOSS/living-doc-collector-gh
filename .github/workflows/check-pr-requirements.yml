@@ -5,6 +5,8 @@
 # - PR body follows the Overview / Release Notes / Related template
 # - Hotfix PRs may target support/* and release/* branches
 # Repos that publish releases should additionally enable check-release-notes.
+# Dependabot PRs are skipped: their title, body and branch can't carry an issue. A job skipped by `if`
+# reports success, so it still satisfies the required "PR Requirements" check.
 name: Check PR Requirements (ABSA)
 
 on:
@@ -19,6 +21,7 @@ jobs:
   check-pr:
     name: PR Requirements
     runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
     steps:
       - name: Check PR requirements
         uses: AbsaOSS/check-pr-requirements@adb22f6d88c93fd801e787a63d948d6fbbdd4af3 # v0.2.0
