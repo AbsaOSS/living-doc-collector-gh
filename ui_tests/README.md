@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Workflow authors who mine UI test scenarios from `.feature` files read this page. It defines the mode's
-repository entry, what it discovers and writes, and how it reports problems.
+This page defines the mode that mines UI test scenarios from `.feature` files: its repository entry, what it
+discovers and writes, and how it reports problems.
 
 Read before: [Documentation Source mode](../doc_source/README.md) · Next: back to the [Action reference](../docs/action.md)
 
@@ -19,9 +19,9 @@ Read before: [Documentation Source mode](../doc_source/README.md) · Next: back 
 
 ## Activation
 
-The mode mines scenario blocks from `.feature` files in local checkouts and writes one `ui-tests-v1.0.0` artifact → `ui_tests/collector.py::GHUITestsCollector`
+The mode mines scenario blocks from `.feature` files in local checkouts and writes one `ui-tests-v1.0.0` artifact.
 
-- `ui-tests: true` turns it on; `ui-tests-repositories` lists its sources ([Inputs](../docs/action.md#inputs)) → `action_inputs.py::ActionInputs.is_ui_tests_mode_enabled`
+- `ui-tests: true` turns it on; `ui-tests-repositories` lists its sources ([Inputs](../docs/action.md#inputs))
 - The checkouts and the output directory need nothing beyond the action's own rules → [Prerequisites](../docs/action.md#prerequisites), [Output layout](../docs/action.md#output-layout)
 
 ## Usage
@@ -45,7 +45,7 @@ The mode mines scenario blocks from `.feature` files in local checkouts and writ
 
 ## Repository entry
 
-Each entry of `ui-tests-repositories` is one source; a malformed entry fails the run at start → `ui_tests/model/config_repository.py::ConfigRepository.load_from_json`
+Each entry of `ui-tests-repositories` is one source; a malformed entry fails the run at start.
 
 | Field | Type | Required | Meaning |
 |---|---|---|---|
@@ -55,23 +55,23 @@ Each entry of `ui-tests-repositories` is one source; a malformed entry fails the
 
 ## Discovery
 
-- Every configured path must exist; a missing one fails its whole source → `utils/feature_file_discovery.py::discover_feature_files`
-- Within a path, discovery is recursive, and `.feature` files under a `tutorial*` or `tutorial_<group>` directory are skipped → `utils/feature_file_discovery.py::_is_under_tutorial_dir`
+- Every configured path must exist; a missing one fails its whole source
+- Within a path, discovery is recursive, and `.feature` files under a `tutorial*` or `tutorial_<group>` directory are skipped
 
 ## Output
 
-- `<output-path>/ui-tests/ui-tests.json`, by default `output/collector-gh/ui-tests/ui-tests.json` → `ui_tests/collector.py::UI_TESTS_FILE_NAME`
-- A [`ui-tests-v1.0.0`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md) artifact, written through `write_artifact`: validated before the write and written atomically → `utils/artifact.py::store_artifact`
+- `<output-path>/ui-tests/ui-tests.json`, by default `output/collector-gh/ui-tests/ui-tests.json`
+- A [`ui-tests-v1.0.0`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/contracts.md) artifact, written through `write_artifact`: validated before the write and written atomically
 
-What this mode fills in the contract → `ui_tests/collector.py::GHUITestsCollector.build_result`:
+What this mode fills in the contract:
 
 - **`metadata.source.project_id`**: the `project-id` input.
 - **`metadata.stats.cardinality`**: `sources_configured` and `sources_failed` as in [Errors](../docs/action.md#errors).
-- **`scenarios[]`**: one per `Scenario:` or `Scenario Outline:` → `ui_tests/collector.py::_is_tutorial_file`
+- **`scenarios[]`**: one per `Scenario:` or `Scenario Outline:`
   - Not mined: a scenario tagged `@tutorial`, and every scenario of a file whose feature-level tags include `@tutorial`.
-- **`scenario_id`**: `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the file's path is repository-root-relative inside Git and scan-root-relative outside Git → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+- **`scenario_id`**: `{organization-name}/{repository-name}/{source_ref.native_id}/{title-slug}`, so the file's path is repository-root-relative inside Git and scan-root-relative outside Git
   - A slug repeated within one file gets `-2`, `-3`, … appended; a title with no ASCII letter or digit gets the slug `scenario`.
-- **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed` → `utils/artifact.py::build_source_ref`
+- **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed`
   - Outside a Git checkout, `url` is empty and `NO_SOURCE_URL` is emitted.
 
 ## Errors
@@ -79,19 +79,19 @@ What this mode fills in the contract → `ui_tests/collector.py::GHUITestsCollec
 The run-level codes and `allow-partial` are in the action reference → [Errors](../docs/action.md#errors). Within a source:
 
 <!-- over limit: each behaviour cell is one rule with its warning fields; splitting it would scatter the rule -->
-| Situation | Behaviour | Where |
-|---|---|---|
-| A path in `paths` has no matching files | Log warning, continue; a source with no scenario at all is `EMPTY_SOURCE` | `utils/feature_file_discovery.py::discover_feature_files` |
-| A file cannot be read | Log warning, skip the file, continue | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
-| A malformed `@AC:` tag | `MALFORMED_AC` warning with the file's `path`; the scenario is kept without that link | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
-| A file outside a git checkout | `NO_SOURCE_URL`, only when the file yields a scenario | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
-| A `scenario_id` already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it | `ui_tests/collector.py::GHUITestsCollector._collect_file` |
-| The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file | `utils/artifact.py::collect_artifact` |
+| Situation | Behaviour |
+|---|---|
+| A path in `paths` has no matching files | Log warning, continue; a source with no scenario at all is `EMPTY_SOURCE` |
+| A file cannot be read | Log warning, skip the file, continue |
+| A malformed `@AC:` tag | `MALFORMED_AC` warning with the file's `path`; the scenario is kept without that link |
+| A file outside a git checkout | `NO_SOURCE_URL`, only when the file yields a scenario |
+| A `scenario_id` already collected from another file (e.g. one file reached through two repository entries) | The scenario is skipped; `AUTHORING_ERROR` warning with the file's `path` and the `scenario_id`; the first file read keeps it |
+| The result fails contract validation, or the file cannot be written | Log error; the mode fails, and with it the run, which writes no file |
 
-- A warning with the file's `path` also carries the file's permalink in `source_url`, built as `source_ref.url` is → `utils/artifact.py::file_url`
+- A warning with the file's `path` also carries the file's permalink in `source_url`, built as `source_ref.url` is
   - Unset wherever the file's `source_ref.url` would be empty.
 
 ## Formats
 
-- Scenarios and their `@AC:<id>[/aspect:<value>]` tags follow the canon in `living-doc` → [Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md), [Living Doc Glossary](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-glossary.md)
+- Scenarios and their `@AC:<id>[/<param>:<value>]` tags follow the canon in `living-doc`; `<param>` is `aspect` or the criterion's keyword name → [AC variants](https://github.com/AbsaOSS/living-doc/blob/master/docs/reference/authoring-formats.md#ac-variants), [Acceptance Criterion](https://github.com/AbsaOSS/living-doc/blob/master/docs/reference/glossary.md#acceptance-criterion-ac)
 - This mode parses them with `living-doc-utilities`' `authoring.scenario` parser → utilities

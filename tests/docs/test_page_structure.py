@@ -259,3 +259,40 @@ def test_a_code_span_wrapped_across_lines_leaves_a_later_link_alone():
     """A code span may cross a line break; its backticks pair with each other, not with a later one."""
     readme = "Run `make\nqa` first, then read the [action reference](docs/action.md) and `x`.\n"
     assert check_no_orphans({"README.md": readme, "docs/action.md": ""}) == []
+
+
+def test_a_run_indented_four_spaces_does_not_close_an_indented_top_level_fence():
+    """A closing fence takes at most three spaces, whatever the opener's own indentation; four or more are code."""
+    page = "  ```text\n     ```\n## Not a heading\n  ```\n\n## Next\n"
+    assert headings(page, 2) == ["Next"]
+
+
+def test_a_fence_inside_an_html_comment_hides_nothing():
+    """A fence in a commented-out block opens no code block, so the headings after the comment are still read."""
+    page = "# T\n\n<!--\n```python\nraise SystemExit\n-->\n\n## Visible\n"
+    assert headings(page, 2) == ["Visible"]
+
+
+@pytest.mark.parametrize(
+    "readme",
+    [
+        '[Action](docs/action.md "Action reference")\n',
+        "[Action](docs/action.md 'Action reference')\n",
+        "[Action](<docs/action.md>)\n",
+        "[Action][action]\n\n[action]: docs/action.md\n",
+        "[Action][ACTION]\n\n[action]: docs/action.md 'Action reference'\n",
+        "[action][]\n\n[action]: docs/action.md\n",
+        "[action]\n\n[action]: docs/action.md\n",
+    ],
+    ids=["double-quoted-title", "single-quoted-title", "angle-brackets", "full", "any-case", "collapsed", "shortcut"],
+)
+def test_every_markdown_link_form_counts_as_navigation(readme):
+    """A titled, bracketed or reference-style link renders as a link on GitHub, so it puts the page in the tree."""
+    assert check_no_orphans({"README.md": readme, "docs/action.md": ""}) == []
+
+
+def test_a_reference_definition_nothing_uses_does_not_count_as_navigation():
+    """A definition alone renders nothing, so the page it names stays an orphan."""
+    assert check_no_orphans({"README.md": "[action]: docs/action.md\n", "docs/action.md": ""}) == [
+        "docs/action.md: orphan page; link it from README.md"
+    ]

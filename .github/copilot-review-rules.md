@@ -68,7 +68,8 @@ repo's own risk areas and review expectations; it is not shared with other repos
 ## Documentation
 
 - Must review a change to `README.md`, `DEVELOPER.md`, `CONTRIBUTING.md`, `SPEC.md`, `docs/action.md` or a mode page (`doc_source/README.md`, `ui_tests/README.md`, `doc_issues/README.md`) against `DEVELOPER.md`, "Writing documentation" — that section is the only copy of the page rules; Must not restate them here.
-- Must check a sample of ten decision- or fact-list items per changed page against the code their `path::symbol` names, and flag any item the code does not bear out.
+- Must check a sample of ten decision- or fact-list items per changed page against the code its code map names (the `## Code map` of the `CONTEXT.md` beside the code), and flag any item the code does not bear out.
+- Must flag a changed fact whose page and code map no longer agree.
 
 ## Repo specifics
 

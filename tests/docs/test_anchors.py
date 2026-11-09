@@ -27,10 +27,13 @@ import pytest
 from tests.docs.pages import (
     ANCHOR_PATTERN,
     ANCHOR_RE,
+    ANCHORED_PAGES,
     APPROVED_PAGES,
+    CODE_MAPS,
     FILE_TYPES,
     REPO_ROOT,
     read_page,
+    section,
     unfenced_lines,
 )
 
@@ -38,6 +41,8 @@ _LINE_NUMBER_RE = re.compile(
     rf"(?:\.(?:{FILE_TYPES})|Makefile|\.pylintrc|\.coveragerc)`?(?::L?\d+|#L\d+|,?\s+lines?\s+\d+(?:-\d+)?\b)"
 )
 _LIST_ITEM_RE = re.compile(r"^(?:[-*+]|\d{1,9}[.)])[ \t]")
+# The pages and the code maps: every file whose anchors must resolve.
+ANCHORED_FILES = sorted({*APPROVED_PAGES, *CODE_MAPS.values()})
 # The components a rule may name instead of an anchor (DEVELOPER.md, "Writing documentation", Anchors).
 COMPONENTS = ("utilities", "toolkit")
 _DESTINATION = rf"(?:`{ANCHOR_PATTERN}`|{ANCHOR_PATTERN}|\[[^\]]*\]\([^)\s]+\)|(?:{'|'.join(COMPONENTS)})\b)"
@@ -98,9 +103,9 @@ def _anchors(page: str) -> list[tuple[str, str]]:
     return anchors(read_page(page))
 
 
-@pytest.mark.parametrize("page", sorted(APPROVED_PAGES))
+@pytest.mark.parametrize("page", ANCHORED_FILES)
 def test_every_anchor_resolves(page):
-    """Each `path::symbol` on the page names an existing file that defines, or contains, the symbol."""
+    """Each `path::symbol` on a page or in a code map names an existing file that defines, or contains, the symbol."""
     problems = [
         f"{page}: `{path}::{symbol}`: {problem}"
         for path, symbol in _anchors(page)
@@ -109,16 +114,41 @@ def test_every_anchor_resolves(page):
     assert problems == []
 
 
-@pytest.mark.parametrize("page", sorted(APPROVED_PAGES))
+@pytest.mark.parametrize("page", ANCHORED_FILES)
 def test_no_anchor_uses_a_line_number(page):
     """No page points at code by line number (`main.py:42`, `#L42`, prose "file.py lines 12-34"); line numbers
     drift."""
     assert _LINE_NUMBER_RE.findall(read_page(page)) == []
 
 
-def test_the_detail_pages_carry_anchors():
-    """The anchor check has something to check: every depth-2 page carries anchors."""
-    assert [page for page, depth in APPROVED_PAGES.items() if depth > 1 and not _anchors(page)] == []
+def page_anchor_problems(page: str, text: str) -> list[str]:
+    """Each `path::symbol` on a page that may carry none; the page's code map holds them."""
+    return [
+        f"{page}: `{path}::{symbol}` belongs in the page's code map, not on the page" for path, symbol in anchors(text)
+    ]
+
+
+@pytest.mark.parametrize("page", sorted(page for page in APPROVED_PAGES if page not in ANCHORED_PAGES))
+def test_a_page_carries_no_anchor(page):
+    """A page states facts in plain words; its code map, not the page, says where the code realises them."""
+    assert page_anchor_problems(page, read_page(page)) == []
+
+
+def test_planted_anchor_on_a_page_is_reported():
+    """A `path::symbol` left on a page fails, naming the page and the anchor."""
+    assert page_anchor_problems("docs/x.md", "- a fact → `main.py::run`\n") == [
+        "docs/x.md: `main.py::run` belongs in the page's code map, not on the page"
+    ]
+
+
+def test_every_depth_two_page_has_a_code_map():
+    """Each depth-2 page has a CONTEXT.md whose `## Code map` links the page and carries anchors to check."""
+    assert sorted(page for page, depth in APPROVED_PAGES.items() if depth == 2) == sorted(CODE_MAPS)
+    for page, code_map in CODE_MAPS.items():
+        lines = section(read_page(code_map), "Code map")
+        link = os.path.relpath(REPO_ROOT / page, (REPO_ROOT / code_map).parent)
+        assert any(f"]({link})" in line for line in lines), f"{code_map}: its code map does not link {link}"
+        assert anchors("\n".join(lines)), f"{code_map}: its code map carries no anchor"
 
 
 def test_anchor_resolution_rejects_a_missing_file_and_a_missing_symbol():
@@ -228,10 +258,11 @@ def unplaced_list_items(page: str, text: str) -> list[str]:
     return problems
 
 
-@pytest.mark.parametrize("page", sorted(page for page, depth in APPROVED_PAGES.items() if depth > 1))
-def test_every_list_item_says_where_it_is_realised(page):
-    """Each depth-2 list item ends in `→` and a destination; a lead-in's `→` destination covers its items."""
-    assert unplaced_list_items(page, read_page(page)) == []
+@pytest.mark.parametrize("code_map", sorted(set(CODE_MAPS.values())))
+def test_every_code_map_item_says_where_it_is_realised(code_map):
+    """Each item of a `## Code map` ends in `→` and an anchor, a component or a link."""
+    lines = section(read_page(code_map), "Code map")
+    assert unplaced_list_items(code_map, "\n".join(["## Code map", *lines])) == []
 
 
 def test_an_unplaced_list_item_is_reported_and_a_lead_in_anchor_covers_its_items():

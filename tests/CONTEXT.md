@@ -44,6 +44,12 @@ Not responsible for: a run over a real checkout (`local-integration.sh`).
 - `make coverage` requires 80 % (`COV_MIN` in the `Makefile`).
 - `tests/docs/` checks every tracked Markdown page: a new page goes into `APPROVED_PAGES` in `tests/docs/pages.py`.
   Agent files and `CONTEXT.md` files are not pages (`NOT_PAGES`, `tracked_markdown()`).
+- A page carries no `path::symbol`, except `DEVELOPER.md` (`ANCHORED_PAGES`); a depth-2 page's anchors live in the
+  `## Code map` of the `CONTEXT.md` that `CODE_MAPS` pairs it with, and `test_anchors.py` resolves those too. Moving or
+  renaming a symbol a code map names fails `make test`.
+- `pages.py` is a hand-written Markdown reader, copied from `living-doc-toolkit`: fences in lists, blockquotes and
+  HTML comments, four-space indented code, titled and reference-style links. Fix a misread there, with a test, rather
+  than reword a page around it.
 - `tests/docs/test_option_lists.py` collects upper-case names from every tracked or untracked, non-ignored file outside
   `tests/` that isn't Markdown, and expects `NOT_PRODUCED` among none of them: a stray local file naming it fails
   the test.

@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Anyone who plans work on this repository reads this page. It holds only behaviour that is not built yet; a section
-leaves, into the live docs, in the change that builds it ([docs lifecycle](.claude/rules/docs-lifecycle.md)).
+This page defines only behaviour that is not built yet. A section leaves, into the live docs, in the change that
+builds it ([docs lifecycle](.claude/rules/docs-lifecycle.md)).
 
 Read before: [README](README.md), which routes to everything that is built.
 
