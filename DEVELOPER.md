@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Anyone who changes this repository reads this page. It covers setup, the quality gates, the two local runs,
-versioning, the release, and the rules for writing documentation.
+This page is how to change this repository: setup, the quality gates, the two local runs, versioning, the
+release, and the rules for writing documentation.
 
 Read before: [README](README.md)
 
@@ -207,7 +207,8 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 ### Every page
 
 1. `# Title`.
-2. `## Purpose`: 1 to 3 sentences, who reads the page and what they get; then `Read before:` and `Next:` links where the page sits on a reading path.
+2. `## Purpose`: 1 to 3 sentences, what the page is for ("This page is …", "This page defines …"); then
+   `Read before:` and `Next:` links where the page sits on a reading path.
    - `README.md` is the exception: its Purpose says what the action does and where it sits in the pipeline.
      Why: GitHub shows the README as the repository's front page, so it opens with the action, not the page.
 3. `## Contents`: links to every other `##` chapter of the page, and nothing else.
@@ -218,8 +219,8 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 | Part | Form | Checked against |
 |---|---|---|
 | Principle | at most 5 short sentences: the core idea | review |
-| Decision list | one line per decision: `decision → path::symbol` where the code realises it | code |
-| Fact list | one line per fact the code relies on: `fact → path::symbol`, or a test | code |
+| Decision list | one line per decision; the page's code map names where the code realises it | code, through the code map |
+| Fact list | one line per fact the code relies on; the page's code map names its `path::symbol`, or a test | code, through the code map |
 | Why | one indented `Why:` line under a rule, decision or fact, at most 20 words | review |
 | Option list | every available option with a one-line meaning; complete | the input, output, field or code list in code |
 | Example | at most 20 lines; run or parsed by a test | tests |
@@ -234,13 +235,20 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 
 ### Anchors
 
+- A page states facts for people and carries no `path::symbol`. The `CONTEXT.md` beside the code holds the page's code
+  map.
+  - A code map is a `## Code map` chapter, one line per fact: `fact → path::symbol`.
+    `tests/docs/pages.py::CODE_MAPS` pairs each depth-2 page with its map.
+  - Why: an agent needs the anchor; a reader needs the fact.
+- `DEVELOPER.md` may carry anchors: its readers work in the `Makefile`, the workflows and the scripts.
+- A fact on a page may still end in `→` and a component or a link, never an anchor.
+- A changed fact changes the page and its code map together.
 - `path` is relative to the repository root: `utils/artifact.py::store_artifact`.
 - `symbol` is a module-level name, or a dotted one for a member: `ActionInputs._validate`.
 - A test is `tests/<path>.py::test_name`; a non-Python file names a text it contains: `Makefile::qa`.
 - Never use line numbers; they drift.
 - A rule another component must realise names that component instead of an anchor: `→ utilities`, `→ toolkit`.
-- On a depth-2 or depth-3 page, every top-level list item ends in `→` and an anchor, a component or a link.
-- Items under a lead-in that carries `→` inherit it, e.g. a lead-in `` What this mode fills → `…::build_result`: ``.
+- Every code-map item ends in `→` and an anchor, a component or a link.
 - `README.md` is no PyPI description, so it links repository files relatively: `docs/action.md`.
 
 ### Examples
@@ -255,10 +263,11 @@ Depth is where a page sits in the folder tree. Deeper means more detail.
 | Check | Where |
 |---|---|
 | page list and depths, `Purpose` then `Contents`, Contents links, no orphan page, README links relative | `tests/docs/test_page_structure.py` |
-| every `path::symbol` resolves; no line-number anchor; every depth-2 list item says where it is realised | `tests/docs/test_anchors.py` |
+| every `path::symbol` on a page or in a code map resolves; no line-number anchor; no anchor on a page but `DEVELOPER.md`; every depth-2 page has a code map, each item saying where it is realised | `tests/docs/test_anchors.py` |
 | every example parses or runs; every `with:` key is an `action.yml` input; one release named | `tests/docs/test_examples.py` |
 | the input and output lists equal `action.yml`; every code a page names is in `ALL_CODES` | `tests/docs/test_option_lists.py` |
 | links and `#fragments` resolve | `.github/workflows/link-check.yml::lychee` |
-| a pull request that changes only a page, `action.yml` or a file a page anchors still runs these tests | `.github/workflows/test.yml::docs_changed`, `tests/docs/test_ci_filter.py` |
+| a pull request that changes only a page, a code map, `action.yml` or a file a page or a code map anchors still runs these tests | `.github/workflows/test.yml::docs_changed`, `tests/docs/test_ci_filter.py` |
 
-To add a page: put it at its depth, add it to `tests/docs/pages.py::APPROVED_PAGES`, and link it from `README.md`.
+To add a page: put it at its depth, add it to `tests/docs/pages.py::APPROVED_PAGES`, and link it from `README.md`; at
+depth 2, add its code map and pair the two in `tests/docs/pages.py::CODE_MAPS`.

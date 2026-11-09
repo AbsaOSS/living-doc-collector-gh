@@ -80,7 +80,7 @@ The one output, `output-path`, is the resolved, absolute output root; each mode 
 | mine user stories, functionalities and features from source files | [Documentation Source mode](doc_source/README.md) |
 | mine UI test scenarios | [UI Tests mode](ui_tests/README.md) |
 | know what `doc-issues` does in this version | [Documentation Issues mode](doc_issues/README.md) |
-| write the headers and scenarios this action reads | [Living Doc Header Types](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/living-doc-header-types.md) |
+| write the headers and scenarios this action reads | [Authoring formats](https://github.com/AbsaOSS/living-doc/blob/master/docs/reference/authoring-formats.md) |
 | see what is planned but not built yet | [Specification](SPEC.md) |
 | set up the repository, run the gates or a local run, release | [Developer guide](DEVELOPER.md) |
 | contribute a change | [Contributing](CONTRIBUTING.md) |

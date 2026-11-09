@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 
-"""`test.yml` runs these checks whenever a file they read changes: a page, `action.yml`, or a file a page anchors."""
+"""`test.yml` runs these checks whenever a file they read changes: a page, a code map, `action.yml`, or a file a page
+or a code map anchors."""
 
 import re
 from functools import lru_cache
@@ -22,7 +23,7 @@ from functools import lru_cache
 import pytest
 import yaml
 
-from tests.docs.pages import ANCHOR_RE, APPROVED_PAGES, REPO_ROOT, read_page
+from tests.docs.pages import ANCHOR_RE, APPROVED_PAGES, CODE_MAPS, REPO_ROOT, read_page
 
 TEST_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "test.yml"
 
@@ -45,7 +46,7 @@ def runs_tests(path: str, filters: tuple[re.Pattern[str], ...]) -> bool:
 
 
 def unfiltered_anchor_paths(pages: dict[str, str], filters: tuple[re.Pattern[str], ...]) -> list[str]:
-    """Each file a page anchors that a change of its own would not run the tests for."""
+    """Each file a page or a code map anchors that a change of its own would not run the tests for."""
     paths = {anchor_m.group("path") for text in pages.values() for anchor_m in ANCHOR_RE.finditer(text)}
     return sorted(path for path in paths if not runs_tests(path, filters))
 
@@ -55,9 +56,9 @@ def test_the_detect_step_has_both_filters():
     assert len(change_filters()) == 2
 
 
-@pytest.mark.parametrize("path", [*sorted(APPROVED_PAGES), "action.yml"])
-def test_a_change_of_a_page_or_action_yml_runs_the_tests(path):
-    """Every approved page, and `action.yml`, sets a filter."""
+@pytest.mark.parametrize("path", [*sorted(APPROVED_PAGES), *sorted(set(CODE_MAPS.values())), "action.yml"])
+def test_a_change_of_a_page_a_code_map_or_action_yml_runs_the_tests(path):
+    """Every approved page, every code map's `CONTEXT.md`, and `action.yml` set a filter."""
     assert runs_tests(path, change_filters())
 
 
@@ -87,8 +88,10 @@ def test_a_rename_lists_its_old_path_too():
 
 
 def test_a_change_of_a_file_a_page_anchors_runs_the_tests():
-    """A workflow, script or config file a page anchors sets a filter, so renaming the anchored text fails at once."""
-    assert unfiltered_anchor_paths({page: read_page(page) for page in APPROVED_PAGES}, change_filters()) == []
+    """A workflow, script or config file a page or a code map anchors sets a filter, so renaming the anchored text
+    fails at once."""
+    anchoring = {*APPROVED_PAGES, *CODE_MAPS.values()}
+    assert unfiltered_anchor_paths({path: read_page(path) for path in anchoring}, change_filters()) == []
 
 
 def test_planted_anchor_into_an_unfiltered_file_is_reported():
