@@ -67,8 +67,9 @@ jobs:
             echo "python_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # A Markdown, `action.yml` or other non-Python file the pages anchor runs the tests job too: tests/docs/
-          # checks every tracked page, its anchors, examples and option lists against `action.yml`, and
+          # A Markdown file (a page or a code map's CONTEXT.md), `action.yml` or other non-Python file the pages or
+          # code maps anchor runs the tests job too: tests/docs/ checks every tracked page, the code maps' anchors,
+          # the examples and option lists against `action.yml`, and
           # tests/test_action_yml.py reads `action.yml`. tests/docs/test_ci_filter.py keeps this list complete.
           if echo "$changed_files" | grep -E '(\.([Mm][Dd]|[Mm][Aa][Rr][Kk][Dd][Oo][Ww][Nn])$|^action\.yml$|\.sh$|\.example$|^\.github/(dependabot\.yml|workflows/[^/]+\.ya?ml)$)' > /dev/null; then
             echo "docs_changed=true" >> "$GITHUB_OUTPUT"
