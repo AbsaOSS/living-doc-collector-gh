@@ -22,8 +22,11 @@ What realises each fact of [README.md](README.md), the mode's page:
 - The output file name → `ui_tests/collector.py::UI_TESTS_FILE_NAME`
 - Written through `write_artifact`: validated, then written atomically → `utils/artifact.py::store_artifact`
 - What the mode fills in the contract → `ui_tests/collector.py::GHUITestsCollector.build_result`
-- One scenario per `Scenario:`; `@tutorial` scenarios and files are not mined → `ui_tests/collector.py::_is_tutorial_file`
-- `scenario_id`, its slug and its `-2`, `-3` suffixes → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+- One scenario per `Scenario:` or `Scenario Outline:` → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+- A file whose feature-level tags include `@tutorial` is not mined → `ui_tests/collector.py::_is_tutorial_file`
+- A scenario tagged `@tutorial` is not mined → `ui_tests/collector.py::_without_tutorial_scenarios`
+- `scenario_id` is `<org>/<repo>/<native_id>/<title slug>` → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+- The slug, `-2`, `-3` for a repeat within a file, `scenario` for a title with no ASCII letter or digit → `ui_tests/collector.py::_slugify`
 - `source_ref`, its permalink and `NO_SOURCE_URL` → `utils/artifact.py::build_source_ref`
 - A path with no matching files logs a warning → `utils/feature_file_discovery.py::discover_feature_files`
 - An unreadable file is logged and skipped → `ui_tests/collector.py::GHUITestsCollector._collect_file`

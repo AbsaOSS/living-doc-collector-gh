@@ -65,7 +65,8 @@ normalizing or generating documentation (later pipeline steps).
   mode clears its directory, so a previous run's output stays; a directory that can't be removed is logged as an
   error → [docs/action.md](docs/action.md#errors).
 - The contracts belong to `living-doc-utilities`: a field's shape changes there and arrives by re-pinning. No
-  `*-schema.json` is committed here (`make no-vendored-schemas`).
+  `*-schema.json` of an active contract is committed here (`make no-vendored-schemas`, which skips `tests/` and the
+  kept-aside `doc_issues/`).
 - `requirements.txt` is runtime-only, because `action.yml` installs it on every caller's run. Test, lint and type tools
   go in `requirements-dev.txt` (`make runtime-requirements`).
 - The supported path is the Action on a GitHub-hosted runner. `local-integration.sh` and a hand-run `python3 main.py`
@@ -116,7 +117,7 @@ What realises each fact of [`docs/action.md`](docs/action.md), the action's refe
 - `sources_failed` counts the sources that failed → `utils/artifact.py::collect_sources`
 - `metadata.source.repositories` lists only the repositories the artifact documents → `utils/artifact.py::build_metadata`
 - The contract models and parsers come from the pinned `living-doc-utilities` → `requirements.txt::living-doc-utilities`
-- No schema file or contract-model copy is committed → `Makefile::no-vendored-schemas`
+- No schema file or model copy of the two contracts is committed → `Makefile::no-vendored-schemas`
 - Every artifact is written through `write_artifact` → `utils/artifact.py::store_artifact`
 - `source_ref.url` permalinks default to `https://github.com` → `utils/github_urls.py::DEFAULT_SERVER_URL`
 - `github-server-url` sets the permalinks' server → `utils/github_urls.py::server_url`
