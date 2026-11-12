@@ -136,7 +136,6 @@ Each configured repository entry is one **source**, collected on its own.
 - This repository imports their models and parsers from the pinned `living-doc-utilities` release
 - It vendors none of them: no schema file and no local copy of a contract model is committed
 - Every artifact is written through `write_artifact`, which fills `metadata.stats` and validates the result before anything is written
-- Until `living-doc-toolkit` moves onto the `living-doc-utilities` release this action pins, `toolkit` on `master` cannot read this output → toolkit
 - The authoring formats this action reads and the pipeline it feeds are documented in `living-doc` → [Authoring formats](https://github.com/AbsaOSS/living-doc/blob/master/docs/reference/authoring-formats.md), [Collecting from GitHub](https://github.com/AbsaOSS/living-doc/blob/master/docs/guides/github-collection.md), [Architecture](https://github.com/AbsaOSS/living-doc/blob/master/docs/introduction/architecture.md)
 
 ## GitHub Enterprise Server

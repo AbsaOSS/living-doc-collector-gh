@@ -147,7 +147,7 @@ A run, in order:
 
 1. **Checks** what `--check` checks. A missing variable or path, or a Python below 3.10, stops it with one line that names it.
 2. **Builds its venv**, `.venv-local-integration/` (git-ignored), separate from the development `.venv`. It installs only `requirements.txt` (`pip install -r`): a runtime requirement missing from that file fails here, as on a runner.
-   - It follows `action.yml`: `PIP_TARGET`, `PIP_PREFIX`, `PIP_USER` and `PYTHONPATH` unset, an import check after the install, and `main.py` run with `-E`.
+   - It follows `action.yml`: `PIP_TARGET`, `PIP_PREFIX`, `PIP_USER`, `PIP_ROOT`, `PIP_PYTHON` and `PYTHONPATH` unset, an import check after the install, and `main.py` run with `-E`.
    - The venv is reused only when the same interpreter built it from the same `requirements.txt`.
 3. **Prints what runs**: the collector commit, the installed `living-doc-utilities` version, the Python version and the target commit. A commit is marked when tracked files differ from it.
 4. **Runs `doc-source`, then `ui-tests`**, each as its own `main.py` run into `$OUT_DIR/collector-gh/<mode>/`, having cleared both mode directories first. Each command is echoed before it runs.

@@ -1,6 +1,6 @@
 [project]
 name = "living-doc-collector-gh"
-version = "0.1.1"
+version = "0.2.0"
 description = "Collect living documentation data from GitHub repositories."
 requires-python = ">=3.10"
 
