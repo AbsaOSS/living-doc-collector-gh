@@ -195,9 +195,9 @@ if [ "$CHECK_ONLY" = true ]; then
 fi
 
 # --- The venv, as `action.yml` builds its own --------------------------------------------------------------------
-# The install must land in the venv and nowhere else: these redirect pip's target or prepend to `sys.path`.
-# Unset, not set empty: pip reads its own variables as configuration values.
-unset PIP_TARGET PIP_PREFIX PIP_USER PYTHONPATH
+# The install must land in the venv and nowhere else: these redirect pip's target, install into another interpreter,
+# or prepend to `sys.path`. Unset, not set empty: pip reads its own variables as configuration values.
+unset PIP_TARGET PIP_PREFIX PIP_USER PIP_ROOT PIP_PYTHON PYTHONPATH
 
 venv_python() {
   if [ -x "$VENV/bin/python" ]; then

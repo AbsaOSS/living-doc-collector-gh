@@ -68,6 +68,16 @@ def test_every_mode_switch_is_optional_and_off_by_default(switch):
     assert spec["default"] == "false"
 
 
+def test_the_venv_step_unsets_every_variable_that_moves_the_install_out_of_the_venv():
+    # Assert: `PIP_TARGET`, `PIP_PREFIX`, `PIP_USER` and `PIP_ROOT` redirect where pip writes, `PIP_PYTHON`
+    # points pip at another interpreter, and `PYTHONPATH` shadows the venv's packages. A caller that exports
+    # any of them would otherwise leave the venv empty.
+    code = [line.split("#", 1)[0].strip() for line in ACTION_YML.read_text(encoding="utf-8").splitlines()]
+    assert [line for line in code if line.startswith("unset ")] == [
+        "unset PIP_TARGET PIP_PREFIX PIP_USER PIP_ROOT PIP_PYTHON PYTHONPATH"
+    ]
+
+
 def test_the_action_proves_the_requirements_landed_in_the_venv():
     # Assert: the install is followed by an import through the venv's own interpreter. A runner `pip.conf`
     # that redirects the packages (`target`/`prefix`, which no `unset` can reach) leaves `pip install`

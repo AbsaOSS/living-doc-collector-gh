@@ -82,10 +82,10 @@ runs:
       id: venv
       shell: bash
       run: |
-        # The install must land in the venv and nowhere else. These redirect pip's target directory or
-        # prepend to `sys.path`, so a caller that exports them would otherwise leave the venv empty or
-        # shadow its packages. Unset (not set empty: pip reads its own vars as config values).
-        unset PIP_TARGET PIP_PREFIX PIP_USER PYTHONPATH
+        # The install must land in the venv and nowhere else. These redirect pip's target directory, install
+        # into another interpreter or prepend to `sys.path`, so a caller that exports them would otherwise
+        # leave the venv empty or shadow its packages. Unset (not set empty: pip reads its own vars as config values).
+        unset PIP_TARGET PIP_PREFIX PIP_USER PIP_ROOT PIP_PYTHON PYTHONPATH
         PY="$(command -v python3 || command -v python || true)"
         if [ -z "$PY" ] || ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
           echo "::error::living-doc-collector-gh needs Python >= 3.10 on PATH. Add actions/setup-python before this step."; exit 1

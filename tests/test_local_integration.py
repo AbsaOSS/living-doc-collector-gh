@@ -51,6 +51,7 @@ from utils.utils import load_repository_configs
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "local-integration.sh"
+ACTION_YML = REPO_ROOT / "action.yml"
 EXAMPLE_CONFIG = REPO_ROOT / ".env.local.example"
 WORKFLOWS = REPO_ROOT / ".github" / "workflows"
 FULL_SAMPLE = Path(__file__).resolve().parent / "fixtures" / "full_sample"
@@ -554,6 +555,15 @@ def test_the_only_install_is_the_runtime_requirements_into_the_scripts_venv():
     installs = [line for line in _shell_code() if re.search(r"\bpip\b", line) and re.search(r"\binstall\b", line)]
     assert installs == ['run "$VPY" -m pip install --disable-pip-version-check -r requirements.txt']
     assert "requirements-dev" not in SCRIPT.read_text(encoding="utf-8")
+
+
+def test_the_script_unsets_the_same_pip_variables_as_action_yml():
+    # Arrange
+    action = [line.split("#", 1)[0].strip() for line in ACTION_YML.read_text(encoding="utf-8").splitlines()]
+    [unset] = [line for line in action if line.startswith("unset PIP_")]
+
+    # Assert: the script's venv is built as the action's is, so the install lands in it alone.
+    assert unset in _shell_code()
 
 
 def test_the_script_never_sources_or_evaluates_a_file():
