@@ -453,3 +453,109 @@ def test_validate_does_not_read_a_disabled_mode_s_invalid_repositories_input(moc
     # Act & Assert
     assert ActionInputs().validate_user_configuration() is True
     mock_log_error.assert_not_called()
+
+
+# doc-check
+
+
+def test_doc_check_mode_is_off_by_default_and_on_with_true(monkeypatch):
+    # Act & Assert
+    assert ActionInputs.is_doc_check_mode_enabled() is False
+    monkeypatch.setenv("INPUT_DOC_CHECK", "TRUE")
+    assert ActionInputs.is_doc_check_mode_enabled() is True
+
+
+def test_doc_check_changed_paths_are_read_one_per_line_without_blank_lines(monkeypatch):
+    # Arrange
+    monkeypatch.setenv("INPUT_DOC_CHECK_CHANGED_PATHS", "a/us.feature\n\n  pages/Page.ts  \r\n")
+
+    # Act & Assert
+    assert ActionInputs.get_doc_check_changed_paths() == ["a/us.feature", "pages/Page.ts"]
+
+
+def test_doc_check_changed_paths_default_to_none():
+    # Act & Assert
+    assert ActionInputs.get_doc_check_changed_paths() == []
+
+
+def test_the_runner_context_is_read_from_the_runner_variables(monkeypatch):
+    # Arrange
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", "/runner/summary.md")
+
+    # Act & Assert
+    assert ActionInputs.is_github_actions() is True
+    assert ActionInputs.get_step_summary_path() == "/runner/summary.md"
+    monkeypatch.delenv("GITHUB_ACTIONS")
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY")
+    assert ActionInputs.is_github_actions() is False
+    assert ActionInputs.get_step_summary_path() == ""
+
+
+@pytest.mark.parametrize(
+    "others, expected_error",
+    [
+        (
+            ["INPUT_UI_TESTS"],
+            "[INVALID_CONFIGURATION] `doc-check` runs alone, but `ui-tests` is also `true`; "
+            "run each in a step of its own.",
+        ),
+        (
+            ["INPUT_DOC_SOURCE", "INPUT_UI_TESTS"],
+            "[INVALID_CONFIGURATION] `doc-check` runs alone, but `doc-source` and `ui-tests` are also `true`; "
+            "run each in a step of its own.",
+        ),
+    ],
+)
+def test_validate_fails_when_doc_check_runs_with_another_mode(mocker, monkeypatch, others, expected_error):
+    # Arrange
+    monkeypatch.setenv("INPUT_DOC_CHECK", "true")
+    for other in others:
+        monkeypatch.setenv(other, "true")
+    mock_log_error = mocker.patch("action_inputs.logger.error")
+
+    # Act & Assert
+    assert ActionInputs().validate_user_configuration() is False
+    assert _logged(mock_log_error)[0] == expected_error
+
+
+def test_validate_checks_the_doc_source_repositories_doc_check_reads(mocker, monkeypatch):
+    # Arrange
+    monkeypatch.setenv("INPUT_DOC_CHECK", "true")
+    monkeypatch.setenv("INPUT_DOC_SOURCE_REPOSITORIES", json.dumps([{"organization-name": "absa-group"}]))
+    mock_log_error = mocker.patch("action_inputs.logger.error")
+
+    # Act & Assert
+    assert ActionInputs().validate_user_configuration() is False
+    assert _logged(mock_log_error) == [
+        "[INVALID_CONFIGURATION] `doc-source-repositories` entry 0 is malformed: missing key `repository-name`.",
+        "User configuration validation failed.",
+    ]
+
+
+def test_validate_does_not_warn_of_an_artifact_for_doc_check_without_repositories(mocker, monkeypatch):
+    # Arrange
+    monkeypatch.setenv("INPUT_DOC_CHECK", "true")
+    mock_log_warning = mocker.patch("action_inputs.logger.warning")
+
+    # Act & Assert
+    assert ActionInputs().validate_user_configuration() is True
+    mock_log_warning.assert_not_called()
+
+
+def test_the_effective_configuration_names_doc_check_and_its_inputs(mocker, monkeypatch):
+    # Arrange
+    monkeypatch.setenv("INPUT_DOC_CHECK", "true")
+    monkeypatch.setenv("INPUT_DOC_SOURCE_REPOSITORIES", json.dumps([VALID_DOC_SOURCE_ENTRY]))
+    monkeypatch.setenv("INPUT_DOC_CHECK_CHANGED_PATHS", "us/us-1.feature\n")
+    mock_log_info = mocker.patch("action_inputs.logger.info")
+
+    # Act
+    assert ActionInputs().validate_user_configuration() is True
+
+    # Assert
+    assert _logged(mock_log_info)[-3:] == [
+        "Mode: `doc-check`: Enabled.",
+        f"Mode(doc-check): `doc-source-repositories`: {[VALID_DOC_SOURCE_ENTRY]}.",
+        "Mode(doc-check): `doc-check-changed-paths`: ['us/us-1.feature'].",
+    ]

@@ -18,7 +18,7 @@ inputs:
     required: false
     default: 'https://github.com'
   github-token:
-    description: 'Optional and unused: the `doc-source` and `ui-tests` modes read local checkouts and make no GitHub API call.'
+    description: 'Optional and unused: the modes read local checkouts and make no GitHub API call.'
     required: false
     default: ''
   doc-issues:
@@ -59,6 +59,16 @@ inputs:
     description: 'JSON string defining the repositories for ui-tests mode.'
     required: false
     default: '[]'
+
+  # doc-check mode action inputs; its files are those of `doc-source-repositories`
+  doc-check:
+    description: 'Enable or disable `Documentation Check` mode: check the changed living-doc files of a pull request. Runs alone and writes nothing.'
+    required: false
+    default: 'false'
+  doc-check-changed-paths:
+    description: 'The pull request''s changed paths, one per line, as `git diff --name-only <base>...<head>` prints them.'
+    required: false
+    default: ''
 
 outputs:
   output-path:
@@ -125,6 +135,7 @@ runs:
         INPUT_DOC_ISSUES: ${{ inputs.doc-issues }}
         INPUT_DOC_SOURCE: ${{ inputs.doc-source }}
         INPUT_UI_TESTS: ${{ inputs.ui-tests }}
+        INPUT_DOC_CHECK: ${{ inputs.doc-check }}
 
         INPUT_VERBOSE_LOGGING: ${{ inputs.verbose-logging }}
 
@@ -132,6 +143,8 @@ runs:
         # any whitespace, and a step `env:` value carries newlines as they are.
         INPUT_DOC_SOURCE_REPOSITORIES: ${{ inputs.doc-source-repositories }}
         INPUT_UI_TESTS_REPOSITORIES: ${{ inputs.ui-tests-repositories }}
+        # One path per line; a step `env:` value carries the newlines as they are.
+        INPUT_DOC_CHECK_CHANGED_PATHS: ${{ inputs.doc-check-changed-paths }}
       run: |
         # `-E`: a venv isolates site-packages, not the environment. A caller's `PYTHONPATH` still precedes
         # the venv on `sys.path`, so a package vendored there would shadow the pinned one; `-E` makes the

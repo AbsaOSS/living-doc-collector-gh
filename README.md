@@ -24,8 +24,9 @@ of a living-documentation pipeline. It writes JSON, in the contracts `living-doc
 
 - **Documentation Source** (`doc-source`): User Story, Functionality and Feature headers from `.feature` and PageObject files, as `doc-source-v1.0.0` → [mode](doc_source/README.md)
 - **UI Tests** (`ui-tests`): UI test scenarios from `.feature` scenario blocks, as `ui-tests-v1.0.0` → [mode](ui_tests/README.md)
+- **Documentation Check** (`doc-check`): checks a pull request's changed living-doc files before the merge, and fails the step on the policy's codes; writes no artifact → [mode](doc_check/README.md)
 - **Documentation Issues** (`doc-issues`): GitHub Issues as a documentation source; PLANNED, and `true` fails the run at start → [mode](doc_issues/README.md)
-- Modular: activate only the modes you need; each writes one artifact, validated before it is written → [Contracts](docs/action.md#contracts)
+- Modular: activate only the modes you need; each collecting mode writes one artifact, validated before it is written → [Contracts](docs/action.md#contracts)
 - Deterministic: the same checkouts always give the same records; collection reads only those checkouts.
 - Pipeline-ready: it chains with the other `living-doc-*` actions → [Architecture](https://github.com/AbsaOSS/living-doc/blob/master/docs/introduction/architecture.md)
 - GitHub Actions first: a step in a workflow is the supported way to run it; a local run is a development and operator-check aid, not a second deployment target → [Debug run](DEVELOPER.md#debug-run), [Local Integration Run](DEVELOPER.md#local-integration-run)
@@ -62,6 +63,7 @@ Every input at a glance; required flags, defaults and errors are in the [action 
 - `project-id` (required): the project the run documents
 - `doc-source`, `doc-source-repositories`: run the Documentation Source mode, and its sources
 - `ui-tests`, `ui-tests-repositories`: run the UI Tests mode, and its sources
+- `doc-check`, `doc-check-changed-paths`: run the Documentation Check mode over `doc-source-repositories`, and the pull request's changed paths
 - `output-path`: the output root, `./output/collector-gh` by default
 - `allow-partial`: write without a failed source instead of failing the mode
 - `github-server-url`: the GitHub server, for `source_ref.url` permalinks
@@ -79,6 +81,7 @@ The one output, `output-path`, is the resolved, absolute output root; each mode 
 | set every input, read the output, handle an error | [Action reference](docs/action.md) |
 | mine user stories, functionalities and features from source files | [Documentation Source mode](doc_source/README.md) |
 | mine UI test scenarios | [UI Tests mode](ui_tests/README.md) |
+| check a pull request's living-doc files before the merge | [Documentation Check mode](doc_check/README.md) |
 | know what `doc-issues` does in this version | [Documentation Issues mode](doc_issues/README.md) |
 | write the headers and scenarios this action reads | [Authoring formats](https://github.com/AbsaOSS/living-doc/blob/master/docs/reference/authoring-formats.md) |
 | see what is planned but not built yet | [Specification](SPEC.md) |

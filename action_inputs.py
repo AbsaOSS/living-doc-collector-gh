@@ -21,6 +21,7 @@ which are essential for running the GH action.
 
 import json
 import logging
+import os
 import re
 from typing import Callable
 
@@ -34,6 +35,7 @@ from ui_tests.model.config_repository import ConfigRepository as UITestsConfigRe
 from utils.constants import (
     ALLOW_PARTIAL,
     DEFAULT_OUTPUT_PATH,
+    DOC_CHECK_CHANGED_PATHS,
     DOC_SOURCE_REPOSITORIES,
     GITHUB_SERVER_URL,
     OUTPUT_PATH,
@@ -177,6 +179,39 @@ class ActionInputs(BaseActionInputs):
         return _get_repositories(UI_TESTS_REPOSITORIES)
 
     @staticmethod
+    def is_doc_check_mode_enabled() -> bool:
+        """
+        Getter of the doc-check mode switch.
+        @return: True if doc-check mode is enabled, False otherwise.
+        """
+        return get_action_input(Mode.DOC_CHECK.value, "false").lower() == "true"
+
+    @staticmethod
+    def get_doc_check_changed_paths() -> list[str]:
+        """
+        Getter of the pull request's changed paths, one per line as `git diff --name-only` prints them.
+        @return: The paths, without surrounding whitespace or blank lines.
+        """
+        lines = get_action_input(DOC_CHECK_CHANGED_PATHS, "").splitlines()
+        return [line.strip() for line in lines if line.strip()]
+
+    @staticmethod
+    def is_github_actions() -> bool:
+        """
+        Whether the run is a GitHub Actions step: the runner sets `GITHUB_ACTIONS` to `true`.
+        @return: True inside GitHub Actions, False otherwise.
+        """
+        return os.getenv("GITHUB_ACTIONS", "") == "true"
+
+    @staticmethod
+    def get_step_summary_path() -> str:
+        """
+        Getter of the job summary file the runner gives the step in `GITHUB_STEP_SUMMARY`.
+        @return: The file's path, or an empty string outside GitHub Actions.
+        """
+        return os.getenv("GITHUB_STEP_SUMMARY", "")
+
+    @staticmethod
     def get_verbose_logging() -> bool:
         """
         Getter of the verbose logging switch. False by default.
@@ -198,6 +233,17 @@ class ActionInputs(BaseActionInputs):
             checks.append(lambda: _check_repositories(DOC_SOURCE_REPOSITORIES, DocSourceConfigRepository))
         if self.is_ui_tests_mode_enabled():
             checks.append(lambda: _check_repositories(UI_TESTS_REPOSITORIES, UITestsConfigRepository))
+        if self.is_doc_check_mode_enabled():
+            checks.append(self._check_doc_check_runs_alone)
+            if not self.is_doc_source_mode_enabled():
+                # The `doc-source` repositories, without `_check_repositories`' warning: `doc-check` writes no artifact.
+                checks.append(
+                    lambda: load_repository_configs(
+                        self.get_doc_source_repositories(),
+                        DocSourceConfigRepository,
+                        input_name(DOC_SOURCE_REPOSITORIES),
+                    )
+                )
 
         errors: list[ContractError] = []
         for check in checks:
@@ -216,6 +262,26 @@ class ActionInputs(BaseActionInputs):
         self._print_effective_configuration()
         return 0
 
+    def _check_doc_check_runs_alone(self) -> None:
+        """
+        `doc-check` writes nothing and runs no other mode's work, so no other mode may run in its step.
+        @raise ContractError: `INVALID_CONFIGURATION` naming each other mode that is on.
+        """
+        others = [
+            name
+            for name, enabled in (
+                ("doc-source", self.is_doc_source_mode_enabled()),
+                ("ui-tests", self.is_ui_tests_mode_enabled()),
+            )
+            if enabled
+        ]
+        if others:
+            raise ContractError(
+                Code.INVALID_CONFIGURATION,
+                f"`doc-check` runs alone, but {' and '.join(f'`{name}`' for name in others)} "
+                f"{'is' if len(others) == 1 else 'are'} also `true`; run each in a step of its own.",
+            )
+
     def _print_effective_configuration(self) -> None:
         """
         Print the effective configuration of the action inputs.
@@ -232,3 +298,7 @@ class ActionInputs(BaseActionInputs):
         logger.info("output-path: %s", self.get_output_path())
         logger.info("allow-partial: %s", self.is_allow_partial_enabled())
         logger.info("github-server-url: %s", self.get_github_server_url())
+        logger.info("Mode: `doc-check`: %s.", "Enabled" if ActionInputs.is_doc_check_mode_enabled() else "Disabled")
+        if ActionInputs.is_doc_check_mode_enabled():
+            logger.info("Mode(doc-check): `doc-source-repositories`: %s.", self.get_doc_source_repositories())
+            logger.info("Mode(doc-check): `doc-check-changed-paths`: %s.", self.get_doc_check_changed_paths())

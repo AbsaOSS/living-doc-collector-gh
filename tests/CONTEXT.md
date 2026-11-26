@@ -12,7 +12,7 @@ Not responsible for: a run over a real checkout (`local-integration.sh`).
 ## Conventions
 
 - `pytest` with `pytest-mock` (`mocker`), never `unittest`.
-- The layout mirrors the package: `tests/doc_source/`, `tests/ui_tests/`, `tests/utils/`, plus `tests/test_main.py`,
+- The layout mirrors the package: `tests/doc_source/`, `tests/ui_tests/`, `tests/doc_check/`, `tests/utils/`, plus `tests/test_main.py`,
   `tests/test_action_inputs.py` and `tests/test_contract_checks.py`. Shared fixtures live in `tests/conftest.py`.
 - Mock `INPUT_*` variables and the GitHub API; never make a real network call.
 - Test behaviour: return values, raised exceptions, log messages, exit codes.
@@ -31,6 +31,7 @@ Not responsible for: a run over a real checkout (`local-integration.sh`).
 | An unreadable source file | patch `pathlib.Path.read_text` with `autospec=True` and raise only for `.feature` / `.ts` suffixes | `tests/doc_source/test_collector.py::test_unreadable_file_is_skipped` |
 | A contract validation failure | patch the collector's `build_metadata` to return a `model_construct`-ed invalid `Source`, so `write_artifact`'s own validation fails | `tests/doc_source/test_collector.py::test_collect_validation_failure_leaves_no_output_file` |
 | Logging assertions | `mocker.patch("<module>.logger")` and assert on `.info` / `.warning` / `.error` | `tests/doc_source/test_collector.py` |
+| Inside or outside GitHub Actions, for `doc-check`'s report | `monkeypatch.setenv` or `delenv` of `GITHUB_ACTIONS` and `GITHUB_STEP_SUMMARY`: CI sets both, so a test that relies on either state sets it | `tests/doc_check/test_checker.py::_outside_github_actions` |
 | `main.run()` exit code and logs | `mocker.patch("sys.exit")` and `mock_log_info.assert_has_calls([...])`; or `pytest.raises(SystemExit)` when the run must stop | `tests/test_main.py` |
 
 ## Invariants and gotchas
