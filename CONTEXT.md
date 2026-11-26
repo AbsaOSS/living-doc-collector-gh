@@ -81,6 +81,8 @@ normalizing or generating documentation (later pipeline steps).
   (`pyproject.toml`, `Makefile::KEPT_ASIDE`).
 - `requirements.txt` and `action.yml` change together when inputs or dependencies change.
 - A hand-run `main.py` needs `GITHUB_OUTPUT` set, or its last step fails with a `KeyError`.
+- `.claude/settings.json` is committed and holds only permissions every contributor needs; save a personal approval
+  to `.claude/settings.local.json`, which `.gitignore` keeps untracked.
 - The release-notes configuration is the same in every `living-doc*` repository (AbsaOSS/living-doc#97):
   `release_draft.yml`'s `release-notes-title` and `chapters` through `row-format-link-pr`,
   `check_pr_release_notes.yml`'s `skip-labels`, and both workflows' `permissions:`. Change it in all of them together
