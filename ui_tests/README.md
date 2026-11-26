@@ -73,6 +73,12 @@ What this mode fills in the contract:
   - A slug repeated within one file gets `-2`, `-3`, … appended; a title with no ASCII letter or digit gets the slug `scenario`.
 - **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `scenario`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed`
   - Outside a Git checkout, `url` is empty and `NO_SOURCE_URL` is emitted.
+- **`line`**, **`steps`**, **`rule`**, **`rule_background`** and **`background`**: written as the scenario parser returns them; the mode computes none of them → [Scenarios](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/authoring/parsers.md#scenarios)
+  - `line` is the line of the `Scenario:` or `Scenario Outline:` keyword; a consumer links the scenario as `<source_ref.url>#L<line>`.
+  - `steps` are the scenario's lines as written, DataTables, DocStrings and `Examples:` blocks included.
+  - `rule` names the `Rule:` the scenario sits under, `null` outside one; `rule_background` holds that rule's own `Background:` lines.
+  - `background` holds the file's `Background:` lines.
+  - A tag line above an `Examples:` block is in neither `steps` nor the scenario's `tags`.
 
 ## Errors
 

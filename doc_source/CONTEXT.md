@@ -32,6 +32,7 @@ What realises each fact of [README.md](README.md), the mode's page:
 - Written through `write_artifact`: validated, then written atomically → `utils/artifact.py::store_artifact`
 - What the mode fills in the contract → `doc_source/collector.py::GHDocSourceCollector.build_result`
 - `source_ref`, its permalink and `NO_SOURCE_URL` → `utils/artifact.py::build_source_ref`
+- A User Story's or Functionality's `narrative` is its `Feature:` description, read by the parser → `doc_source/collector.py::GHDocSourceCollector._collect_feature_file`
 - A cross-reference PageObject header adds its page to its Feature → `doc_source/collector.py::GHDocSourceCollector._attach_cross_references`
 - A configured path with no matching files logs a warning → `utils/feature_file_discovery.py::discover_feature_files`
 - `EMPTY_SOURCE` when nothing in the source is read as a header → `doc_source/collector.py::_Collected.answered`

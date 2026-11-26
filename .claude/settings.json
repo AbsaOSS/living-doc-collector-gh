@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash .claude/skills/context-md/check.sh --base origin/master)"
+    ]
+  }
+}

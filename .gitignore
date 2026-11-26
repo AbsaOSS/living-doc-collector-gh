@@ -187,3 +187,6 @@ SPEC.md
 output/*
 # Local review loop state (/verify-pr-ready ledger, snapshots)
 .review/
+# Claude Code: `.claude/settings.json` is shared and committed; a developer's own permissions go to
+# `settings.local.json`, which stays untracked.
+.claude/settings.local.json

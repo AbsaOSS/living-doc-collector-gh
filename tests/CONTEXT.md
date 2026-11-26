@@ -5,7 +5,7 @@ Parent: [../CONTEXT.md](../CONTEXT.md)
 ## Purpose
 
 The pytest suite: unit tests per module, the R12 contract checks over the full-sample fixtures, the golden-entity
-checks and the documentation checks (`tests/docs/`).
+and golden-scenario checks and the documentation checks (`tests/docs/`).
 
 Not responsible for: a run over a real checkout (`local-integration.sh`).
 
