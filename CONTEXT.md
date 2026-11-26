@@ -13,9 +13,11 @@ normalizing or generating documentation (later pipeline steps).
 
 - Entry point: `main.py::run()`, which `action.yml` runs in the venv it builds under `$RUNNER_TEMP` from
   `requirements.txt`.
-- Modes: `doc-source` and `ui-tests` are active. `doc-issues` is PLANNED: requesting it fails the run at start.
+- Modes: `doc-source` and `ui-tests` collect, each into one artifact. `doc-check` checks a pull request's changed
+  living-doc files, writes nothing and runs alone. `doc-issues` is PLANNED: requesting it fails the run at start.
 - Depends on: `living-doc-utilities`, pinned in `requirements.txt`, for input reading (`BaseActionInputs`,
-  `get_action_input`), logging setup, the authoring parsers, the contract models and `write_artifact`.
+  `get_action_input`), logging setup, the authoring parsers, the contract models, `write_artifact`, and for
+  `doc-check` the authored-input check and the policy model.
 - Contracts: `doc-source-v1.0.0` and `ui-tests-v1.0.0`, imported from `living_doc_utilities.contracts`, never vendored.
 
 | Path | Holds |
@@ -23,6 +25,7 @@ normalizing or generating documentation (later pipeline steps).
 | `main.py` | `run()`: the step order, the `output-path` Action output and the exit code |
 | `action_inputs.py` | `ActionInputs(BaseActionInputs)`: every `INPUT_*` read, its default and its validation (`_validate()`, `validate_user_configuration()`) |
 | `doc_source/`, `ui_tests/` | one mode each: `collector.py` (`GHDocSourceCollector`, `GHUITestsCollector`) and `model/config_repository.py` → [doc_source/CONTEXT.md](doc_source/CONTEXT.md), [ui_tests/CONTEXT.md](ui_tests/CONTEXT.md) |
+| `doc_check/` | the `doc-check` mode: `checker.py` (`GHDocChecker`), over the files `doc_source/collector.py::read_source_files` reads → [doc_check/CONTEXT.md](doc_check/CONTEXT.md) |
 | `utils/artifact.py` | the metadata envelope, `source_ref`, warning location, collecting each source on its own (R13), and running a mode: `collect_artifact` → `store_artifact` → `write_artifact` |
 | `utils/constants.py` | the `Mode` enum, input key names, per-mode output sub-paths |
 | `utils/` (other) | `feature_file_discovery.py` (file discovery for both modes), `github_urls.py` (permalinks), `exceptions.py`, `utils.py` |
@@ -31,15 +34,16 @@ normalizing or generating documentation (later pipeline steps).
 | `tests/` | the pytest suite → [tests/CONTEXT.md](tests/CONTEXT.md) |
 
 `run()` order: set up logging → exit `1` with `INVALID_CONFIGURATION` when `doc-issues` is requested →
-`ActionInputs().validate_user_configuration()` → per mode, `doc-source` then `ui-tests`: skip when disabled, else
+`ActionInputs().validate_user_configuration()` → with `doc-check` on: `GHDocChecker().check()`, then exit `1` when the
+findings fail, else return, with no output set → per mode, `doc-source` then `ui-tests`: skip when disabled, else
 `collector_class(output_path).collect()` → when a mode failed, clear what the other modes wrote (R13) →
 `set_action_output("output-path", output_path)` → `sys.exit(1)` when a mode failed.
 
 ## Conventions
 
 - Read action inputs only through `ActionInputs`: no `get_action_input` or `os.getenv("INPUT_...")` in any other
-  module, and no environment reads in collectors or parsers. Read no `doc-issues-*` input; only the mode switch, to
-  fail the run.
+  module, and no environment reads in collectors or parsers; the runner's `GITHUB_ACTIONS` and `GITHUB_STEP_SUMMARY`
+  are read there too. Read no `doc-issues-*` input; only the mode switch, to fail the run.
 - Parse authored text only with `living_doc_utilities.authoring` (`feature_header`, `page_object`, `scenario`,
   `status`, `relations` and the rest). Add no local parser, normaliser or contract model.
 - Write an artifact only through `utils.artifact.store_artifact` (→ `write_artifact`); read one only with
@@ -50,7 +54,8 @@ normalizing or generating documentation (later pipeline steps).
 - Python 3.10 is the floor; CI runs 3.10 to 3.14. Guard 3.11+ standard-library use with a `sys.version_info`
   fallback, as the `tomllib` / `tomli` import in `utils/constants.py` does.
 - Imports at module top. Type hints on new public functions and classes.
-- `logging`, never `print`. Lazy `%` formatting in log calls (`logger.info("msg %s", value)`), no f-strings.
+- `logging`, never `print`; the one exception is `doc-check`'s report, written to stdout →
+  [doc_check/CONTEXT.md](doc_check/CONTEXT.md). Lazy `%` formatting in log calls (`logger.info("msg %s", value)`), no f-strings.
 - Module docstring: a short summary of what the module contains. Function docstring: a one-line summary, with
   `@param` / `@return` / `@raise` lines where they add information.
 - No inline linter disable or `# type: ignore` without a recorded reason.
@@ -104,6 +109,8 @@ What realises each fact of [`docs/action.md`](docs/action.md), the action's refe
 - A switch is on only when it is `true`, in any case → `action_inputs.py::ActionInputs.is_allow_partial_enabled`
 - `project-id`, `github-server-url` and an enabled mode's repositories are checked before any work → `action_inputs.py::ActionInputs._validate`
 - A disabled mode's repositories are never read → `action_inputs.py::ActionInputs._validate`
+- `doc-check` reads `doc-source-repositories` and runs alone; with another mode the run fails at start → `action_inputs.py::ActionInputs._check_doc_check_runs_alone`
+- A `doc-check` step sets no output and writes nothing under `output-path` → `main.py::run`
 - An enabled mode with no repositories warns and writes an artifact with no records → `action_inputs.py::_check_repositories`
 - The output table equals `action.yml` → `tests/docs/test_option_lists.py::test_the_output_table_equals_action_yml`
 - The `output-path` output is the input made absolute → `utils/utils.py::make_absolute_path`

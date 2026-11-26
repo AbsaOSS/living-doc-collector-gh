@@ -29,6 +29,7 @@ from living_doc_utilities.github.utils import set_action_output
 from living_doc_utilities.logging_config import setup_logging
 
 from action_inputs import ActionInputs
+from doc_check.checker import GHDocChecker
 from doc_source.collector import GHDocSourceCollector
 from ui_tests.collector import GHUITestsCollector
 from utils.artifact import clear_output_dir
@@ -57,6 +58,11 @@ def run() -> None:
     if not ActionInputs().validate_user_configuration():
         logger.info("Liv-Doc collector for GitHub - user configuration validation failed.")
         sys.exit(1)
+
+    # `doc-check` runs alone (`ActionInputs._validate`): it writes nothing under `output-path` and sets no output.
+    if ActionInputs.is_doc_check_mode_enabled():
+        _run_doc_check(logger)
+        return
 
     # Each mode writes `<output-path>/<mode>/<artifact>.json` and clears only its own `<mode>/` directory.
     output_path: str = make_absolute_path(ActionInputs.get_output_path())
@@ -116,6 +122,24 @@ def run() -> None:
     logger.info("Liv-Doc collector for GitHub - ending.")
 
     if not all_modes_success:
+        sys.exit(1)
+
+
+def _run_doc_check(logger: logging.Logger) -> None:
+    """
+    Run the `doc-check` mode and end the run: exit `1` when a finding fails or the mode failed.
+
+    @param logger: The run's logger.
+    @return: None, when no finding fails.
+    """
+    logger.info("Liv-Doc collector for GitHub - Starting the `doc-check` mode.")
+    passed = GHDocChecker().check()
+    if passed:
+        logger.info("Liv-Doc collector for GitHub - `doc-check` mode passed.")
+    else:
+        logger.info("Liv-Doc collector for GitHub - `doc-check` mode failed.")
+    logger.info("Liv-Doc collector for GitHub - ending.")
+    if not passed:
         sys.exit(1)
 
 

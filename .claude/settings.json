@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bash .claude/skills/context-md/check.sh --base origin/master)"
+      "Bash(bash .claude/skills/context-md/check.sh --base origin/master)",
+      "Bash(rtk proxy *)",
+      "Bash(awk '/^## Writing documentation/,0' DEVELOPER.md)",
+      "Bash(.venv/bin/pip show *)",
+      "Bash(.venv/bin/pytest -q tests/doc_check)"
     ]
   }
 }

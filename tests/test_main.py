@@ -605,3 +605,77 @@ def test_existing_but_empty_source_is_an_empty_source_warning_and_the_run_succee
         ("EMPTY_SOURCE", f"input='{mode}-repositories' entry=1 repository='absa-group/repo-empty'")
     ]
     assert artifact.metadata.stats.cardinality.sources_failed == 0
+
+
+# doc-check: the authored-input check over a pull request's changed paths, which writes nothing
+
+
+def _enable_doc_check(monkeypatch, repo, changed):
+    """`doc-check` over `repo`, a git checkout whose User Stories sit in `us/`, for the `changed` paths."""
+    (repo / ".git").mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("INPUT_DOC_CHECK", "true")
+    monkeypatch.setenv("INPUT_DOC_SOURCE_REPOSITORIES", json.dumps([_entry("doc-source", "aul-ui", repo / "us")]))
+    monkeypatch.setenv("INPUT_DOC_CHECK_CHANGED_PATHS", "\n".join(changed))
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+
+
+def test_doc_check_fails_the_run_on_a_failing_finding_and_writes_nothing(e2e, monkeypatch, caplog, capsys):
+    # Arrange: the changed User Story's criterion header lacks the `-` before its state.
+    repo = e2e / "repo"
+    _write(repo / "us" / "story_1.feature", US_FEATURE_TEMPLATE.format(num=1).replace("- active", "active"))
+    _enable_doc_check(monkeypatch, repo, ["us/story_1.feature"])
+    monkeypatch.setenv("INPUT_OUTPUT_PATH", str(e2e / "output"))
+
+    # Act
+    with pytest.raises(SystemExit) as exit_info:
+        run()
+
+    # Assert
+    assert exit_info.value.code == 1
+    assert "us/story_1.feature:10: MALFORMED_AC " in capsys.readouterr().out
+    assert "Liv-Doc collector for GitHub - `doc-check` mode failed." in _messages(caplog, logging.INFO)
+    assert not (e2e / "output").exists()
+    assert not (e2e / "github_output.txt").exists()
+
+
+def test_doc_check_passes_a_pull_request_with_no_living_doc_change(e2e, monkeypatch, mocker, caplog):
+    # Arrange
+    repo = e2e / "repo"
+    _write(repo / "us" / "story_1.feature", US_FEATURE_TEMPLATE.format(num=1).replace("- active", "active"))
+    _enable_doc_check(monkeypatch, repo, ["README.md"])
+    monkeypatch.setenv("INPUT_OUTPUT_PATH", str(e2e / "output"))
+    mock_doc_source_collector = mocker.patch("main.GHDocSourceCollector")
+    mock_ui_tests_collector = mocker.patch("main.GHUITestsCollector")
+
+    # Act
+    run()
+
+    # Assert
+    assert _messages(caplog, logging.INFO)[-2:] == [
+        "Liv-Doc collector for GitHub - `doc-check` mode passed.",
+        "Liv-Doc collector for GitHub - ending.",
+    ]
+    mock_doc_source_collector.assert_not_called()
+    mock_ui_tests_collector.assert_not_called()
+    assert not (e2e / "output").exists()
+
+
+def test_doc_check_with_another_mode_fails_at_start(e2e, monkeypatch, caplog):
+    # Arrange
+    repo = e2e / "repo"
+    _write_story(repo / "us", 1)
+    _enable_doc_check(monkeypatch, repo, ["us/story_1.feature"])
+    monkeypatch.setenv("INPUT_DOC_SOURCE", "true")
+    monkeypatch.setenv("INPUT_OUTPUT_PATH", str(e2e / "output"))
+
+    # Act
+    with pytest.raises(SystemExit) as exit_info:
+        run()
+
+    # Assert
+    assert exit_info.value.code == 1
+    assert _messages(caplog, logging.ERROR) == [
+        "[INVALID_CONFIGURATION] `doc-check` runs alone, but `doc-source` is also `true`; run each in a step of its own.",
+        "User configuration validation failed.",
+    ]
+    assert not (e2e / "output").exists()

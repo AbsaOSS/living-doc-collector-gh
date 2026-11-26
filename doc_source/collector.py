@@ -113,6 +113,45 @@ def _read(file_path: Path) -> Optional[str]:
         return None
 
 
+@dataclass(frozen=True)
+class SourceFile:
+    """One authored file of a configured repository: where it is, the configured directories it was discovered
+    under, the entity type its path list gives it, and its text."""
+
+    path: Path
+    scan_roots: list[str]
+    entity_type: DocType
+    text: str
+
+
+def read_source_files(config: ConfigRepository) -> list[SourceFile]:
+    """
+    Read every authored file of one configured repository, as the `doc-source` mode reads them: User Story, then
+    Functionality `.feature` files, then the PageObject files with a living-doc header. Every configured path is
+    discovered first, so a missing one fails before any file is read; an unreadable file is logged and skipped.
+
+    @param config: The repository entry.
+    @return: The files, in that order.
+    @raise ContractError: `SOURCE_UNAVAILABLE` when a configured path is missing.
+    """
+    discovered: list[tuple[list[Path], list[str], DocType]] = [
+        (discover_feature_files(config.paths), config.paths, "DocumentedUserStory"),
+        (discover_feature_files(config.func_paths), config.func_paths, "DocumentedFunctionality"),
+        (discover_ts_files(config.pages_paths), config.pages_paths, "DocumentedFeature"),
+    ]
+    files: list[SourceFile] = []
+    for file_paths, scan_roots, entity_type in discovered:
+        for file_path in file_paths:
+            text = _read(file_path)
+            if text is None:
+                continue
+            if entity_type == "DocumentedFeature" and not _has_living_doc_header(text):
+                logger.debug("No living-doc header in `%s` - not a PageObject header, skipping.", file_path)
+                continue
+            files.append(SourceFile(file_path, scan_roots, entity_type, text))
+    return files
+
+
 # pylint: disable=too-few-public-methods
 class GHDocSourceCollector:
     """
@@ -201,16 +240,13 @@ class GHDocSourceCollector:
         @return: The count of entity headers the source answered with, kept or skipped.
         @raise ContractError: `SOURCE_UNAVAILABLE` when a configured path is missing.
         """
-        us_files = discover_feature_files(config.paths)
-        func_files = discover_feature_files(config.func_paths)
-        page_files = discover_ts_files(config.pages_paths)
+        files = read_source_files(config)
         answered_before = collected.answered()
-        for file_path in us_files:
-            self._collect_feature_file(collected, repository, file_path, config.paths, "DocumentedUserStory")
-        for file_path in func_files:
-            self._collect_feature_file(collected, repository, file_path, config.func_paths, "DocumentedFunctionality")
-        for file_path in page_files:
-            self._collect_page_object(collected, repository, file_path, config.pages_paths)
+        for file in files:
+            if file.entity_type == "DocumentedFeature":
+                self._collect_page_object(collected, repository, file)
+            else:
+                self._collect_feature_file(collected, repository, file)
         return collected.answered() - answered_before
 
     @staticmethod
@@ -295,42 +331,26 @@ class GHDocSourceCollector:
         collected.entities.append(entity)
         collected.sources[entity.entity_id] = (source_ref, rel_path)
 
-    def _collect_feature_file(
-        self,
-        collected: _Collected,
-        repository: SourceRepository,
-        file_path: Path,
-        scan_roots: list[str],
-        entity_type: DocType,
-    ) -> None:
+    def _collect_feature_file(self, collected: _Collected, repository: SourceRepository, file: SourceFile) -> None:
         """Parse one User Story or Functionality `.feature` file's header."""
-        text = _read(file_path)
-        if text is None:
-            return
-        entity, warnings = parse_feature_header(text, entity_type)
-        self._add_entity(collected, entity, warnings, (repository, file_path, scan_roots, FEATURE_FILE_NATIVE_TYPE))
+        entity, warnings = parse_feature_header(file.text, file.entity_type)
+        self._add_entity(
+            collected, entity, warnings, (repository, file.path, file.scan_roots, FEATURE_FILE_NATIVE_TYPE)
+        )
 
-    def _collect_page_object(
-        self, collected: _Collected, repository: SourceRepository, file_path: Path, scan_roots: list[str]
-    ) -> None:
+    def _collect_page_object(self, collected: _Collected, repository: SourceRepository, file: SourceFile) -> None:
         """Parse one TypeScript PageObject file's header: a full header is a Feature, a cross-reference header
-        is one more page of its parent Feature. A `.ts` file with no header comment is code, not documentation."""
-        text = _read(file_path)
-        if text is None:
-            return
-        if not _has_living_doc_header(text):
-            logger.debug("No living-doc header in `%s` - not a PageObject header, skipping.", file_path)
-            return
+        is one more page of its parent Feature."""
         result: Optional[PageObjectResult]
-        result, warnings = parse_page_object(text)
+        result, warnings = parse_page_object(file.text)
         if result is not None and result.entity is None:
-            rel_path = relative_path(file_path, scan_roots)
-            url = file_url(repository, file_path)
+            rel_path = relative_path(file.path, file.scan_roots)
+            url = file_url(repository, file.path)
             collected.warnings.extend(with_path(warnings, rel_path, url))
             collected.cross_references.append((result.parent_feat or "", result.page_ref, rel_path, url))
             return
         entity = None if result is None else result.entity
-        self._add_entity(collected, entity, warnings, (repository, file_path, scan_roots, PAGE_OBJECT_NATIVE_TYPE))
+        self._add_entity(collected, entity, warnings, (repository, file.path, file.scan_roots, PAGE_OBJECT_NATIVE_TYPE))
 
     @staticmethod
     def _attach_cross_references(collected: _Collected) -> None:

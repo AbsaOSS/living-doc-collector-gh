@@ -24,6 +24,7 @@ What realises each fact of [README.md](README.md), the mode's page:
 - One check of the two names for both modes → `utils/utils.py::check_repository_names`
 - A missing configured path fails its whole source → `utils/feature_file_discovery.py::discover_feature_files`
 - Discovery is recursive → `utils/feature_file_discovery.py::discover_ts_files`
+- Every configured path is discovered before any file is read → `doc_source/collector.py::read_source_files`
 - `.feature` files under a `tutorial*` directory are skipped → `utils/feature_file_discovery.py::_is_under_tutorial_dir`
 - A `.feature` file with no living-doc header is `MISSING_ENTITY_ID`, not emitted → `doc_source/collector.py::GHDocSourceCollector._add_entity`
 - A `.ts` file with no `LIVING DOC` text is skipped silently → `doc_source/collector.py::_has_living_doc_header`
@@ -48,3 +49,8 @@ What realises each fact of [README.md](README.md), the mode's page:
 - `MISSING_STATUS` and `STATUS_AC_MISMATCH` carry the entity's file in `path` → `utils/artifact.py::with_entity_paths`
 - A dropped cross-reference page's `UNRESOLVED_RELATION` carries `path` and `context` → `doc_source/collector.py::GHDocSourceCollector._attach_cross_references`
 - `derive_statuses` and `check_relations` run once per run over all sources → `doc_source/collector.py::GHDocSourceCollector.build_result`
+
+## Invariants and gotchas
+
+- `read_source_files` is also the `doc-check` mode's reader, so the two modes can never read different files: a
+  change to the path lists, discovery or the skips there changes both → [doc_check/CONTEXT.md](../doc_check/CONTEXT.md)

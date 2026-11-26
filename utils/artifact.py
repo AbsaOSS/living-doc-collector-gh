@@ -131,7 +131,7 @@ def relative_path(file_path: Path, scan_roots: list[str]) -> str:
     return file_path.name
 
 
-def _repository_path(file_path: Path, repo_root: Path) -> str:
+def repository_path(file_path: Path, repo_root: Path) -> str:
     """The file's `/`-separated path from its repository root."""
     return file_path.resolve().relative_to(repo_root).as_posix()
 
@@ -156,7 +156,7 @@ def file_url(repository: SourceRepository, file_path: Path) -> Optional[str]:
         repository.organization_name,
         repository.repository_name,
         sha,
-        _repository_path(file_path, root),
+        repository_path(file_path, root),
     )
 
 
@@ -178,7 +178,7 @@ def build_source_ref(
     @return: The source_ref and any warning raised while building it.
     """
     root = find_repo_root(file_path)
-    native_id = relative_path(file_path, scan_roots) if root is None else _repository_path(file_path, root)
+    native_id = relative_path(file_path, scan_roots) if root is None else repository_path(file_path, root)
     url = file_url(repository, file_path)
     warnings: list[ContractWarning] = []
     if url is None:

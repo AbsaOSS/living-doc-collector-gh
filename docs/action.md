@@ -5,7 +5,7 @@
 This page is the action's full reference: what the runner needs, every input, the output and its layout, the
 run-level errors, and the contracts the action writes.
 
-Read before: [README](../README.md) · Next: [Documentation Source mode](../doc_source/README.md), [UI Tests mode](../ui_tests/README.md)
+Read before: [README](../README.md) · Next: [Documentation Source mode](../doc_source/README.md), [UI Tests mode](../ui_tests/README.md), [Documentation Check mode](../doc_check/README.md)
 
 ## Contents
 
@@ -20,7 +20,7 @@ Read before: [README](../README.md) · Next: [Documentation Source mode](../doc_
 ## Prerequisites
 
 - Every repository a mode reads is checked out (`actions/checkout`) earlier in the job; the action never clones or fetches
-- The `doc-source` and `ui-tests` modes read those checkouts only: they call no GitHub API and need no token
+- The modes read those checkouts only: they call no GitHub API and need no token
 - Python 3.10 or later is on `PATH` as `python3`, or as `python` when there is no `python3`
 - A `python3` older than 3.10 fails the step with a one-line error, even if another name on `PATH` would do
 - The action brings its own venv: it creates one under `$RUNNER_TEMP`, installs its requirements there, and runs with that interpreter
@@ -43,7 +43,7 @@ Every input `action.yml` declares, in its order; a test keeps this table equal t
 | `output-path` | no | `./output/collector-gh` | The output root; each mode writes and clears only `<output-path>/<mode>/` ([Output layout](#output-layout)) |
 | `allow-partial` | no | `false` | `false`: any failed source fails its mode, and with it the run. `true`: the mode writes without a failed source and records one `SOURCE_UNAVAILABLE` warning for it; it still fails if every source failed |
 | `github-server-url` | no | `https://github.com` | The GitHub server the configured repositories live on, used only to build the `source_ref.url` and warning `source_url` permalinks ([GitHub Enterprise Server](#github-enterprise-server)) |
-| `github-token` | no | `''` | Unused: the `doc-source` and `ui-tests` modes read local checkouts and make no GitHub API call |
+| `github-token` | no | `''` | Unused: the modes read local checkouts and make no GitHub API call |
 | `doc-issues` | no | `false` | PLANNED: the Documentation Issues mode is not available in this version; `true` fails the run at start ([Documentation Issues](../doc_issues/README.md)) |
 | `verbose-logging` | no | `false` | `true` turns on verbose (debug) logging |
 | `doc-issues-repositories` | no | `[]` | PLANNED: not read in this version |
@@ -52,11 +52,14 @@ Every input `action.yml` declares, in its order; a test keeps this table equal t
 | `doc-source-repositories` | no | `[]` | The Documentation Source mode's sources, a JSON array ([repository entry](../doc_source/README.md#repository-entry)) |
 | `ui-tests` | no | `false` | `true` runs the UI Tests mode |
 | `ui-tests-repositories` | no | `[]` | The UI Tests mode's sources, a JSON array ([repository entry](../ui_tests/README.md#repository-entry)) |
+| `doc-check` | no | `false` | `true` runs the Documentation Check mode over `doc-source-repositories`; it runs alone and writes nothing ([Documentation Check](../doc_check/README.md)) |
+| `doc-check-changed-paths` | no | `''` | The pull request's changed paths, one per line, as `git diff --name-only` prints them ([Changed paths](../doc_check/README.md#changed-paths)) |
 
 - A switch is on only when it is `true`, in any case; any other value, an empty one included, leaves it off and is not reported
-  - The switches: `doc-source`, `ui-tests`, `doc-issues`, `allow-partial`, `verbose-logging`.
+  - The switches: `doc-source`, `ui-tests`, `doc-check`, `doc-issues`, `allow-partial`, `verbose-logging`.
 - `project-id`, `github-server-url` and an enabled mode's `*-repositories` are checked before any work; a bad one is `INVALID_CONFIGURATION` ([Errors](#errors))
 - A disabled mode's repositories are never read, so a malformed one cannot fail the run
+- `doc-check` reads `doc-source-repositories`, and runs alone: with `doc-source` or `ui-tests` also `true`, the run fails at start
 - An enabled mode with an empty repository list logs a warning and writes an artifact with no records
 
 A step with every base input set; the mode switches take their sources from the mode pages:
@@ -84,6 +87,7 @@ Every output `action.yml` declares; a test keeps this table equal to it.
 | `output-path` | The resolved, absolute output root: the `output-path` input made absolute |
 
 - The input is made absolute against the working directory of the step
+- A `doc-check` step sets no output: it writes nothing
 
 ```yaml
 - name: Show where the collector wrote
@@ -100,6 +104,7 @@ Each enabled mode writes one artifact under the root.
 | `ui-tests` | `output/collector-gh/ui-tests/ui-tests.json` |
 
 - The mode directories are `doc-source` and `ui-tests`
+- `doc-check` writes no artifact and touches nothing under `output-path`
 - A mode creates its directory and replaces it on every run, so any previous content there is removed
 - A mode clears only its own `<output-path>/<mode>/`; nothing else under `output-path` is touched
   - Why: two collectors, or two runs with different `output-path`, in one tree never touch each other's files.
@@ -117,6 +122,7 @@ Each configured repository entry is one **source**, collected on its own.
 |---|---|---|
 | `project-id` missing or malformed; `github-server-url` not an http(s) URL; an enabled mode's `*-repositories` input not a JSON array, or an entry with a missing key or an invalid value | `INVALID_CONFIGURATION` (error) | The run fails at start, before any work: the log names the input, the entry and the reason; no file is written; exit `1` |
 | `doc-issues: true` | `INVALID_CONFIGURATION` (error) | The run fails at start ([Documentation Issues](../doc_issues/README.md)); exit `1` |
+| `doc-check: true` with `doc-source` or `ui-tests` also `true` | `INVALID_CONFIGURATION` (error) | The run fails at start, naming the other modes; exit `1` |
 | A configured path of a source does not exist | `SOURCE_UNAVAILABLE` (error) | Default: every source is still tried, then the mode fails; the log names each failed source; the run writes no file; exit `1`. With `allow-partial: true`: one warning per failed source, and the mode writes without it; it still fails if every source failed |
 | A source yields nothing: no entity header (`doc-source`) or scenario (`ui-tests`) is read from it, kept or skipped | `EMPTY_SOURCE` (warning) | Reported in `warnings[]`; the run succeeds |
 | A source file is outside a git checkout, or its checkout has no resolvable commit | `NO_SOURCE_URL` (warning) | `source_ref.url` is `""`, and the file's warnings carry no `source_url` |
@@ -129,6 +135,7 @@ Each configured repository entry is one **source**, collected on its own.
 - `metadata.source.repositories` lists only the repositories the artifact documents
   - A repository whose every entry failed is not listed, and stays visible through its `SOURCE_UNAVAILABLE` warning.
 - Mode-specific warnings → [Documentation Source](../doc_source/README.md#errors), [UI Tests](../ui_tests/README.md#errors)
+- `doc-check` fails the step on its findings, not on these rules → [Documentation Check](../doc_check/README.md#errors)
 
 ## Contracts
 

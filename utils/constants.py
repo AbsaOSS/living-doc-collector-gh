@@ -71,6 +71,9 @@ DOC_ISSUES_REPOSITORIES = "DOC_ISSUES_REPOSITORIES"
 DOC_SOURCE_REPOSITORIES = "DOC_SOURCE_REPOSITORIES"
 UI_TESTS_REPOSITORIES = "UI_TESTS_REPOSITORIES"
 
+# doc-check mode Action input: the pull request's changed paths, one per line
+DOC_CHECK_CHANGED_PATHS = "DOC_CHECK_CHANGED_PATHS"
+
 # Supported issue labels
 DOC_USER_STORY_LABEL = "DocumentedUserStory"
 DOC_FEATURE_LABEL = "DocumentedFeature"
@@ -83,6 +86,7 @@ class Mode(Enum):
     DOC_ISSUES = "DOC_ISSUES"
     DOC_SOURCE = "DOC_SOURCE"
     UI_TESTS = "UI_TESTS"
+    DOC_CHECK = "DOC_CHECK"
 
 
 # Regime output directories, under `output-path`

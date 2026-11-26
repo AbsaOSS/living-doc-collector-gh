@@ -39,6 +39,7 @@ APPROVED_PAGES: dict[str, int] = {
     "docs/action.md": 2,
     "doc_source/README.md": 2,
     "ui_tests/README.md": 2,
+    "doc_check/README.md": 2,
     "doc_issues/README.md": 2,
 }
 
@@ -48,6 +49,7 @@ CODE_MAPS: dict[str, str] = {
     "docs/action.md": "CONTEXT.md",
     "doc_source/README.md": "doc_source/CONTEXT.md",
     "ui_tests/README.md": "ui_tests/CONTEXT.md",
+    "doc_check/README.md": "doc_check/CONTEXT.md",
     "doc_issues/README.md": "doc_issues/CONTEXT.md",
 }
 # The one page that may carry anchors: its readers work in the Makefile, the workflows and the scripts.
