@@ -36,7 +36,6 @@ _NOT_A_FEATURE_FIELD = "a Feature-only field (PageObject header); this record ty
 _NOT_A_FUNCTIONALITY_FIELD = "a Functionality-only field; this record type never carries it"
 _NOT_A_US_FIELD = "a User Story-only field; this record type never carries it"
 _NO_CRITERIA_ON_FEATURE = "a Feature owns no acceptance criteria and has no preconditions/not_in_scope keys"
-_NO_DESCRIPTION_KEY = "the canon .feature header has no description key; the parser leaves `narrative` unset"
 
 # Field (relative to the record, prefix match) -> reason, per record root.
 _COMMON = {
@@ -64,13 +63,11 @@ _NOT_PRODUCED_BY_ROOT = {
     "user_stories": {
         **_COMMON,
         **_FEATURE_ONLY,
-        "narrative": _NO_DESCRIPTION_KEY,
         **{field: _NOT_A_FUNCTIONALITY_FIELD for field in ("parent", "func_type", "rationale")},
     },
     "functionalities": {
         **_COMMON,
         **_FEATURE_ONLY,
-        "narrative": _NO_DESCRIPTION_KEY,
         "business_value[]": _NOT_A_US_FIELD,
     },
     "features": {

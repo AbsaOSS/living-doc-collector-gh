@@ -87,6 +87,7 @@ What this mode fills in the contract:
 - **`metadata.stats.cardinality`**: `sources_configured` and `sources_failed` as in [Errors](../docs/action.md#errors); `entities_skipped` counts entities not emitted (no parseable entity id, an id already collected, or rejected by the contract); `unresolved_refs` counts `UNRESOLVED_RELATION` warnings.
 - **`source_ref`**: `system: GitHub`; `native_id` is repository-root-relative inside Git and scan-root-relative outside Git; `native_type` is `feature-file` or `page-object`; `url` is the file's permalink at its checkout's commit, `<github-server-url>/<org>/<repo>/blob/<git rev-parse HEAD>/<native_id>`; `tracker_state` is `committed`
   - Outside a Git checkout, `url` is empty and `NO_SOURCE_URL` is emitted.
+- **`narrative`** of a User Story or a Functionality: the description under the file's `Feature:` line, as the feature-header parser reads it → [The description under `Feature:`](https://github.com/AbsaOSS/living-doc-utilities/blob/master/docs/authoring/parsers.md#the-description-under-feature)
 - **`tags`** and **`timestamps`**: always empty; a source file carries no labels and no created, updated or closed time.
 - **`pages`**: a cross-reference PageObject header (`parent-feat:`) adds its page to its Feature
 

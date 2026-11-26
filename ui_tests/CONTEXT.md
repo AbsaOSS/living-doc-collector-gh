@@ -28,6 +28,9 @@ What realises each fact of [README.md](README.md), the mode's page:
 - `scenario_id` is `<org>/<repo>/<native_id>/<title slug>` → `ui_tests/collector.py::GHUITestsCollector._collect_file`
 - The slug, `-2`, `-3` for a repeat within a file, `scenario` for a title with no ASCII letter or digit → `ui_tests/collector.py::_slugify`
 - `source_ref`, its permalink and `NO_SOURCE_URL` → `utils/artifact.py::build_source_ref`
+- `line`, `steps`, `rule`, `rule_background` and `background` pass through from the parser → `ui_tests/collector.py::GHUITestsCollector._collect_file`
+- `line` locates the scenario in the file `source_ref.url` points at → `tests/ui_tests/test_golden_scenarios.py::test_source_ref_url_still_points_at_the_file_and_line_locates_the_scenario`
+- A DataTable, a DocString, a `Rule:` with its own `Background:` and two `Examples:` blocks → `tests/ui_tests/test_golden_scenarios.py::test_golden_scenarios_come_through_the_collector_unchanged_except_id_and_source_ref`
 - A path with no matching files logs a warning → `utils/feature_file_discovery.py::discover_feature_files`
 - An unreadable file is logged and skipped → `ui_tests/collector.py::GHUITestsCollector._collect_file`
 - A malformed `@AC:` tag: `MALFORMED_AC`, the scenario kept → `ui_tests/collector.py::GHUITestsCollector._collect_file`

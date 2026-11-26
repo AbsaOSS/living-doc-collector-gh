@@ -229,11 +229,17 @@ class GHUITestsCollector:
                     )
                 )
                 continue
+            # The parser's fields pass through as it returns them: the collector records, it computes nothing.
             scenarios[scenario_id] = Scenario(
                 scenario_id=scenario_id,
                 title=parsed.title,
                 source_ref=source_ref,
                 tags=parsed.tags,
+                line=parsed.line,
+                rule=parsed.rule,
+                rule_background=parsed.rule_background,
+                steps=parsed.steps,
+                background=parsed.background,
                 acceptance_criteria=parsed.acceptance_criteria,
             )
         return len(parsed_scenarios)

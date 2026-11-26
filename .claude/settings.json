@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk read *)",
+      "Bash(rtk grep *)",
+      "Bash(bash .claude/skills/context-md/check.sh --base origin/master)",
+      "Bash(rtk git *)",
+      "Bash(rtk ls *)"
+    ]
+  }
+}
