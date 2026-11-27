@@ -32,7 +32,7 @@ The mode mines living documentation from local checkouts and writes one `doc-sou
 ```yaml
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
-  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.3.0
   with:
     project-id: aul
     doc-source: true

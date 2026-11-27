@@ -41,7 +41,7 @@ One step that runs both modes over a repository checked out earlier in the job:
 ```yaml
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
-  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.3.0
   with:
     project-id: your-project
     doc-source: true

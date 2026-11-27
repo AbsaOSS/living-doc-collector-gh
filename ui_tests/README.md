@@ -29,7 +29,7 @@ The mode mines scenario blocks from `.feature` files in local checkouts and writ
 ```yaml
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
-  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.3.0
   with:
     project-id: aul
     ui-tests: true                         # ui-tests mode de/activation
