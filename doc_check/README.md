@@ -44,7 +44,7 @@ A pull-request job that checks out the repository with its history, lists the ch
   run: |
     { echo 'paths<<EOF'; git diff --name-only "$BASE...HEAD"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
 - name: Check the changed living-doc files
-  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.3.0
   with:
     project-id: aul
     doc-check: true

@@ -67,7 +67,7 @@ A step with every base input set; the mode switches take their sources from the 
 ```yaml
 - name: Living Documentation Collector for GitHub
   id: living_doc_collector_gh
-  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.3.0
   with:
     project-id: your-project               # required: written to every artifact's metadata.source.project_id
     output-path: ./output/collector-gh     # the default
@@ -152,7 +152,7 @@ Each configured repository entry is one **source**, collected on its own.
 
 ```yaml
 - name: Living Documentation Collector for GitHub
-  uses: AbsaOSS/living-doc-collector-gh@v0.2.0
+  uses: AbsaOSS/living-doc-collector-gh@v0.3.0
   with:
     project-id: your-project
     github-server-url: ${{ github.server_url }}

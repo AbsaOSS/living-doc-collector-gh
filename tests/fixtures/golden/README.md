@@ -1,7 +1,7 @@
 # Golden entities
 
-Copied verbatim from `AbsaOSS/living-doc-utilities` `tests/fixtures/golden/` at tag `v0.9.0rc2`
-(commit `e8140793452a599a9106b0f3ecdae18c7acb9ed7`). Do not edit here: re-copy from the `utilities`
+Copied verbatim from `AbsaOSS/living-doc-utilities` `tests/fixtures/golden/` at tag `v0.9.0`
+(commit `7a6fb9f36dd24f8593224c14bef1058dd09c7ea6`). Do not edit here: re-copy from the `utilities`
 tag this repository pins.
 
 - `gherkin/liv_doc_*/` and `pageobject/` are the source-code inputs; `tests/doc_source/test_golden_entities.py`
